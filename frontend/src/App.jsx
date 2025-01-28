@@ -1,15 +1,16 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import React from 'react';
 import './App.css'
+import { Routes } from 'react-router-dom';
+import Navbar from '../components/Navbar';
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-    </>
+    <div className='px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'>
+      <Navbar/>
+      <Routes>
+
+      </Routes>
+    </div> 
   );
 }
 
