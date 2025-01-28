@@ -24,5 +24,9 @@ dist-ssr
 *.sw?
 
 # Environment variables
+.env
 backend/.env
-backend/.env.local
+
+#Keep environment examples
+!.env.local
+!backend/.env.local
