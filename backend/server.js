@@ -1,9 +1,11 @@
 import express from 'express'
 import cors from 'cors'
+import connectDB from './config/database';
 
 //App config
 const app = express();
 const port = process.env.PORT || 5000
+connectDB()
 
 //middlewares
 app.use(express.json())
