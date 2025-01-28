@@ -6,7 +6,7 @@ const connectDB = async () => {
         console.log("MongoDB connected!");
     })
 
-    await mongoose.connect(`${process.env.MONGODB_URI}/`)
+    await mongoose.connect(`${process.env.MONGODB_URI}/DreamWorks`)
 }
 
 export default connectDB;
