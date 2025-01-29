@@ -8,23 +8,23 @@ const Navbar = () => {
         <div className="container mx-auto flex justify-between items-center py-4 px-6 md:px-20 lg:px- w-full">
           <img src="src/assets/web_logo.png" alt="logo" className="w-24" />
           <ul className="hidden md:flex gap-7 text-white ">
-            <NavLink to="/" className="flex flex-col items-center gap">
+            <NavLink to="/" className="flex flex-col items-center gap-1">
               <p>Home</p>
               <hr className="w-3/4 border-none h-[2.5px] bg-amber-600 hidden" />
             </NavLink>
-            <NavLink to="/aboutUs" className="flex flex-col items-center gap-3">
+            <NavLink to="/aboutUs" className="flex flex-col items-center gap-1">
               <p>About us</p>
               <hr className="w-3/4 border-none h-[2.5px] bg-amber-600 hidden" />
             </NavLink>
-            <NavLink to="/gallery" className="flex flex-col items-center gap-3">
+            <NavLink to="/gallery" className="flex flex-col items-center gap-1">
               <p>Gallery</p>
               <hr className="w-3/4 border-none h-[2.5px] bg-amber-600 hidden" />
             </NavLink>
-            <NavLink to="/contact" className="flex flex-col items-center gap-3">
+            <NavLink to="/contact" className="flex flex-col items-center gap-1">
               <p>Contact Us</p>
               <hr className="w-3/4 border-none h-[2.5px] bg-amber-600 hidden" />
             </NavLink>
-            <NavLink to="/shop" className="flex flex-col items-center gap-3">
+            <NavLink to="/shop" className="flex flex-col items-center gap-1">
               <p>Shop Now</p>
               <hr className="w-3/4 border-none h-[2.5px] bg-amber-600 hidden" />
             </NavLink>
