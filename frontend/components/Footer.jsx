@@ -3,8 +3,8 @@ import { FaFacebook, FaInstagram, FaWhatsapp } from "react-icons/fa";
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-950 px-4 md:px-16 lg:px-28 py-6 text-white">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+    <footer className="bg-gray-950 px-4 md:px-16 lg:px-28 text-white">
+      <div className=" w-full grid grid-cols-1 md:grid-cols-3 gap-10">
         <div>
         <img 
             src="/src/assets/web_logo.png" 
@@ -13,7 +13,7 @@ const Footer = () => {
           />
         </div>
         <div>
-        <h2 className="text-lg font-bold mb-4">Contact Us</h2>
+        <h2 className="text-lg font-bold mb-4 ">Contact Us</h2>
         <p className="text-gray-300">
             <strong>Address:</strong>  DreamWork Studio,Yampanwatta, 2nd Lane, Badulla
             <br />
