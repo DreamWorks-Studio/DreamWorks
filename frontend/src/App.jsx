@@ -5,8 +5,8 @@ import Navbar from '../components/Navbar';
 
 function App() {
   return (
-    <div className='px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]'>
-      <Navbar/>
+    <div className='min-h-screen flex flex-col'>
+      <Navbar className='w-full bg-black'/>
       <Routes>
 
       </Routes>
