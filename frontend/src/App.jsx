@@ -1,9 +1,9 @@
 import React from 'react'
 import Header from './components/Header'
-import About from './components/About'
-import Contact from './components/Contact'
 import Footer from './components/Footer'
 import ScrollUp from './components/ScrollUp'
+import About from '../pages/About'
+import Contact from '../pages/Contact'
 
 const App = () => {
   return (
