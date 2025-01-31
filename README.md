@@ -16,7 +16,6 @@ DreamWork Studio is a cutting-edge platform built using the MERN stack, designed
 - **MongoDB & Mongoose** – NoSQL Database
 - **JWT & Bcrypt.js** – Authentication & security
 - **Cloudinary** – Image storage
-- **Socket.io** – Real-time collaboration
 
 ## 🎯 Features
 ✅ User authentication & authorization (JWT-based)  
