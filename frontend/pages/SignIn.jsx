@@ -109,7 +109,7 @@ const SignIn = () => {
           
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-400">
-              Don't have an account? <a href="#" className="font-medium text-amber-500 hover:text-amber-400">Sign up</a>
+              Don't have an account? <a href="sign-up" className="font-medium text-amber-500 hover:text-amber-400">Sign up</a>
             </p>
           </div>
         </div>
