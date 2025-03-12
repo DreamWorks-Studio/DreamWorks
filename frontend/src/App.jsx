@@ -1,19 +1,24 @@
 import React from 'react'
-import Header from '/components/Header'
-import Footer from '/components/Footer'
-import ScrollUp from '/components/ScrollUp'
-import About from '/pages/About'
-import Contact from '/pages/Contact'
+
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import Header from '../components/Header'
+import Contact from '../pages/Contact'
+import ScrollUp from '../components/ScrollUp'
+import Footer from '../components/Footer'
 
 const App = () => {
   return (
+    <BrowserRouter>
     <div className='w-full overflow-hidden'>
-      <Header/>
-      <About/>
-      <Contact/>
-      <Footer/>
-      <ScrollUp/>
+    <Routes>
+      <Route path='/' element={<Header/>}/>
+      <Route path='/contact' element={<Contact />}/>
+    </Routes>
+    <ScrollUp/>
+    <Footer/>
     </div>
+    </BrowserRouter>
+    
   )
 }
 
