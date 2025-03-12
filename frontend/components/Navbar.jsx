@@ -30,10 +30,10 @@ const navbarColor = location.pathname === '/' ? 'bg-transparent' : 'bg-black';
           
           <Link to='/gallery' className=' text-white hover:text-amber-500'>Gallery</Link>
           {/*<a href='#Gallery' className=' text-white hover:text-amber-500'>Gallery</a>*/}
-          <Link to="/contact" className=' text-white hover:text-amber-500'>Contact</Link>
+          <Link to="/Contact" className=' text-white hover:text-amber-500'>Contact</Link>
         </ul>
-        <Link to="/signup" className='hidden md:block bg-transparent text-amber-500 hover:text-white px-5 py-2
-        border-2 border-amber-500 hover:border-white rounded-full'>SignUp</Link>
+        { <Link to="/sign-up" className='hidden md:block bg-transparent text-amber-500 hover:text-white px-5 py-2
+        border-2 border-amber-500 hover:border-white rounded-full'>SignUp</Link> }
 
         <FaAlignRight onClick={()=> setShowMobileMenu(true)} 
         className='md:hidden h-10 w-10 cursor-pointer text-white fixed top-11 right-10 p-2 rounded-2xl bg-amber-600
