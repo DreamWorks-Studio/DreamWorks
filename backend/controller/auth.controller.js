@@ -1,6 +1,7 @@
 import User from '../model/user.model.js'
 import bcrypt from 'bcryptjs'
 import { errorHandler } from '../utils/error.js';
+import booking from '../model/booking.model.js';
 
 export const signup = async (req,res,next) =>{
 
@@ -15,3 +16,4 @@ export const signup = async (req,res,next) =>{
   }
   
 }
+
