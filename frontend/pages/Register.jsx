@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
-  const navigate = useNavigate;
+  
+  const [loading , setLoading] = useState(false);
+  const navigate  = useNavigate()
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -31,40 +33,40 @@ const Register = () => {
     };
     let isValid = true;
 
-  //   // Email validation
-  //   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  //   if (!emailRegex.test(formData.email) && formData.email !== '') {
-  //     newErrors.email = 'Please enter a valid email address';
-  //     isValid = false;
-  //   }
+        
+        const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+        if (!emailRegex.test(formData.email) && formData.email !== '') {
+        newErrors.email = 'Please enter a valid email address';
+       isValid = false;
+       }
 
-  //   // Password validation
-  //   if (formData.password.length > 0 && formData.password.length < 8) {
-  //     newErrors.password = 'Password must be at least 8 characters long';
-  //     isValid = false;
-  //   } else if (formData.password.length > 0) {
-  //     const hasUpperCase = /[A-Z]/.test(formData.password);
-  //     const hasLowerCase = /[a-z]/.test(formData.password);
-  //     const hasNumber = /[0-9]/.test(formData.password);
-  //     const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(formData.password);
+       
+       if (formData.password.length > 0 && formData.password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters long';
+        isValid = false;
+       } else if (formData.password.length > 0) {
+        const hasUpperCase = /[A-Z]/.test(formData.password);
+        const hasLowerCase = /[a-z]/.test(formData.password);
+        const hasNumber = /[0-9]/.test(formData.password);
+        const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(formData.password);
 
-  //     if (!(hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar)) {
-  //       newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
-  //       isValid = false;
-  //     }
-  //   }
+        if (!(hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar)) {
+          newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
+          isValid = false;
+        }
+      }
 
-  //   // Confirm password validation
-  //   if (formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword) {
-  //     newErrors.confirmPassword = 'Passwords do not match';
-  //     isValid = false;
-  //   }
+       
+      if (formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword) {
+        newErrors.confirmPassword = 'Passwords do not match';
+        isValid = false;
+      }
 
-  //   // Check if all required fields are filled
-  //   const allFieldsFilled = Object.values(formData).every(val => val.trim() !== '');
+     
+     const allFieldsFilled = Object.values(formData).every(val => val.trim() !== '');
     
-  //   setErrors(newErrors);
-  //   setIsFormValid(isValid && allFieldsFilled);
+    setErrors(newErrors);
+    setIsFormValid(isValid && allFieldsFilled);
    };
 
   const handleChange = (e) => {
@@ -78,7 +80,7 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+    setLoading(true)
     
     validateForm();
     
@@ -95,11 +97,12 @@ const Register = () => {
         
         const data = await res.json();
         console.log('Form submitted:', data);
-        navigate("/signin")
+        navigate("/sign-in");``
 
         
       } catch (error) {
-        console.error('Error submitting form:', error);
+        setLoading(false)
+       
       }
     } else {
       console.log('Form has errors, cannot submit');
@@ -212,9 +215,9 @@ const Register = () => {
               <button
                 type="submit"
                 className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white ${isFormValid ? 'bg-amber-700 hover:bg-amber-600' : 'bg-amber-900 cursor-not-allowed'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out`}
-                disabled={!isFormValid}
+                disabled={loading}
               >
-                <span>Create Account</span>
+                <span>{loading ? 'loading....' :'Create Account'}</span>
                 <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
