@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -7,6 +7,63 @@ const Register = () => {
     password: '',
     confirmPassword: ''
   });
+
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const [isFormValid, setIsFormValid] = useState(false);
+
+  // Validate form on data change
+  useEffect(() => {
+    validateForm();
+  }, [formData]);
+
+  const validateForm = () => {
+    const newErrors = {
+      email: '',
+      password: '',
+      confirmPassword: ''
+    };
+    let isValid = true;
+
+    // Email validation
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(formData.email) && formData.email !== '') {
+      newErrors.email = 'Please enter a valid email address';
+      isValid = false;
+    }
+
+    // Password validation
+    if (formData.password.length > 0 && formData.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters long';
+      isValid = false;
+    } else if (formData.password.length > 0) {
+      const hasUpperCase = /[A-Z]/.test(formData.password);
+      const hasLowerCase = /[a-z]/.test(formData.password);
+      const hasNumber = /[0-9]/.test(formData.password);
+      const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(formData.password);
+
+      if (!(hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar)) {
+        newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
+        isValid = false;
+      }
+    }
+
+    // Confirm password validation
+    if (formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = 'Passwords do not match';
+      isValid = false;
+    }
+
+    // Check if all required fields are filled
+    const allFieldsFilled = Object.values(formData).every(val => val.trim() !== '');
+    
+    setErrors(newErrors);
+    setIsFormValid(isValid && allFieldsFilled);
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -17,8 +74,16 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
     
+    // Final validation before submission
+    validateForm();
+    
+    if (isFormValid) {
+      console.log('Form submitted:', formData);
+      // Here you would typically send the data to your server
+    } else {
+      console.log('Form has errors, cannot submit');
+    }
   };
 
   return (
@@ -32,7 +97,7 @@ const Register = () => {
         
         <div className="p-8">
           <p className="text-center text-gray-400 mb-8">
-            Join with us and Create Your Day amaizing
+            Join with us and Create Your Day amazing
           </p>
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -70,11 +135,12 @@ const Register = () => {
                     name="email"
                     value={formData.email}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className={`block w-full pl-10 pr-3 py-2 rounded-lg bg-gray-700 border ${errors.email ? 'border-red-500' : 'border-gray-600'} placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
                     placeholder="your.email@example.com"
                     required
                   />
                 </div>
+                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
               </div>
             </div>
             
@@ -92,11 +158,12 @@ const Register = () => {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className={`block w-full pl-10 pr-3 py-2 rounded-lg bg-gray-700 border ${errors.password ? 'border-red-500' : 'border-gray-600'} placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
                     placeholder="••••••••"
                     required
                   />
                 </div>
+                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
               </div>
               
               <div className="space-y-2">
@@ -112,15 +179,14 @@ const Register = () => {
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-2 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    className={`block w-full pl-10 pr-3 py-2 rounded-lg bg-gray-700 border ${errors.confirmPassword ? 'border-red-500' : 'border-gray-600'} placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent`}
                     placeholder="••••••••"
                     required
                   />
                 </div>
+                {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
               </div>
             </div>
-            
-            
             
             <div className="flex items-center">
               <input
@@ -138,11 +204,12 @@ const Register = () => {
             <div className="pt-4">
               <button
                 type="submit"
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-amber-700 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out"
+                className={`w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white ${isFormValid ? 'bg-amber-700 hover:bg-amber-600' : 'bg-amber-900 cursor-not-allowed'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out`}
+                disabled={!isFormValid}
               >
                 <span>Create Account</span>
                 <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"  />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
               </button>
             </div>
