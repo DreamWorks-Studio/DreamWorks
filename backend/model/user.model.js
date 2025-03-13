@@ -14,9 +14,11 @@ const userSchema = new mongoose.Schema({
    },
    password : {
     type : String,
-    required : true,
+    
     
 },
+
+   
 
    confirmpassword : {
 
@@ -25,6 +27,13 @@ const userSchema = new mongoose.Schema({
  
 
    },
+
+   avatar : {
+      
+        type : String,
+        default : "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?ga=GA1.1.427464810.1740819710&semt=ais_hybrid"
+   },
+
 }, {timeStamps : true}
 );
 
