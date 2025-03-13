@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { use } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { signInStart,signInSuccess,signInFailure } from '../src/redux/user/userSlice';
+
 
 const SignIn = () => {
 
   const [loading , setLoading] = useState(false);
+  const dispatch = useDispatch();
    const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -27,6 +31,7 @@ const SignIn = () => {
     setLoading(true)
     
       try {
+        dispatch(signInStart());
         const res = await fetch('/api/auth/signin' , 
         {
           method: 'POST',
@@ -37,13 +42,21 @@ const SignIn = () => {
         });
         
         const data = await res.json();
+        if(data.success == false){
+          dispatch(signInFailure(data.message));
+          return;
+        }
         console.log('Form submitted:', data);
         navigate('/Home');
+        dispatch(signInSuccess());
 
+
+        
         
       } catch (error) {
         setLoading(false)
-       
+         dispatch(signInFailure());
+
       }
     
   };
