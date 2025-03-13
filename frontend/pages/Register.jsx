@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Register = () => {
+  const navigate = useNavigate;
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -29,41 +31,41 @@ const Register = () => {
     };
     let isValid = true;
 
-    // // Email validation
-    // const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    // if (!emailRegex.test(formData.email) && formData.email !== '') {
-    //   newErrors.email = 'Please enter a valid email address';
-    //   isValid = false;
-    // }
+  //   // Email validation
+  //   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  //   if (!emailRegex.test(formData.email) && formData.email !== '') {
+  //     newErrors.email = 'Please enter a valid email address';
+  //     isValid = false;
+  //   }
 
-    // // Password validation
-    // if (formData.password.length > 0 && formData.password.length < 8) {
-    //   newErrors.password = 'Password must be at least 8 characters long';
-    //   isValid = false;
-    // } else if (formData.password.length > 0) {
-    //   const hasUpperCase = /[A-Z]/.test(formData.password);
-    //   const hasLowerCase = /[a-z]/.test(formData.password);
-    //   const hasNumber = /[0-9]/.test(formData.password);
-    //   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(formData.password);
+  //   // Password validation
+  //   if (formData.password.length > 0 && formData.password.length < 8) {
+  //     newErrors.password = 'Password must be at least 8 characters long';
+  //     isValid = false;
+  //   } else if (formData.password.length > 0) {
+  //     const hasUpperCase = /[A-Z]/.test(formData.password);
+  //     const hasLowerCase = /[a-z]/.test(formData.password);
+  //     const hasNumber = /[0-9]/.test(formData.password);
+  //     const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(formData.password);
 
-    //   if (!(hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar)) {
-    //     newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
-    //     isValid = false;
-    //   }
-    // }
+  //     if (!(hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar)) {
+  //       newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
+  //       isValid = false;
+  //     }
+  //   }
 
-    // // Confirm password validation
-    // if (formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword) {
-    //   newErrors.confirmPassword = 'Passwords do not match';
-    //   isValid = false;
-    // }
+  //   // Confirm password validation
+  //   if (formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword) {
+  //     newErrors.confirmPassword = 'Passwords do not match';
+  //     isValid = false;
+  //   }
 
-    // Check if all required fields are filled
-    const allFieldsFilled = Object.values(formData).every(val => val.trim() !== '');
+  //   // Check if all required fields are filled
+  //   const allFieldsFilled = Object.values(formData).every(val => val.trim() !== '');
     
-    setErrors(newErrors);
-    setIsFormValid(isValid && allFieldsFilled);
-  };
+  //   setErrors(newErrors);
+  //   setIsFormValid(isValid && allFieldsFilled);
+   };
 
   const handleChange = (e) => {
     setFormData({
@@ -72,15 +74,33 @@ const Register = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Final validation before submission
+    
     validateForm();
     
     if (isFormValid) {
-      console.log('Form submitted:', formData);
-      // Here you would typically send the data to your server
+      try {
+        const res = await fetch('/api/auth/signup' , 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        
+        const data = await res.json();
+        console.log('Form submitted:', data);
+        navigate("/signin")
+
+        
+      } catch (error) {
+        console.error('Error submitting form:', error);
+      }
     } else {
       console.log('Form has errors, cannot submit');
     }
@@ -112,8 +132,8 @@ const Register = () => {
                   </div>
                   <input
                     type="text"
-                    name="name"
-                    value={formData.name}
+                    name="username"
+                    value={formData.username}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-2 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
                     placeholder="Your name"
@@ -186,19 +206,6 @@ const Register = () => {
                 </div>
                 {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
               </div>
-            </div>
-            
-            <div className="flex items-center">
-              <input
-                id="terms"
-                name="terms"
-                type="checkbox"
-                className="h-4 w-4 text-amber-600 focus:ring-amber-500 border-gray-600 rounded bg-gray-700"
-                required
-              />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-400">
-                I agree to the <a href="#" className="text-amber-500 hover:text-amber-400">Terms of Service</a> and <a href="#" className="text-amber-500 hover:text-amber-400">Privacy Policy</a>
-              </label>
             </div>
             
             <div className="pt-4">

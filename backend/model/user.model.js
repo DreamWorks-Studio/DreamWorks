@@ -15,14 +15,14 @@ const userSchema = new mongoose.Schema({
    password : {
     type : String,
     required : true,
-    unique: true,
+    
 },
 
    confirmpassword : {
 
     type : String,
-    required : true,
-    unique: true,
+   
+ 
 
    },
 }, {timeStamps : true}
