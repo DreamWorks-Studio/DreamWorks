@@ -29,34 +29,34 @@ const Register = () => {
     };
     let isValid = true;
 
-    // Email validation
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    if (!emailRegex.test(formData.email) && formData.email !== '') {
-      newErrors.email = 'Please enter a valid email address';
-      isValid = false;
-    }
+    // // Email validation
+    // const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    // if (!emailRegex.test(formData.email) && formData.email !== '') {
+    //   newErrors.email = 'Please enter a valid email address';
+    //   isValid = false;
+    // }
 
-    // Password validation
-    if (formData.password.length > 0 && formData.password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters long';
-      isValid = false;
-    } else if (formData.password.length > 0) {
-      const hasUpperCase = /[A-Z]/.test(formData.password);
-      const hasLowerCase = /[a-z]/.test(formData.password);
-      const hasNumber = /[0-9]/.test(formData.password);
-      const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(formData.password);
+    // // Password validation
+    // if (formData.password.length > 0 && formData.password.length < 8) {
+    //   newErrors.password = 'Password must be at least 8 characters long';
+    //   isValid = false;
+    // } else if (formData.password.length > 0) {
+    //   const hasUpperCase = /[A-Z]/.test(formData.password);
+    //   const hasLowerCase = /[a-z]/.test(formData.password);
+    //   const hasNumber = /[0-9]/.test(formData.password);
+    //   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(formData.password);
 
-      if (!(hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar)) {
-        newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
-        isValid = false;
-      }
-    }
+    //   if (!(hasUpperCase && hasLowerCase && hasNumber && hasSpecialChar)) {
+    //     newErrors.password = 'Password must include uppercase, lowercase, number, and special character';
+    //     isValid = false;
+    //   }
+    // }
 
-    // Confirm password validation
-    if (formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-      isValid = false;
-    }
+    // // Confirm password validation
+    // if (formData.confirmPassword.length > 0 && formData.password !== formData.confirmPassword) {
+    //   newErrors.confirmPassword = 'Passwords do not match';
+    //   isValid = false;
+    // }
 
     // Check if all required fields are filled
     const allFieldsFilled = Object.values(formData).every(val => val.trim() !== '');
