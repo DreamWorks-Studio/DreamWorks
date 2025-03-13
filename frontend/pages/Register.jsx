@@ -223,6 +223,7 @@ const Register = () => {
                 </svg>
               </button>
             </div>
+             <OAuth/>
           </form>
           
           <div className="mt-8 text-center">

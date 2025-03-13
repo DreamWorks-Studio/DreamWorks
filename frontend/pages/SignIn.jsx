@@ -3,6 +3,7 @@ import { use } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { signInStart,signInSuccess,signInFailure } from '../src/redux/user/userSlice';
+import OAuth from '../components/OAuth';
 
 
 const SignIn = () => {
@@ -51,7 +52,7 @@ const SignIn = () => {
         dispatch(signInSuccess());
 
 
-        
+
         
       } catch (error) {
         setLoading(false)
@@ -135,6 +136,7 @@ const SignIn = () => {
                 </svg>
               </button>
             </div>
+            <OAuth/>
           </form>
           
           <div className="mt-8">
