@@ -18,7 +18,7 @@ export const signup = async (req,res,next) =>{
     next(errorHandler(550 , 'error from the function'));
   }
   
-}
+};
 
 export const signin = async (req,res,next) =>{
 
@@ -30,7 +30,7 @@ export const signin = async (req,res,next) =>{
         const validPassword = bcrypt.compareSync(password , validUser.password)
         if(!validPassword) return next(errorHandler(401,'Wrong credntials'));
         const token = jwt.sign({id : validUser._id} , process.env.JWT_SECRET);
-        const {password : pass , confirmPassword : cpass , ...rest} = validUser._doc;
+        const {password : pass , ...rest} = validUser._doc;
        
         res
            .cookie('access_token' , token , {httpOnly :true})

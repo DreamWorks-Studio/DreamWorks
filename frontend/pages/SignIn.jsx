@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
+import { use } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const SignIn = () => {
+
+  const [loading , setLoading] = useState(false);
+   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -15,10 +20,32 @@ const SignIn = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+ 
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Sign in form submitted:', formData);
-    // Add authentication logic here
+    setLoading(true)
+    
+      try {
+        const res = await fetch('/api/auth/signin' , 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        
+        const data = await res.json();
+        console.log('Form submitted:', data);
+        navigate('/Home');
+
+        
+      } catch (error) {
+        setLoading(false)
+       
+      }
+    
   };
 
   return (
@@ -87,8 +114,9 @@ const SignIn = () => {
               <button
                 type="submit"
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-amber-700 hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition duration-150 ease-in-out"
+                disabled={loading}
               >
-                <span>Sign In</span>
+                <span>{loading ? 'loading....' :'Log in'}</span>
                 <svg className="ml-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"  />
                 </svg>

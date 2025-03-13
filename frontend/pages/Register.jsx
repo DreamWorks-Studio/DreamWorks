@@ -20,7 +20,7 @@ const Register = () => {
 
   const [isFormValid, setIsFormValid] = useState(false);
 
-  // Validate form on data change
+  
   useEffect(() => {
     validateForm();
   }, [formData]);
@@ -97,7 +97,7 @@ const Register = () => {
         
         const data = await res.json();
         console.log('Form submitted:', data);
-        navigate("/sign-in");``
+        navigate("/sign-in");
 
         
       } catch (error) {
