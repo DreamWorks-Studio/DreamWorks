@@ -24,8 +24,9 @@ const App = () => {
       <Route path='/Home' element={<Home/>} />
       <Route path='/Admin' element={<AdminDashboard/>} />
       <Route element={<PrivateRoute/>}>
-         <Route path='/profile' element={<UserProfile/>}/>
+      <Route path='/profile' element={<UserProfile/>}/>
       </Route>
+      
       
       
 
