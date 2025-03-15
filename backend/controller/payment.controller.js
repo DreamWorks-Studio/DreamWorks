@@ -55,7 +55,7 @@ export const createPayment = async (req, res) => {
     }
 };
 
-exports.processPayment = (req, res) => {
+export const processPayment = (req, res) => {
     console.log('Received request body:', req.body);
     const {paymentMethod} = req.body;
 
