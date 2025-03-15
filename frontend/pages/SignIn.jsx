@@ -50,7 +50,7 @@ const SignIn = () => {
         }    
         console.log('Form submitted:', data);
         dispatch(signInSuccess());
-        navigate('/Home');
+        navigate('/');
         
 
 
