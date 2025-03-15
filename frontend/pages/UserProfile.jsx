@@ -1,7 +1,7 @@
 import React, { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDispatch } from "react-redux";
-import { updateUserStart,updateUserSuucess,updateUserFailure } from "../src/redux/user/userSlice";
+import { updateUserStart,updateUserSuucess,updateUserFailure ,deleteUserStart,deleteUserSuucess,deleteUserFailure } from "../src/redux/user/userSlice";
 
 const UserProfile = () => {
 
@@ -59,6 +59,24 @@ const UserProfile = () => {
         }
       };
 
+       const handleDeleteAccount = async () => {
+
+        try {
+            dispatch(deleteUserStart());
+            const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+              method: 'DELETE',
+            });
+            const data = await res.json();
+            if (data.success === false) {
+              dispatch(deleteUserFailure(data));
+              return;
+            }
+            dispatch(deleteUserSuucess(data));
+          } catch (error) {
+            dispatch(deleteUserFailure(error));
+          }
+        }
+
     return (
         <div className="p-4 max-w-lg mx-auto">
             <h1 className="text-3xl font-semibold text-center m-7">User Profile</h1>
@@ -115,7 +133,7 @@ const UserProfile = () => {
 
             {/* Delete & Sign Out Options */}
             <div className="flex justify-between mt-5">
-                <span className="text-amber-700 cursor-pointer">Delete Account</span>
+                <span onClick={handleDeleteAccount} className="text-amber-700 cursor-pointer">Delete Account</span>
                 <span className="text-amber-700 cursor-pointer">Sign Out</span>
             </div>
             <p className="text-red-500 mt-5">{error && "Something went Wrong"}</p>
