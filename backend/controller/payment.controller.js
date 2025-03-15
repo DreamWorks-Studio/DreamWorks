@@ -68,3 +68,33 @@ export const processPayment = (req, res) => {
         return res.status(400).send({message: 'Payment failed'});
     }
 };
+
+export const getPayments = async (req, res) => {
+    try {
+        const payments = await Payment.find();
+        
+        populate({
+            path: 'bookingId',
+            select: 'customer package',
+            populate: [
+                { path: 'customer', select: 'name email' },
+                { path: 'package', select: 'title price' }
+            ]
+        });
+
+        const formattedPayments = payments.map(payment => ({
+            bookingId: payment.bookingId._id,
+            customer: payment.bookingId.customer ? payment.bookingId.customer.name : 'N/A',
+            package: payment.bookingId.package ? payment.bookingId.package.title : 'N/A',
+            totalAmount: payment.bookingId.package ? payment.bookingId.package.price : 0,
+            paidAmount: payment.paidAmount || 0,
+            status: payment.status
+          }));
+
+          res.status(200).json(formattedPayments);
+          
+    } catch (error) {
+        console.error('Error loading payment details:', error);
+        res.status(500).json({ message: 'Failed to get details', error: error.message});
+    }
+};
