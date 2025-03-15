@@ -17,6 +17,8 @@ connectDB()
 app.use(express.json())
 app.use(cors())
 
+
+//app.use(cookieParser());
 //api endpoints
 
 //Allow Access for API testing
