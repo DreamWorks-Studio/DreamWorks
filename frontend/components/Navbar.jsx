@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { FaAlignRight, FaTimes } from 'react-icons/fa'
 import { Link, NavLink, useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import User from '../../backend/model/user.model'
 
 const Navbar = () => {
+    
+    const {currentUser} = useSelector(state => state.user);
+
     const [showMobileMenu, setShowMobileMenu] = useState(false)
 
     const location = useLocation();
+
+    console.log("Nav bar ->" ,currentUser);
 
 useEffect(()=> {
     if(showMobileMenu) {
@@ -32,8 +39,21 @@ const navbarColor = location.pathname === '/' ? 'bg-transparent' : 'bg-black';
           {/*<a href='#Gallery' className=' text-white hover:text-amber-500'>Gallery</a>*/}
           <Link to="/Contact" className=' text-white hover:text-amber-500'>Contact</Link>
         </ul>
-        { <Link to="/sign-up" className='hidden md:block bg-transparent text-amber-500 hover:text-white px-5 py-2
-        border-2 border-amber-500 hover:border-white rounded-full'>SignUp</Link> }
+        <Link to="/profile">
+                    {currentUser ? (
+                        <img
+                            className='rounded-full h-7 w-7 object-cover'
+                            src={currentUser.avatar || "https://cdn.vectorstock.com/i/2000v/95/56/user-profile-icon-avatar-or-person-vector-45089556.avif"}
+                            alt="profile"
+                        />
+                    ) : (
+                        <li className='hidden md:block bg-transparent text-amber-500 hover:text-white px-5 py-2
+                        border-2 border-amber-500 hover:border-white rounded-full'>
+                            Sign Up
+                        </li>
+                    )}
+                </Link>
+        
 
         <FaAlignRight onClick={()=> setShowMobileMenu(true)} 
         className='md:hidden h-10 w-10 cursor-pointer text-white fixed top-11 right-10 p-2 rounded-2xl bg-amber-600

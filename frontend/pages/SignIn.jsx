@@ -6,6 +6,7 @@ import { signInStart,signInSuccess,signInFailure } from '../src/redux/user/userS
 import OAuth from '../components/OAuth';
 
 
+
 const SignIn = () => {
 
   const [loading , setLoading] = useState(false);
@@ -46,10 +47,11 @@ const SignIn = () => {
         if(data.success == false){
           dispatch(signInFailure(data.message));
           return;
-        }
+        }    
         console.log('Form submitted:', data);
-        navigate('/Home');
         dispatch(signInSuccess());
+        navigate('/Home');
+        
 
 
 

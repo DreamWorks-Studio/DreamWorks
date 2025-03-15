@@ -2,6 +2,7 @@ import React from 'react'
 import Navbar from './Navbar'
 import Carousel from './Carousel'
 import About from '../pages/About'
+import { useSelector } from 'react-redux'
 
 const Header = () => {
   return (

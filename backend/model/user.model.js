@@ -1,42 +1,25 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-
-    username : {
-         type : String,
-         required : true,
-         unique: true,
-    },
-    email : {
-        type : String,
-        required : true,
+    username: {
+        type: String,
+        required: true,
         unique: true,
-   },
-   password : {
-    type : String,
-    
-    
-},
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    password: {
+        type: String, // Should be hashed before storing
+        required: true,
+    },
+    avatar: {
+        type: String, // Stores URL instead of Buffer
+        default: "https://cdn.vectorstock.com/i/2000v/95/56/user-profile-icon-avatar-or-person-vector-45089556.avif",
+    },
+}, { timestamps: true });
 
-   
-
-   confirmpassword : {
-
-    type : String,
-   
- 
-
-   },
-
-   avatar : {
-      
-        type : String,
-        default : "https://img.freepik.com/free-vector/blue-circle-with-white-user_78370-4707.jpg?ga=GA1.1.427464810.1740819710&semt=ais_hybrid"
-   },
-
-}, {timeStamps : true}
-);
-
-const User = mongoose.model('User' , userSchema);
-
+const User = mongoose.model('User', userSchema);
 export default User;

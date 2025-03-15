@@ -6,6 +6,9 @@ import Register from '../pages/register'
 import ScrollUp from '../components/ScrollUp'
 import SignIn from '../pages/SignIn'
 import Home from '../pages/Home'
+import AdminDashboard from '../pages/AdminDashboard'
+import UserProfile from '../pages/UserProfile'
+import PrivateRoute from '../components/PrivateRoute'
 
 
 
@@ -18,7 +21,12 @@ const App = () => {
       <Route path='/contact' element={<Contact/>}/>
       <Route path='/sign-up' element={<Register />}/>
       <Route path='/sign-in' element={<SignIn/>}/>
-      <Route path='Home' element={<Home/>} />
+      <Route path='/Home' element={<Home/>} />
+      <Route path='/Admin' element={<AdminDashboard/>} />
+      <Route element={<PrivateRoute/>}>
+         <Route path='/profile' element={<UserProfile/>}/>
+      </Route>
+      
       
 
       
