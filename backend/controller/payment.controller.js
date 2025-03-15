@@ -54,3 +54,17 @@ export const createPayment = async (req, res) => {
         res.status(500).json({ message: 'Failed to process payment', error: error.message });
     }
 };
+
+exports.processPayment = (req, res) => {
+    console.log('Received request body:', req.body);
+    const {paymentMethod} = req.body;
+
+    console.log('Received payment method:', paymentMethod);
+    console.log('Is payment method equal to "card"?', paymentMethod === 'card');
+
+    if(paymentMethod === 'card') {
+        return res.status(200).send({message: 'Payment processed successfully'});
+    } else {
+        return res.status(400).send({message: 'Payment failed'});
+    }
+};
