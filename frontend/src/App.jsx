@@ -11,6 +11,7 @@ import UserProfile from '../pages/UserProfile';
 import PrivateRoute from '../components/PrivateRoute';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
+import AdminFinance from '../components/AdminFinance';
 
 const App = () => {
 
@@ -37,6 +38,8 @@ const App = () => {
           <Route element={<PrivateRoute allowedRoles={['admin']} />}>
             <Route path='/admin' element={<AdminDashboard />} />
           </Route>
+
+        
         </Routes>
         <ScrollUp />
       </div>

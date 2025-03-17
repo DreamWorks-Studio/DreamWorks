@@ -1,19 +1,6 @@
 import React, { useState } from 'react';
-import { 
-  Images, 
-  UsersRound, 
-  ShoppingCart, 
-  Bell, 
-  Search, 
-  Menu, 
-  X, 
-  Home, 
-  Settings, 
-  TrendingUp,
-  DollarSign,
-  WalletCards,
-  SquareLibrary
-} from 'lucide-react';
+import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
+import AdminFinance from '../components/AdminFinance';
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -29,6 +16,108 @@ const AdminDashboard = () => {
     { month: 'Jun', amount: 30000 }
   ];
 
+  // Render content based on active page
+  const renderContent = () => {
+    if (activePage === 'payments') {
+      return (
+        <div>
+          <AdminFinance activePage={activePage} />
+        </div>
+      );
+
+    } else if (activePage === 'images') {
+      return (
+        <div>
+
+        </div>
+      );
+
+    } else if (activePage === 'packages') {
+      return (
+        <div>
+
+        </div>
+      );
+
+    } else if (activePage === 'user') {
+      return (
+        <div>
+
+        </div>
+      );
+
+    } else {
+      return (
+        <div>
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+            <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Total Revenue</p>
+                  <h3 className="text-2xl font-bold text-gray-800">$124,563</h3>
+                  <p className="text-green-500 text-sm flex items-center mt-1">
+                    <TrendingUp size={14} className="mr-1" /> +12.5%
+                  </p>
+                </div>
+                <div className="p-3 bg-indigo-100 rounded-full">
+                  <DollarSign size={24} className="text-indigo-600" />
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">New Orders</p>
+                  <h3 className="text-2xl font-bold text-gray-800">243</h3>
+                  <p className="text-green-500 text-sm flex items-center mt-1">
+                    <TrendingUp size={14} className="mr-1" /> +5.2%
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-100 rounded-full">
+                  <ShoppingCart size={24} className="text-blue-600" />
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Active Users</p>
+                  <h3 className="text-2xl font-bold text-gray-800">1,254</h3>
+                  <p className="text-green-500 text-sm flex items-center mt-1">
+                    <TrendingUp size={14} className="mr-1" /> +8.1%
+                  </p>
+                </div>
+                <div className="p-3 bg-green-100 rounded-full">
+                  <UsersRound size={24} className="text-green-600" />
+                </div>
+              </div>
+            </div>
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-gray-500 text-sm">Pending Tasks</p>
+                  <h3 className="text-2xl font-bold text-gray-800">28</h3>
+                  <p className="text-red-500 text-sm flex items-center mt-1">
+                    <TrendingUp size={14} className="mr-1 transform rotate-180" /> -2.4%
+                  </p>
+                </div>
+                <div className="p-3 bg-yellow-100 rounded-full">
+                  <Settings size={24} className="text-yellow-600" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    } 
+  };
+
+  
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -42,7 +131,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4">
+        <nav className="flex-1 overflow-y-auto py-6 ml-">
           <ul>
             <li>
               <button 
@@ -111,34 +200,18 @@ const AdminDashboard = () => {
                 <Bell size={20} />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
               </button>
+              <button className="ml-4 px-4 py-2 border rounded-full">Logout</button>
             </div>
           </div>
         </header>
 
-        {/* Revenue Chart */}
-        <div className="bg-white p-4 rounded-lg shadow mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">Revenue Overview</h2>
-            <select className="text-sm border rounded-md px-2 py-1">
-              <option>Last 6 Months</option>
-              <option>Last Year</option>
-            </select>
-          </div>
-          <div className="h-64 flex items-end space-x-2">
-            {revenueData.map((item, index) => (
-              <div key={index} className="flex flex-col items-center flex-1">
-                <div 
-                  className="w-full bg-indigo-500 rounded-t-sm transition-all duration-300 hover:bg-indigo-600"
-                  style={{ height: `${(item.amount / 30000) * 100}%` }}
-                ></div>
-                <p className="text-xs text-gray-600 mt-2">{item.month}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto p-4 bg-gray-100">
+          {renderContent()}
+        </main>
       </div>
     </div>
   );
-}
+};
 
 export default AdminDashboard;

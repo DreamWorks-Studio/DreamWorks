@@ -47,8 +47,4 @@ app.listen(port, () => {
   console.log(`🚀 Server is running on port: ${port}`);
 });
 
-const apiClient = axios.create({
-    baseURL: 'http://localhost:5003', // Or your actual backend URL
-    withCredentials: true,
-    timeout: 10000,
-  });
+
