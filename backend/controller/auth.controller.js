@@ -5,60 +5,56 @@ import jwt from 'jsonwebtoken';
 import bcryptjs from 'bcryptjs';
 
 export const signup = async (req, res, next) => {
-    const { username, email, password ,confirmpassword } = req.body;
-    console.log({ username, email, password ,confirmpassword });
-    
-    console.log(username, email, password,confirmpassword);
+  const { username, email, password, confirmpassword, role } = req.body;
 
-    if (password !== confirmpassword) {
-        return next(errorHandler(400, 'Passwords do not match'));
-    }
+  if (password !== confirmpassword) {
+      return next(errorHandler(400, 'Passwords do not match'));
+  }
 
-    const hashedPassword = bcrypt.hashSync(password, 10);
-     const hashedPassword2 = bcrypt.hashSync(confirmpassword,10);
+  const hashedPassword = bcrypt.hashSync(password, 10);
 
-    const newUser = new User({ 
-        username, 
-        email, 
-        password: hashedPassword, // Don't store `confirmPassword`
-        confirmpassword:hashedPassword2,
-    });
+  const newUser = new User({
+      username,
+      email,
+      password: hashedPassword,
+      confirmpassword: hashedPassword,
+      role: role || "user", // Default to "user" if no role is provided
+  });
 
-    try {
-        await newUser.save();
-        res.status(201).json('User Created Successfully');
-    } catch (error) {
-        next(errorHandler(500, 'Error from the function'));
-    }
+  try {
+      await newUser.save();
+      res.status(201).json('User Created Successfully');
+  } catch (error) {
+      next(errorHandler(500, 'Error from the function'));
+  }
 };
+
 
 export const signin = async (req, res, next) => {
-    const { email, password } = req.body;
-    console.log({ email, password });
+  const { email, password } = req.body;
 
-    try {
-        const validUser = await User.findOne({ email });
+  try {
+      const validUser = await User.findOne({ email });
 
-        if (!validUser) return next(errorHandler(404, 'User Not Found'));
+      if (!validUser) return next(errorHandler(404, 'User Not Found'));
 
-        const validPassword = bcrypt.compareSync(password, validUser.password);
-        if (!validPassword) return next(errorHandler(401, 'Wrong credentials'));
+      const validPassword = bcrypt.compareSync(password, validUser.password);
+      if (!validPassword) return next(errorHandler(401, 'Wrong credentials'));
 
-        const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
-        
+      // Include role in token
+      const token = jwt.sign({ id: validUser._id, role: validUser.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        // Use `_doc` to extract user data properly
-        const { password: pass, ...userData } = validUser._doc;
-        
+      // Send token with user data
+      const { password: pass, ...userData } = validUser._doc;
 
-        res.cookie('access_token', token, { httpOnly: true })
-            .status(200)
-            .json(userData);
-
-    } catch (error) {
-        next(error);
-    }
+      res.cookie('access_token', token, { httpOnly: true })
+          .status(200)
+          .json(userData);
+  } catch (error) {
+      next(error);
+  }
 };
+
 
 
 export const google = async (req, res, next) => {
