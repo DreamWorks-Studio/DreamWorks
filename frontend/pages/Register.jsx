@@ -9,17 +9,16 @@ export default function Register() {
     password: '',
     confirmpassword: '',
   });
-
-  const [error, setError] = useState({}); // Fix: Initialize as object
+ 
+  const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-
-  // Handle input change
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-  // Validate form inputs
+
+  // Function to validate form inputs
   const validateForm = () => {
     const newErrors = {};
     let isValid = true;
@@ -29,18 +28,19 @@ export default function Register() {
       isValid = false;
     }
 
-    // Email validation
+    // Email validation using regex
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
       isValid = false;
     }
 
-    // Password validation
+    // Password length validation
     if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters long';
       isValid = false;
     } else {
+      // Password complexity validation
       const hasUpperCase = /[A-Z]/.test(formData.password);
       const hasLowerCase = /[a-z]/.test(formData.password);
       const hasNumber = /[0-9]/.test(formData.password);
@@ -63,7 +63,9 @@ export default function Register() {
     return isValid;
   };
 
-  // Handle form submission
+  // Function to handle input changes
+  
+  // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -72,9 +74,8 @@ export default function Register() {
 
     try {
       setLoading(true);
-      setError({}); // Fix: Reset error state correctly
-
-      const res = await fetch('/api/auth/signup', { // Fix API URL
+      setError(false);
+      const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -86,14 +87,15 @@ export default function Register() {
       setLoading(false);
 
       if (!data.success) {
-        setError({ general: data.message || 'An error occurred while signing up' }); // Fix error structure
+        setError(data.message || 'An error occurred while signing up');
         return;
       }
-
-      navigate('/sign-in'); // Redirect on success
+       navigate('/sign-in');
+      // Redirect to sign-in page on successful registration
+      
     } catch (err) {
       setLoading(false);
-      setError({ general: 'Something went wrong. Please try again.' });
+      setError('Something went wrong. Please try again.');
     }
   };
 
@@ -164,7 +166,7 @@ export default function Register() {
       </div>
 
       {/* Display error message */}
-      {error.general && <p className='text-red-700 mt-5'>{error.general}</p>}
+      {error && <p className='text-red-700 mt-5'>{error}</p>}
     </div>
   );
 }

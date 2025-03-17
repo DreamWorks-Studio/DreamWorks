@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema({
     },
      confirmpassword : {
       type : String,
-      required : true,
+      
      },
     avatar: {
         type: String, // Stores URL instead of Buffer
