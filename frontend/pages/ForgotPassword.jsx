@@ -1,28 +1,50 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
+import axios from 'axios';
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState()
-  const navigate = useNavigate()
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const navigate = useNavigate();
 
-  axios.defaults.withCredentials = true;
+  // State to manage form data
+  const [formData, setFormData] = useState({
+    email: '',
+  });
+
+  // Handles input changes
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // Handles form submission
   const handleSubmit = (e) => {
-      e.preventDefault()
-      axios.post('/api/auth/forgot-password', {email})
-      .then(res => {
-          if(res.data.Status === "Success") {
-              navigate('/sign-in')
-             
-          }
-      }).catch(err => console.log(err))
-  }
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    setSuccess('');
 
+    axios.post('/api/auth/forgot-password', { email: formData.email })
+      .then(res => {
+        if (res.data.Status === "Success") {
+          setSuccess('Password reset link sent! Redirecting...');
+          setTimeout(() => navigate('/sign-in'), 2000); // Redirect after 2 sec
+        }
+      })
+      .catch(err => {
+        setError('Failed to send reset link. Please try again.');
+        console.error(err);
+      })
+      .finally(() => setLoading(false));
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-6">
       <div className="w-full max-w-md bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
-        
         {/* Header Section */}
         <div className="bg-amber-700 p-4 relative">
           <h1 className="text-3xl font-bold text-white text-center">Reset Your Password</h1>
@@ -30,10 +52,7 @@ const ForgotPassword = () => {
 
         {/* Form Section */}
         <div className="p-8">
-         
-
           <form onSubmit={handleSubmit} className="space-y-6">
-            
             {/* Email Input */}
             <div className="space-y-2">
               <label className="block text-gray-300 text-sm font-medium">Email Address</label>
@@ -48,7 +67,9 @@ const ForgotPassword = () => {
               />
             </div>
 
-       
+            {/* Error/Success Messages */}
+            {error && <p className="text-red-500">{error}</p>}
+            {success && <p className="text-green-500">{success}</p>}
 
             {/* Submit Button */}
             <button
@@ -58,11 +79,7 @@ const ForgotPassword = () => {
             >
               {loading ? 'Loading...' : 'Reset'}
             </button>
-          
           </form>
-           
-          {/* Sign-Up Redirect */}
-        
         </div>
       </div>
     </div>
