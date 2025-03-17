@@ -35,16 +35,22 @@ const paymentSchema = new mongoose.Schema({
     },
     cardNumber: {
         type: String,
-        required: function() { return this.paymentMethod === 'card'; }
+        required: function() { return this.paymentMethod === 'card' && this.paymentType === 'partial'; }, // Only required for partial payments
+        set: function(cardNum) {
+            if (!cardNum) return null;
+            const digits = cardNum.replace(/\s/g, '');
+            return '*'.repeat(digits.length - 4) + digits.slice(-4);
+        }
     },
     expiryDate: {
         type: String,
-        required: function() { return this.paymentMethod === 'card'; }
+        required: function() { return this.paymentMethod === 'card' && this.paymentType === 'partial'; } // Only required for partial payments
     },
     isCardSaved: {
         type: Boolean,
         default: false
     }
+    
 }, { timestamps:true });
 
 const Payment = mongoose.model('Payment', paymentSchema);
