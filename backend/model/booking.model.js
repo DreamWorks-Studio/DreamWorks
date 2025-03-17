@@ -1,46 +1,49 @@
 import mongoose from "mongoose"
 
 const bookingSchema = new mongoose.Schema({
-     
-    userId: {
-        type : mongoose.Schema.Types.ObjectId,
+    /*userId: {
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-        required : true
+        required: true
     },
-
     packageId: {
-        type : mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Package',
-        required :true
+        required: true
+    },*/
+    fullName: {
+        type: String,
+        required: true
     },
-
-    telephone : {
-         type : Number,
-         required :  true,
-        
+    email: {
+        type: String,
+        required: true
     },
-    service : {
-        type : String,
-        required : true,
+    telephone: {
+        type: Number,
+        required: true,
     },
-
-    date :   {
-        type : Date,
-        required : true,
+    packageType: {
+        type: String,
+        required: true
     },
-
-    location : {
-        type : String,
-        required : true,
+    date: {
+        type: Date,
+        required: true,
     },
-
-    addson :{
-        type : String,
+    time: {
+        type: String,
+        required: true,
+        enum: ['morning session', 'afternoon session', 'evening session']
+    },
+    location: {
+        type: String,
+        required: true,
+    },
+    addson: {
+        type: String,
     }
+}, { timestamps: true });
 
-
-},
-);
-
-const Booking = mongoose.model('Booking',bookingSchema);
+const Booking = mongoose.model('Booking', bookingSchema);
 export default Booking;
