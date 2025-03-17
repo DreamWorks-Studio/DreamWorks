@@ -18,7 +18,7 @@ const PaymentSummary = () => {
             if (!bookingId) return;
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:5004/api/bookings/${bookingId}`);
+                const response = await axios.get(`http://localhost:5003/api/bookings/${bookingId}`);
                 setBoookingDetails(response.data);
             } catch (error) {
                 console.error("Error fetching booking details:", error);
@@ -31,6 +31,16 @@ const PaymentSummary = () => {
     }, [bookingId]);
 
     const handlePayment = async () => {
+        if(!bookingId) {
+            alert("No booking information found!");
+            return;
+        }
+
+        let totalAmount = 0;
+        if(bookingDetails && bookingDetails.package) {
+            totalAmount = bookingDetails.package.price * 1.05 + 1000;
+        }
+
         if (paymentMethod === "cash") {
             try {
                 const response = await axios.post("http://localhost:5004/api/generate-invoice", {
@@ -61,7 +71,15 @@ const PaymentSummary = () => {
                 );
 
                 console.log("Payment Response:", response.data)
-                navigate('/gateway')
+                localStorage.setItem('currentPaymentId', response.data.payment._id);
+
+                navigate('/gateway', {
+                    state: {
+                        bookingId,
+                        paymentMethod,
+                        totalAmount
+                    }
+                });
 
             } catch (error) {
                 console.error("Payment error:", error);
