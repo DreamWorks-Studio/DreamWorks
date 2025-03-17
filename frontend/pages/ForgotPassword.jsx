@@ -1,62 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { signInStart, signInSuccess, signInFailure } from '../src/redux/user/userSlice';
-import OAuth from '../components/OAuth';
-import { Link } from 'react-router-dom';
+
 
 const ForgotPassword = () => {
-  const [loading, setLoading] = useState(false);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const [email, setEmail] = useState()
+  const navigate = useNavigate()
 
-  // State to manage form data
-  const [formData, setFormData] = useState({
-    email: '',
-    
-  });
+  axios.defaults.withCredentials = true;
+  const handleSubmit = (e) => {
+      e.preventDefault()
+      axios.post('/api/auth/forgot-password', {email})
+      .then(res => {
+          if(res.data.Status === "Success") {
+              navigate('/sign-in')
+             
+          }
+      }).catch(err => console.log(err))
+  }
 
-  // Handles input changes
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  // Handles form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    dispatch(signInStart());
-
-    try {
-      // Make API request to authenticate user
-      const res = await fetch('/api/auth/forgot-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'Failed to sign in');
-
-      // Store user data and role securely
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role); // Store user role (admin/user)
-
-      dispatch(signInSuccess(data));
-      navigate('/sign-in');
-     
-      
-    } catch (error) {
-      dispatch(signInFailure(error.message));
-      console.error('Sign-in error:', error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-6">

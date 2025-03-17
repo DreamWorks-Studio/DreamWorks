@@ -68,15 +68,15 @@ app.post('/forgot-password', (req,res) =>{
               var mailOptions = {
                 from: 'youremail@gmail.com',
                 to: 'myfriend@yahoo.com',
-                subject: 'Sending Email using Node.js',
-                text: 'That was easy!'
+                subject: 'Reset Your Password',
+                text: `http://localhost:5173/reset-password/${user._id}/${token}`
               };
               
               transporter.sendMail(mailOptions, function(error, info){
                 if (error) {
                   console.log(error);
                 } else {
-                  console.log('Email sent: ' + info.response);
+                  return res.send({Status : "Success"})
                 }
               });
         })
