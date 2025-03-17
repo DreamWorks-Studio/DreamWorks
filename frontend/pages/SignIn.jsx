@@ -1,14 +1,14 @@
-import React, { useState } from 'react'; 
-import { useNavigate } from 'react-router-dom'; 
-import { useDispatch } from 'react-redux'; 
-import { signInStart, signInSuccess, signInFailure } from '../src/redux/user/userSlice'; 
-import OAuth from '../components/OAuth'; 
-import { Link } from 'react-router-dom'; 
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { signInStart, signInSuccess, signInFailure } from '../src/redux/user/userSlice';
+import OAuth from '../components/OAuth';
+import { Link } from 'react-router-dom';
 
 const SignIn = () => {
-  const [loading, setLoading] = useState(false); // State for managing loading status
-  const dispatch = useDispatch(); // Redux dispatch function
-  const navigate = useNavigate(); // Hook for navigation
+  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // State to manage form data
   const [formData, setFormData] = useState({
@@ -16,43 +16,50 @@ const SignIn = () => {
     password: '',
   });
 
-  // Handles input changes for all fields
+  // Handles input changes
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value, // Ensure correct field mapping
+      [e.target.name]: e.target.value,
     });
   };
 
   // Handles form submission
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent default form behavior
-    setLoading(true); // Set loading state to true
+    e.preventDefault();
+    setLoading(true);
+    dispatch(signInStart());
 
     try {
-      dispatch(signInStart()); // Dispatch action to start sign-in process
-
-      const res = await fetch('/api/auth/signin', { // Ensure correct backend URL
+      // Make API request to authenticate user
+      const res = await fetch('/api/auth/signin', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData), // Send form data as JSON
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
-      const data = await res.json(); // Parse response JSON
+      const data = await res.json();
 
-      if (!res.ok) { // If the response is not OK, handle error
-        throw new Error(data.message || 'Failed to sign in');
+      if (!res.ok) throw new Error(data.message || 'Failed to sign in');
+
+      // Store user data and role securely
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('role', data.role); // Store user role (admin/user)
+
+      dispatch(signInSuccess(data));
+
+      // Role-Based Navigation
+      if (data.role === 'admin') {
+        navigate('/admin'); // Redirect admin to dashboard
+      } else {
+        navigate('/profile'); // Redirect normal users to profile
       }
-
-      dispatch(signInSuccess(data)); // Dispatch success action with user data
-      navigate('/'); // Redirect to homepage after successful login
+      
     } catch (error) {
-      dispatch(signInFailure(error.message)); // Dispatch failure action with error message
-      console.error('Sign-in error:', error.message); // Log error for debugging
+      dispatch(signInFailure(error.message));
+      console.error('Sign-in error:', error.message);
     } finally {
-      setLoading(false); // Reset loading state
+      setLoading(false);
     }
   };
 
@@ -78,7 +85,7 @@ const SignIn = () => {
               <label className="block text-gray-300 text-sm font-medium">Email Address</label>
               <input
                 type="email"
-                name="email" // Fixed: Ensure this matches state keys
+                name="email"
                 value={formData.email}
                 onChange={handleChange}
                 className="block w-full p-3 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white"
@@ -92,7 +99,7 @@ const SignIn = () => {
               <label className="block text-gray-300 text-sm font-medium">Password</label>
               <input
                 type="password"
-                name="password" // Fixed: Ensure this matches state keys
+                name="password"
                 value={formData.password}
                 onChange={handleChange}
                 className="block w-full p-3 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white"
@@ -105,7 +112,7 @@ const SignIn = () => {
             <button
               type="submit"
               className="w-full flex justify-center py-3 px-4 rounded-lg text-white bg-amber-700 hover:bg-amber-600"
-              disabled={loading} // Disable button while loading
+              disabled={loading}
             >
               {loading ? 'Loading...' : 'Log in'}
             </button>
