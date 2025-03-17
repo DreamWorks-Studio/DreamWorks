@@ -15,11 +15,10 @@ const userSchema = new mongoose.Schema({
         type: String, // Should be hashed before storing
         required: true,
     },
-    confirmpassword : {
-     type : String,
-     
-
-    },
+     confirmpassword : {
+      type : String,
+      required : true,
+     },
     avatar: {
         type: String, // Stores URL instead of Buffer
         default: "https://cdn.vectorstock.com/i/2000v/95/56/user-profile-icon-avatar-or-person-vector-45089556.avif",

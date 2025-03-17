@@ -25,13 +25,7 @@ const App = () => {
       <Route path='/Admin' element={<AdminDashboard/>} />
       <Route element={<PrivateRoute/>}>
       <Route path='/profile' element={<UserProfile/>}/>
-      </Route>
-      
-      
-      
-
-      
-
+      </Route>      
     </Routes>  
     <ScrollUp/>
    

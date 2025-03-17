@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { FaAlignRight, FaTimes } from 'react-icons/fa'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { useSelector } from 'react-redux'
-import User from '../../backend/model/user.model'
+
 
 const Navbar = () => {
     
@@ -28,8 +28,8 @@ useEffect(()=> {
 const navbarColor = location.pathname === '/' ? 'bg-transparent' : 'bg-black';
 
   return (
-    <div className = {`absolute top-0 left-0 w-full z-50 ${navbarColor}`}>
-      <div className='container mx-auto flex justify-between items-center py-2 px-6 md:px-20 lg:px-32'>
+    <div className = {`absolute top-0 left-0 w-full z-20 ${navbarColor}`}>
+      <div className='container mx-auto flex justify-between items-center  px-2 md:px-2 lg:px-32'>
         <img src="src/assets/web_logo.png" alt="logo" className='w-24'/>
         <ul className='hidden md:flex gap-7 text-white'>
           <Link to="/" className=' text-white hover:text-amber-500'>Home</Link>

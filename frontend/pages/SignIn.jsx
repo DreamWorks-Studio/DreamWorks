@@ -14,15 +14,13 @@ const SignIn = () => {
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    rememberMe: false, // Checkbox for "Remember Me" (if needed)
   });
 
-  // Handles input changes for all fields, including checkbox
+  // Handles input changes for all fields
   const handleChange = (e) => {
-    const value = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
     setFormData({
       ...formData,
-      [e.target.name]: value,
+      [e.target.name]: e.target.value, // Ensure correct field mapping
     });
   };
 
@@ -34,7 +32,7 @@ const SignIn = () => {
     try {
       dispatch(signInStart()); // Dispatch action to start sign-in process
 
-      const res = await fetch('/api/auth/signin', {
+      const res = await fetch('/api/auth/signin', { // Ensure correct backend URL
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,17 +42,17 @@ const SignIn = () => {
 
       const data = await res.json(); // Parse response JSON
 
-      if (data.success === false) { // Check if the response indicates failure
-        dispatch(signInFailure(data.message)); // Dispatch failure action with error message
-        setLoading(false);
-        return;
+      if (!res.ok) { // If the response is not OK, handle error
+        throw new Error(data.message || 'Failed to sign in');
       }
 
       dispatch(signInSuccess(data)); // Dispatch success action with user data
-      navigate('/profile'); // Redirect to profile page after successful login
+      navigate('/'); // Redirect to homepage after successful login
     } catch (error) {
-      setLoading(false);
       dispatch(signInFailure(error.message)); // Dispatch failure action with error message
+      console.error('Sign-in error:', error.message); // Log error for debugging
+    } finally {
+      setLoading(false); // Reset loading state
     }
   };
 
@@ -80,8 +78,7 @@ const SignIn = () => {
               <label className="block text-gray-300 text-sm font-medium">Email Address</label>
               <input
                 type="email"
-                id="email"
-                name="email"
+                name="email" // Fixed: Ensure this matches state keys
                 value={formData.email}
                 onChange={handleChange}
                 className="block w-full p-3 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white"
@@ -95,8 +92,7 @@ const SignIn = () => {
               <label className="block text-gray-300 text-sm font-medium">Password</label>
               <input
                 type="password"
-                id="password"
-                name="password"
+                name="password" // Fixed: Ensure this matches state keys
                 value={formData.password}
                 onChange={handleChange}
                 className="block w-full p-3 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white"
