@@ -1,17 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
+import AdminFinance from '../components/AdminFinance';
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
-  const [paymentData, setPaymentData] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (activePage === 'payments') {
-      fetchPaymentData();
-    }
-  }, [activePage]);
 
   // Sample data for the dashboard
   const revenueData = [
@@ -23,82 +16,37 @@ const AdminDashboard = () => {
     { month: 'Jun', amount: 30000 }
   ];
 
-  const fetchPaymentData = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch('/api/getPayment');
-      const data = await response.json();
-      setPaymentData(data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching payment data:', error);
-      setLoading(false);
-    }
-  };
-
   // Render content based on active page
   const renderContent = () => {
     if (activePage === 'payments') {
       return (
         <div>
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Finance</h1>
-            <p className="text-gray-600">Payment History</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            {loading ? (
-              <div className="p-4 text-center">Loading payment data...</div>
-            ) : paymentData.length === 0 ? (
-              <div className="p-4 text-center">No payment records found</div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full">
-                  <thead>
-                    <tr className="bg-gray-700 text-white">
-                      <th className="py-3 px-4 text-left">Booking ID</th>
-                      <th className="py-3 px-4 text-left">Customer</th>
-                      <th className="py-3 px-4 text-left">Package</th>
-                      <th className="py-3 px-4 text-left">Total Amount</th>
-                      <th className="py-3 px-4 text-left">Paid Amount</th>
-                      <th className="py-3 px-4 text-center">Payment Status</th>
-                      <th className="py-3 px-4 text-center">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paymentData.map((payment, index) => (
-                      <tr key={payment.id || index} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
-                        <td className="py-3 px-4 border-b">{payment.booking?.bookingId || '-'}</td>
-                        <td className="py-3 px-4 border-b">{payment.booking?.user?.name || '-'}</td>
-                        <td className="py-3 px-4 border-b">{payment.booking?.package?.name || '-'}</td>
-                        <td className="py-3 px-4 border-b">Rs.{payment.booking?.package?.price?.toFixed(2) || '0.00'}</td>
-                        <td className="py-3 px-4 border-b">Rs.{payment.paidAmount?.toFixed(2) || '0.00'}</td>
-                        <td className="py-3 px-4 border-b text-center">
-                          <span className={`px-3 py-1 rounded-full text-white text-sm ${
-                            payment.status === 'Complete' ? 'bg-green-600' : 
-                            payment.status === 'Pending' ? 'bg-gray-600' : 'bg-yellow-600'
-                          }`}>
-                            {payment.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 border-b text-center">
-                          <button 
-                            onClick={() => handleViewPayment(payment.id)}
-                            className="px-3 py-1 bg-gray-700 text-white text-sm rounded"
-                          >
-                            View
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+          <AdminFinance activePage={activePage} />
         </div>
       );
-    } else if (activePage === 'dashboard') {
+
+    } else if (activePage === 'images') {
+      return (
+        <div>
+
+        </div>
+      );
+
+    } else if (activePage === 'packages') {
+      return (
+        <div>
+
+        </div>
+      );
+
+    } else if (activePage === 'user') {
+      return (
+        <div>
+
+        </div>
+      );
+
+    } else {
       return (
         <div>
           <div className="mb-6">
@@ -165,19 +113,10 @@ const AdminDashboard = () => {
           </div>
         </div>
       );
-    } else {
-      return (
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">{activePage.charAt(0).toUpperCase() + activePage.slice(1)}</h1>
-          <p className="text-gray-600">This is the {activePage} content area.</p>
-        </div>
-      );
-    }
+    } 
   };
 
-  const handleViewPayment = (paymentId) => {
-    console.log('Viewing payments:', paymentId);
-  };
+  
 
   return (
     <div className="flex h-screen bg-gray-100">
