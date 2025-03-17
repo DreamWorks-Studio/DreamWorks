@@ -5,6 +5,7 @@ import connectDB from './config/database.js';
 import userRouter from './routes/user.route.js'
 import authRouter from './routes/auth.route.js'
 import cookieParser from 'cookie-parser';
+import User from './model/user.model.js';
 
 dotenv.config();
 
@@ -43,3 +44,42 @@ app.use((err, req , res ,next)=> {
         message,
     });
 });
+
+app.post('/forgot-password', (req,res) =>{
+
+    const {email} = req.body
+    User.findOne({email : email})
+        .then(user => {
+
+            if(!user){
+                return res.send({status : "User is not Existed"})
+            }
+
+            const token = jwt.sign({id : user._id} , "jwt_secret_key" , {expiresIn : "1d"});
+
+            var transporter = nodemailer.createTransport({
+                service: 'gmail',
+                auth: {
+                  user: 'youremail@gmail.com',
+                  pass: 'yourpassword'
+                }
+              });
+              
+              var mailOptions = {
+                from: 'youremail@gmail.com',
+                to: 'myfriend@yahoo.com',
+                subject: 'Sending Email using Node.js',
+                text: 'That was easy!'
+              };
+              
+              transporter.sendMail(mailOptions, function(error, info){
+                if (error) {
+                  console.log(error);
+                } else {
+                  console.log('Email sent: ' + info.response);
+                }
+              });
+        })
+        
+
+})

@@ -9,6 +9,7 @@ import Home from '../pages/Home';
 import AdminDashboard from '../pages/AdminDashboard';
 import UserProfile from '../pages/UserProfile';
 import PrivateRoute from '../components/PrivateRoute';
+import ForgotPassword from '../pages/ForgotPassword';
 
 
 const App = () => {
@@ -25,6 +26,7 @@ const App = () => {
           <Route path='/sign-up' element={<Register />} />
           <Route path='/sign-in' element={<SignIn />} />
           <Route path='/home' element={<Home />} />
+          <Route path='/forgot-password' element={<ForgotPassword/>}/>
 
           {/* Private route for authenticated users */}
           <Route element={<PrivateRoute />}>

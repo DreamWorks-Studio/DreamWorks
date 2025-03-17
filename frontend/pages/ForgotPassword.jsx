@@ -5,7 +5,7 @@ import { signInStart, signInSuccess, signInFailure } from '../src/redux/user/use
 import OAuth from '../components/OAuth';
 import { Link } from 'react-router-dom';
 
-const SignIn = () => {
+const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const SignIn = () => {
   // State to manage form data
   const [formData, setFormData] = useState({
     email: '',
-    password: '',
+    
   });
 
   // Handles input changes
@@ -32,7 +32,7 @@ const SignIn = () => {
 
     try {
       // Make API request to authenticate user
-      const res = await fetch('/api/auth/signin', {
+      const res = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -47,13 +47,8 @@ const SignIn = () => {
       localStorage.setItem('role', data.role); // Store user role (admin/user)
 
       dispatch(signInSuccess(data));
-
-      // Role-Based Navigation
-      if (data.role === 'admin') {
-        navigate('/admin'); // Redirect admin to dashboard
-      } else {
-        navigate('/profile'); // Redirect normal users to profile
-      }
+      navigate('/sign-in');
+     
       
     } catch (error) {
       dispatch(signInFailure(error.message));
@@ -69,14 +64,12 @@ const SignIn = () => {
         
         {/* Header Section */}
         <div className="bg-amber-700 p-4 relative">
-          <h1 className="text-3xl font-bold text-white text-center">Welcome Back</h1>
+          <h1 className="text-3xl font-bold text-white text-center">Reset Your Password</h1>
         </div>
 
         {/* Form Section */}
         <div className="p-8">
-          <p className="text-center text-gray-400 mb-8">
-            Sign in to access your account and continue your journey
-          </p>
+         
 
           <form onSubmit={handleSubmit} className="space-y-6">
             
@@ -94,19 +87,7 @@ const SignIn = () => {
               />
             </div>
 
-            {/* Password Input */}
-            <div className="space-y-2">
-              <label className="block text-gray-300 text-sm font-medium">Password</label>
-              <input
-                type="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                className="block w-full p-3 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white"
-                placeholder="••••••••"
-                required
-              />
-            </div>
+       
 
             {/* Submit Button */}
             <button
@@ -114,24 +95,17 @@ const SignIn = () => {
               className="w-full flex justify-center py-3 px-4 rounded-lg text-white bg-amber-700 hover:bg-amber-600"
               disabled={loading}
             >
-              {loading ? 'Loading...' : 'Log in'}
+              {loading ? 'Loading...' : 'Reset'}
             </button>
-             <Link to = "/forgot-password"><div className='text-white'>Forgot your password?</div></Link>
-            {/* OAuth Sign-in (Google, Facebook, etc.) */}
-            <OAuth />
+          
           </form>
            
           {/* Sign-Up Redirect */}
-          <div className="mt-8 text-center">
-            <p className="text-sm text-gray-400">
-              Don't have an account? 
-              <Link to="/sign-up" className="font-medium text-amber-500 hover:text-amber-400"> Sign up</Link>
-            </p>
-          </div>
+        
         </div>
       </div>
     </div>
   );
 };
 
-export default SignIn;
+export default ForgotPassword;
