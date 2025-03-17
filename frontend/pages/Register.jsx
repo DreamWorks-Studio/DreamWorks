@@ -3,39 +3,43 @@ import { Link, useNavigate } from 'react-router-dom';
 import OAuth from '../components/OAuth';
 
 export default function Register() {
+  // State to manage form data
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmpassword: '',
   });
- 
-  const [error, setError] = useState(false);
+
+  // State to manage errors (stored as an object for better handling)
+  const [error, setError] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Function to handle input changes and update state
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
 
-
   // Function to validate form inputs
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors = {}; // Object to store validation errors
     let isValid = true;
 
+    // Validate username (should not be empty)
     if (!formData.username.trim()) {
       newErrors.username = 'Username is required';
       isValid = false;
     }
 
-    // Email validation using regex
+    // Validate email using regex pattern
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(formData.email)) {
       newErrors.email = 'Please enter a valid email address';
       isValid = false;
     }
 
-    // Password length validation
+    // Validate password length
     if (formData.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters long';
       isValid = false;
@@ -59,22 +63,20 @@ export default function Register() {
       isValid = false;
     }
 
+    // Update error state
     setError(newErrors);
     return isValid;
   };
 
-  // Function to handle input changes
-  
   // Function to handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate form before sending request
     if (!validateForm()) return;
-
+  
     try {
       setLoading(true);
-      setError(false);
+      setError({});
+  
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: {
@@ -82,30 +84,35 @@ export default function Register() {
         },
         body: JSON.stringify(formData),
       });
-
+  
       const data = await res.json();
+      console.log("API Response:", data); // Debugging
+  
+      navigate('/sign-in');
       setLoading(false);
-
+  
       if (!data.success) {
-        setError(data.message || 'An error occurred while signing up');
+        setError({ api: data.message || 'An error occurred while signing up' });
         return;
       }
-       navigate('/sign-in');
-      // Redirect to sign-in page on successful registration
-      
+  
+     
     } catch (err) {
+      console.error("Fetch error:", err); // Debugging
       setLoading(false);
-      setError('Something went wrong. Please try again.');
+      setError({ api: 'Something went wrong. Please try again.' });
     }
   };
-
+  
   return (
     <div className='p-3 max-w-lg mx-auto'>
       <h1 className='text-3xl text-center font-semibold my-7'>Sign Up</h1>
+
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         {/* Username input */}
         <input
           type='text'
+          name='username'
           placeholder='Username'
           id='username'
           className='bg-slate-100 p-3 rounded-lg'
@@ -117,6 +124,7 @@ export default function Register() {
         {/* Email input */}
         <input
           type='email'
+          name='email'
           placeholder='Email'
           id='email'
           className='bg-slate-100 p-3 rounded-lg'
@@ -128,6 +136,7 @@ export default function Register() {
         {/* Password input */}
         <input
           type='password'
+          name='password'
           placeholder='Password'
           id='password'
           className='bg-slate-100 p-3 rounded-lg'
@@ -139,6 +148,7 @@ export default function Register() {
         {/* Confirm Password input */}
         <input
           type='password'
+          name='confirmpassword'
           placeholder='Confirm Password'
           id='confirmpassword'
           className='bg-slate-100 p-3 rounded-lg'
@@ -154,6 +164,8 @@ export default function Register() {
         >
           {loading ? 'Loading...' : 'Sign Up'}
         </button>
+
+        {/* OAuth login options */}
         <OAuth />
       </form>
 
@@ -165,8 +177,8 @@ export default function Register() {
         </Link>
       </div>
 
-      {/* Display error message */}
-      {error && <p className='text-red-700 mt-5'>{error}</p>}
+      {/* Display API error message if any */}
+      {error.api && <p className='text-red-700 mt-5'>{error.api}</p>}
     </div>
   );
 }
