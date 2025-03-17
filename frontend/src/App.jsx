@@ -14,8 +14,7 @@ import ResetPassword from '../pages/ResetPassword';
 
 const App = () => {
 
-  const isLoggedIn = window.localStorage.getItem("loggedIn");
-  const userType = window.localStorage.getItem("userType")
+ 
   return (
     
     <BrowserRouter>
