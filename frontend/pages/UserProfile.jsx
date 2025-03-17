@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { 
     updateUserStart, 
-    updateUserSuucess,
+    updateUserSuccess,
     updateUserFailure, 
     deleteUserStart, 
     deleteUserSuucess, 
@@ -66,27 +66,28 @@ const UserProfile = () => {
     };
 
     const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-          dispatch(updateUserStart());
-          const res = await fetch(`/api/user/update/${currentUser._id}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(formData),
-          });
-          const data = await res.json();
-          if (data.success === false) {
-            dispatch(updateUserFailure(data));
-            return;
-          }
-          dispatch(updateUserSuucess(data));
-          setUpdateSuccess(true);
-        } catch (error) {
-          dispatch(updateUserFailure(error));
+      e.preventDefault();
+      try {
+        dispatch(updateUserStart());
+        const res = await fetch(`/api/user/update/${currentUser._id}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(formData),
+        });
+        const data = await res.json();
+        if (data.success === false) {
+          dispatch(updateUserFailure(data));
+          return;
         }
-      };
+        dispatch(updateUserSuccess(data));
+        setUpdateSuccess(true);
+      } catch (error) {
+        dispatch(updateUserFailure(error));
+      }
+    };
+  
     const handleDeleteAccount = async () => {
         try {
             dispatch(deleteUserStart());
