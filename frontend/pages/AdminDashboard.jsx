@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
 import AdminFinance from '../components/AdminFinance';
+import AdminUser from '../components/AdminUser';
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -154,7 +155,7 @@ const AdminDashboard = () => {
             <li>
               <button 
                 onClick={() => setActivePage('user')} 
-                className={`flex items-center w-full p-3 ${activePage === 'user' ? 'bg-white text-gray-950' : 'text-white'}`}
+                className={`flex items-center w-full p-3 ${activePage === 'user' && <AdminUser/> ? 'bg-white text-gray-950' : 'text-white'}`}
               >
                 <UsersRound size={20} className="flex-shrink-0" />
                 {sidebarOpen && <span className="ml-3">Users</span>}
