@@ -54,7 +54,7 @@ export const UpdateUser = async (req, res, next) => {
 export const DeleteUser = async (req, res, next) => {
     try {
         // Ensure user is deleting only their own account
-        if (req.user.id !== req.params.id) {
+        if (! req.user.isAdmin && req.user.id !== req.params.id) {
             return next(errorHandler(401, "You can delete only your own account!"));
         }
 
