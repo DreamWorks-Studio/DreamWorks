@@ -43,7 +43,7 @@ const AdminDashboard = () => {
     } else if (activePage === 'user') {
       return (
         <div>
-
+           <AdminUser />
         </div>
       );
 

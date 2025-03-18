@@ -89,7 +89,7 @@ export const google = async (req, res, next) => {
       });
 
       await newUser.save();
-      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      const token = jwt.sign({ id: newUser._id ,isAdmin : newUser.isAdmin  }, process.env.JWT_SECRET, { expiresIn: "1h" });
       const { password: hashedPasswordNew, ...rest } = newUser._doc;
       const expiryDate = new Date(Date.now() + 3600000); // 1 hour
 
