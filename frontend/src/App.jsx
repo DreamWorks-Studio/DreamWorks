@@ -33,10 +33,10 @@ const App = () => {
           <Route element={<PrivateRoute />}>
             <Route path='/profile' element={<UserProfile />} />
           </Route>
-
+          <Route path='/admin' element={<AdminDashboard />} />
           {/* Role-based protected route for Admin */}
           <Route element={<PrivateRoute allowedRoles={['admin']} />}>
-            <Route path='/admin' element={<AdminDashboard />} />
+           
           </Route>
 
         

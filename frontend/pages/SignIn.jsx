@@ -29,7 +29,7 @@ const SignIn = () => {
     e.preventDefault();
     setLoading(true);
     dispatch(signInStart());
-
+  
     try {
       // Make API request to authenticate user
       const res = await fetch('/api/auth/signin', {
@@ -37,24 +37,24 @@ const SignIn = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
+  
       const data = await res.json();
-
+  
       if (!res.ok) throw new Error(data.message || 'Failed to sign in');
-
-      // Store user data and role securely
+  
+      // Store token and admin status
       localStorage.setItem('token', data.token);
-      localStorage.setItem('role', data.role); // Store user role (admin/user)
-
+      localStorage.setItem('isAdmin', data.isAdmin); // Fix: store isAdmin correctly
+  
       dispatch(signInSuccess(data));
-
+  
       // Role-Based Navigation
-      if (data.role === 'admin') {
+      if (data.isAdmin) {
         navigate('/admin'); // Redirect admin to dashboard
       } else {
         navigate('/profile'); // Redirect normal users to profile
       }
-      
+  
     } catch (error) {
       dispatch(signInFailure(error.message));
       console.error('Sign-in error:', error.message);

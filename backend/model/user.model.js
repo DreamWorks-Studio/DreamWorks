@@ -22,18 +22,18 @@ const userSchema = new mongoose.Schema({
         type: String, // Stores URL instead of Buffer
         default: "https://cdn.vectorstock.com/i/2000v/95/56/user-profile-icon-avatar-or-person-vector-45089556.avif",
     },
-    role: {
-        type: String,
-        enum: ["user", "admin"], // Define allowed roles
-        default: "user", // Default role is "user"
+    isAdmin: {
+        type: Boolean,
+        default : false,
+       
     },
-    // Add the following fields for password reset functionality
-    resetToken: {
-        type: String,
-    },
-    resetTokenExpiry: {
-        type: Date,
-    }
+    // // Add the following fields for password reset functionality
+    // resetToken: {
+    //     type: String,
+    // },
+    // resetTokenExpiry: {
+    //     type: Date,
+    // }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

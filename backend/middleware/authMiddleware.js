@@ -1,28 +1,19 @@
-const jwt = require("jsonwebtoken")
+import jwt from "jsonwebtoken";
+import { errorHandler } from "../utils/error.js";
 
-const verifyToken = (req,res,next) => {
+export const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Extract token
 
-    let token;
-    let authHeader = req.headers.Authorization || req.headers.authorization
-    if(authHeader && authHeader.startsWith("Bearer")) {
-        token = authHeader.split(" ")[1];
+  if (!token) {
+    return next(errorHandler(401, "No token provided!"));
+  }
 
-        if(!token){
-            return res.status(401).json({message : "Authorization denied!!"})
-        }
-
-        try {
-            
-            const decode = jwt.verify(token , process.env.JWT_SECRET);
-            req.user = decode;
-            console.log("The Decoded User is  :" ,req.user);
-
-        } catch (error) {
-            res.status(400).json({message:"Token is not Valid"})
-        }
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      console.error("Token verification failed:", err);
+      return next(errorHandler(403, "Token is not valid!"));
     }
-
-
+    req.user = user; // Attach user data to request
+    next();
+  });
 };
-
-module.export =verifyToken;

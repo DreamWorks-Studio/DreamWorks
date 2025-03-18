@@ -42,7 +42,7 @@ export const signin = async (req, res, next) => {
       if (!validPassword) return next(errorHandler(401, 'Wrong credentials'));
 
       // Include role in token
-      const token = jwt.sign({ id: validUser._id, role: validUser.role }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      const token = jwt.sign({ id: validUser._id, isAdmin: validUser.isAdmin }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
       // Send token with user data
       const { password: pass, ...userData } = validUser._doc;
@@ -61,7 +61,7 @@ export const google = async (req, res, next) => {
   try {
     const user = await User.findOne({ email: req.body.email });
     if (user) {
-      const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+      const token = jwt.sign({ id: user._id , isAdmin : user.isAdmin }, process.env.JWT_SECRET, { expiresIn: "1h" });
       const { password: hashedPassword, ...rest } = user._doc;
       const expiryDate = new Date(Date.now() + 3600000); // 1 hour
       res

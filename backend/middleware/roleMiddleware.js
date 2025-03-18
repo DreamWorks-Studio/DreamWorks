@@ -1,17 +1,27 @@
-const authorizedRoles = (...allowedRoles) => {
-    return (req, res, next) => {
-        // Check if user is authenticated
-        if (!req.user || !req.user.role) {
-            return res.status(401).json({ message: "Unauthorized: No role found" });
-        }
+import jwt from "jsonwebtoken";
+import { errorHandler } from "../utils/error.js";
 
-        // Check if the user's role is allowed
-        if (!allowedRoles.includes(req.user.role)) {
-            return res.status(403).json({ message: "Forbidden: Access denied" });
-        }
+export const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Extract token
 
-        next(); // Proceed if the role is authorized
-    };
+  if (!token) {
+    return next(errorHandler(401, "No token provided!"));
+  }
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      console.error("Token verification failed:", err);
+      return next(errorHandler(403, "Token is not valid!"));
+    }
+    req.user = user; // Attach user data to request
+    next();
+  });
 };
 
-export default authorizedRoles;
+// Middleware to check admin access
+export const verifyAdmin = (req, res, next) => {
+  if (!req.user || !req.user.isAdmin) {
+    return next(errorHandler(403, "You are not allowed to see all users"));
+  }
+  next();
+};
