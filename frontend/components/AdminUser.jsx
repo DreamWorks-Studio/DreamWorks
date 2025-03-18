@@ -14,11 +14,10 @@ export default function AdminUser() {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem("token");
+        if (!token) throw new Error("No token found!");
 
         const res = await fetch(`/api/user/getusers`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
@@ -26,123 +25,87 @@ export default function AdminUser() {
 
         if (res.ok) {
           setUsers(data.users);
-          if (data.users.length < 9) {
-            setShowMore(false);
-          }
+          if (data.users.length < 9) setShowMore(false);
         } else {
           console.log("Error fetching users:", data.message);
         }
       } catch (error) {
-        console.log("Fetch Users Error:", error.message);
+        console.error("Fetch Users Error:", error.message);
       }
     };
 
-    if (currentUser?.isAdmin) {
-      fetchUsers();
-    }
+    if (currentUser?.isAdmin) fetchUsers();
   }, [currentUser?._id]);
 
-  const handleShowMore = async () => {
-    const startIndex = users.length;
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`/api/user/getusers?startIndex=${startIndex}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setUsers((prev) => [...prev, ...data.users]);
-        if (data.users.length < 9) {
-          setShowMore(false);
-        }
-      } else {
-        console.log("Error fetching more users:", data.message);
-      }
-    } catch (error) {
-      console.log("Show More Error:", error.message);
-    }
-  };
-
-  const handleDeleteUser = async () => {
-    try {
-      const token = localStorage.getItem("token");
-
-      const res = await fetch(`/api/user/delete/${userIdToDelete}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        setUsers((prev) => prev.filter((user) => user._id !== userIdToDelete));
-        setShowModal(false);
-      } else {
-        console.log(data.message);
-      }
-    } catch (error) {
-      console.log(error.message);
-    }
-  };
-
   return (
-    <div className="table-auto overflow-x-scroll md:mx-auto p-3">
-      {currentUser?.isAdmin && users.length > 0 ? (
-        <>
-          <table className="shadow-md">
-            <thead>
-              <tr>
-                <th>Date created</th>
-                <th>User image</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Admin</th>
-                <th>Delete</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id}>
-                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <img
-                      src={user.profilePicture}
-                      alt={user.username}
-                      className="w-10 h-10 object-cover bg-gray-500 rounded-full"
-                    />
-                  </td>
-                  <td>{user.username}</td>
-                  <td>{user.email}</td>
-                  <td>{user.isAdmin ? <FaCheck className="text-green-500" /> : <FaTimes className="text-red-500" />}</td>
-                  <td>
-                    <button
-                      onClick={() => {
-                        setShowModal(true);
-                        setUserIdToDelete(user._id);
-                      }}
-                      className="text-red-500"
-                    >
-                      Delete
-                    </button>
-                  </td>
+    <><div className="mb-6">
+      <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
+      <p className="text-gray-600">Manage and view users</p>
+    </div><div className="bg-white rounded-lg shadow overflow-hidden">
+        {currentUser?.isAdmin && users.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full">
+              <thead className="bg-black text-white">
+                <tr>
+                  <th className="py-3 px-4 text-left">Date Created</th>
+                  <th className="py-3 px-4 text-left">User Image</th>
+                  <th className="py-3 px-4 text-left">Username</th>
+                  <th className="py-3 px-4 text-left">Email</th>
+                  <th className="py-3 px-4 text-left">Admin</th>
+                  <th className="py-3 px-4 text-center">Delete</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-          {showMore && (
-            <button onClick={handleShowMore} className="w-full text-teal-500 text-sm py-7">
-              Show more
-            </button>
-          )}
-        </>
-      ) : (
-        <p>You have no users yet!</p>
-      )}
-    </div>
+              </thead>
+              <tbody>
+                {users.map((user, index) => (
+                  <tr
+                    key={user._id}
+                    className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                  >
+                    <td className="py-3 px-4 border-b">{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td className="py-3 px-4 border-b">
+                      <img
+                        src={user.profilePicture}
+                        alt={user.username}
+                        className="w-10 h-10 rounded-full border border-gray-300" />
+                    </td>
+                    <td className="py-3 px-4 border-b">{user.username}</td>
+                    <td className="py-3 px-4 border-b">{user.email}</td>
+                    <td className="py-3 px-4 border-b">
+                      {user.isAdmin ? (
+                        <FaCheck className="text-green-600 text-lg" />
+                      ) : (
+                        <FaTimes className="text-red-600 text-lg" />
+                      )}
+                    </td>
+                    <td className="py-3 px-4 border-b text-center">
+                      <button
+                        onClick={() => {
+                          setShowModal(true);
+                          setUserIdToDelete(user._id);
+                        } }
+                        className="px-3 py-1 bg-red-600 text-white text-sm rounded"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {showMore && (
+              <button
+                className="mt-4 w-full text-blue-500 hover:underline"
+                onClick={() => console.log("Load more users...")}
+              >
+                Show More
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="p-4 text-center text-gray-600">No users found!</p>
+        )}
+      </div></>
+  
   );
 }

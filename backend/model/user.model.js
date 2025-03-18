@@ -28,12 +28,12 @@ const userSchema = new mongoose.Schema({
        
     },
     // // Add the following fields for password reset functionality
-     resetToken: {
-        type: String,
-     },
-     resetTokenExpiry: {
-        type: Date,
-     }
+    //  resetToken: {
+    //     type: String,
+    //  },
+    //  resetTokenExpiry: {
+    //     type: Date,
+    //  }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

@@ -67,7 +67,12 @@ export const DeleteUser = async (req, res, next) => {
     }
 };
 
+
+
 export const getUser = async (req, res, next) => {
+  if (!req.user.isAdmin) {
+    return next(errorHandler(403, 'You are not allowed to see all users'));
+  }
   try {
     const startIndex = parseInt(req.query.startIndex) || 0;
     const limit = parseInt(req.query.limit) || 9;
@@ -86,17 +91,22 @@ export const getUser = async (req, res, next) => {
     const totalUsers = await User.countDocuments();
 
     const now = new Date();
-    const oneMonthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-    const lastMonthUsers = await User.countDocuments({ createdAt: { $gte: oneMonthAgo } });
+
+    const oneMonthAgo = new Date(
+      now.getFullYear(),
+      now.getMonth() - 1,
+      now.getDate()
+    );
+    const lastMonthUsers = await User.countDocuments({
+      createdAt: { $gte: oneMonthAgo },
+    });
 
     res.status(200).json({
       users: usersWithoutPassword,
       totalUsers,
       lastMonthUsers,
     });
-
   } catch (error) {
     next(error);
   }
 };
-  
