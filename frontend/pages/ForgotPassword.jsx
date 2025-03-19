@@ -1,27 +1,23 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
   // State to manage form data
-  const [formData, setFormData] = useState({
-    email: '',
-  });
+  const [formData, setFormData] = useState({ email: "" });
 
   // Handles input changes
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-    // Clear errors/success when typing
-    if (error) setError('');
-    if (success) setSuccess('');
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+    if (error) setError("");
+    if (success) setSuccess("");
   };
 
   // Email validation
@@ -33,27 +29,30 @@ const ForgotPassword = () => {
   // Handles form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate email
     if (!validateEmail(formData.email)) {
-      setError('Please enter a valid email address');
+      setError("Please enter a valid email address");
       return;
     }
-    
+
     setLoading(true);
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     try {
-      // Make sure the URL has the correct port (5003 instead of 5173)
-      const res = await axios.post('/api/auth/forgot-password', { email: formData.email });
-      setSuccess(res.data.message || 'Reset link has been sent to your email');
-      // Don't redirect immediately - let user see the success message
-      setTimeout(() => navigate('/sign-in'), 5000);
+      // Make API request to backend forgot-password route
+      const res = await axios.post("/api/auth/forgot-password", { email: formData.email });
+
+      setSuccess(res.data.message || "Reset link has been sent to your email");
+      toast.success("Reset link sent successfully!");
+
+      // Redirect to sign-in page after 5 seconds
+      setTimeout(() => navigate("/sign-in"), 5000);
     } catch (err) {
-      const errorMessage = err.response?.data?.message || 'Failed to send reset link. Please try again.';
+      const errorMessage = err.response?.data?.message || "Failed to send reset link. Please try again.";
       setError(errorMessage);
-      console.error('Error:', err);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -63,14 +62,14 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-6">
       <div className="w-full max-w-md bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
         {/* Header Section */}
-        <div className="bg-amber-700 p-4 relative">
+        <div className="bg-amber-700 p-4">
           <h1 className="text-3xl font-bold text-white text-center">Reset Your Password</h1>
         </div>
 
         {/* Form Section */}
         <div className="p-8">
           <p className="text-gray-300 mb-6">
-            Enter the email address associated with your account, and we'll send you a link to reset your password.
+            Enter your email address and we'll send you a link to reset your password.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -108,15 +107,7 @@ const ForgotPassword = () => {
               className="w-full flex justify-center py-3 px-4 rounded-lg text-white bg-amber-700 hover:bg-amber-600 transition duration-200 font-medium disabled:opacity-70"
               disabled={loading}
             >
-              {loading ? (
-                <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Sending...
-                </span>
-              ) : 'Send Reset Link'}
+              {loading ? "Sending..." : "Send Reset Link"}
             </button>
 
             {/* Back to Login */}
