@@ -31,35 +31,35 @@ const UserProfile = () => {
     });
 
    
-
     useEffect(() => {
         if (image) {
             handleFileUpload(image);
         }
     }, [image]);
 
-    const handleFileUpload = async (image) => {
-        const storage = getStorage(app);
-        const fileName = new Date().getTime() + image.name;
-        const storageRef = ref(storage, fileName);
-        const uploadTask = uploadBytesResumable(storageRef, image);
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress =
-              (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            setImagePercent(Math.round(progress));
-          },
-          (error) => {
-            setImageError(true);
-          },
-          () => {
-            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
-              setFormData({ ...formData, profilePicture: downloadURL })
-            );
-          }
-        );
-      };
+    const handleFileUpload = (file) => {
+      const storage = getStorage(app);
+      const fileName = new Date().getTime() + file.name;
+      const storageRef = ref(storage, fileName);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+  
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setFilePerc(Math.round(progress));
+        },
+        (error) => {
+          setFileUploadError(true);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
+            setFormData({ ...formData, avatar: downloadURL })
+          );
+        }
+      );
+    };
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -139,10 +139,10 @@ const UserProfile = () => {
 
                         <div className="flex flex-col items-center">
                         <img
-          src={formData.profilePicture || currentUser.profilePicture}
-          alt='profile'
-          className='h-24 w-24 self-center cursor-pointer rounded-full object-cover mt-2'
           onClick={() => fileRef.current.click()}
+          src={formData.avatar || currentUser.avatar}
+          alt='profile'
+          className='rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2'
         />
                             <p className="text-sm mt-2 text-gray-400 cursor-pointer hover:text-amber-500" onClick={() => fileRef.current.click()}>
                                 Change Profile Picture

@@ -34,7 +34,7 @@ const AdminDashboard = () => {
   // Logout function placeholder (you can replace it with actual logic)
   const handleLogout = () => {
     localStorage.removeItem("token"); // Remove token
-    window.location.href = "/login"; // Redirect to login page
+    window.location.href = "/sign-in"; // Redirect to login page
   };
 
   // Render content based on active page
@@ -138,6 +138,7 @@ const AdminDashboard = () => {
             <button onClick={handleLogout} className="ml-4 px-4 py-2 border rounded-full">
               Logout
             </button>
+            
           </div>
         </header>
 

@@ -9,6 +9,7 @@ export default function AdminUser() {
   const [showMore, setShowMore] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); // New state for success message
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -39,18 +40,25 @@ export default function AdminUser() {
 
   const handleDeleteUser = async () => {
     try {
-        const res = await fetch(`/api/user/delete/${userIdToDelete}`, {
-            method: 'DELETE',
-        });
-        const data = await res.json();
-        if (res.ok) {
-            setUsers((prev) => prev.filter((user) => user._id !== userIdToDelete));
-            setShowModal(false);
-        } else {
-            console.log(data.message);
-        }
+      const res = await fetch(`/api/user/delete/${userIdToDelete}`, {
+        method: "DELETE",
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setUsers((prev) => prev.filter((user) => user._id !== userIdToDelete));
+        setShowModal(false);
+        setSuccessMessage("User deleted successfully!"); // Set success message
+
+        // Automatically clear success message after 3 seconds
+        setTimeout(() => setSuccessMessage(""), 3000);
+      } else {
+        console.log(data.message);
+        
+      }
     } catch (error) {
-        console.log(error.message);
+      console.log(error.message);
     }
   };
 
@@ -60,6 +68,13 @@ export default function AdminUser() {
         <h1 className="text-2xl font-bold text-gray-800">User Management</h1>
         <p className="text-gray-600">Manage and view users</p>
       </div>
+
+      {/* Success message */}
+      {successMessage && (
+        <div className="mb-4 p-3 bg-green-100 text-green-700 border border-green-500 rounded">
+          {successMessage}
+        </div>
+      )}
 
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {currentUser?.isAdmin && users.length > 0 ? (
@@ -79,12 +94,14 @@ export default function AdminUser() {
                 {users.map((user, index) => (
                   <tr
                     key={user._id}
-                    className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}
+                    className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}
                   >
-                    <td className="py-3 px-4 border-b">{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td className="py-3 px-4 border-b">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
                     <td className="py-3 px-4 border-b">
                       <img
-                        src={user.profilePicture}
+                        src={user.avatar}
                         alt={user.username}
                         className="w-10 h-10 rounded-full border border-gray-300"
                       />
@@ -135,7 +152,9 @@ export default function AdminUser() {
             <div className="flex justify-center mb-4">
               <HiOutlineExclamationCircle className="text-4xl text-red-500" />
             </div>
-            <p className="text-center text-lg font-semibold">Are you sure you want to delete this user?</p>
+            <p className="text-center text-lg font-semibold">
+              Are you sure you want to delete this user?
+            </p>
             <div className="flex justify-center mt-4">
               <button
                 onClick={handleDeleteUser}
