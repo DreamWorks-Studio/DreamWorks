@@ -1,13 +1,22 @@
 import User from "../model/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import bcryptjs from 'bcryptjs';
+import jwt from "jsonwebtoken";
+import nodemailer from 'nodemailer'
 
-// Test Route to check if API is working
 export const test = (req, res) => {
     res.json({
         message: 'API route is Working !!',
     });
 };
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "it23394124@my.sliit.lk",
+    pass: "kwjj lgry qadr cbwu"  // Use the generated App Password
+  }
+});
 
 // Update User
 export const UpdateUser = async (req, res, next) => {
@@ -113,89 +122,108 @@ export const getUser = async (req, res, next) => {
 
 export const forgetpassword = async (req, res, next) => {
   const { email } = req.body;
+  
   try {
-   
+    console.log("Received email:", email);
+
+ 
     const user = await User.findOne({ email });
+    console.log("User found:", user);
+
     if (!user) {
-      return res.status(401).json({ status: 401, message: "User not found" });
+      return res.status(404).json({ status: 404, message: "User not found" });
     }
 
-    
-    const token = jwt.sign(
-      { id: user._id, isAdmin: user.isAdmin },
-      process.env.JWT_SECRET,
-      { expiresIn: "1d" }
-    );
-
-  
-    user.verifytoken = token;
-    
-    await user.save();
-    
+   
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
    
+    user.verifyToken = token;
+    await user.save();
+    console.log("User updated with token:", user);
+
+    
     const mailOptions = {
-      from: "sanjana.nim2001@gmail.com",
+      from: "bagyasadumina2003@gmail.com",
       to: email,
       subject: "Password Reset",
-      text: `Use the following link to reset your password: http://localhost:5173/resetpassword/${user._id}/${token}`
+      text: `Use the following link to reset your password: http://localhost:5173/resetpassword/${user._id}/${token}`,
     };
 
+    // Send email
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         console.error("Error sending email:", error);
         return res.status(500).json({ status: 500, message: "Email not sent" });
       }
-      
-      res.status(201).json({ status: 201, message: "Email sent successfully" });
+      res.status(200).json({ status: 200, message: "Email sent successfully" });
     });
+
   } catch (error) {
     console.error("Forget password error:", error);
-    next(error);
+    res.status(500).json({ status: 500, message: "Internal server error" });
   }
 };
 
 export const resetpassword = async (req, res, next) => {
   const { id, token } = req.params;
-  
-  
 
   try {
-    const validuser = await User.findOne({_id: id, verifytoken: token});
-   
-    const verifyToken = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Reset password request for ID:", id, "with token:", token);
 
+    // Validate user and token
+    const validUser = await User.findOne({ _id: id, verifyToken: token });
 
-    if (validuser && verifyToken.id) {
-      res.status(201).json({ status: 201, validuser });
-    } else {
-      res.status(401).json({ status: 401, message: "User does not exist" });
+    if (!validUser) {
+      return res.status(404).json({ status: 404, message: "Invalid or expired token" });
     }
+
+    // Verify JWT token
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err) {
+        console.error("JWT verification failed:", err);
+        return res.status(401).json({ status: 401, message: "Invalid token" });
+      }
+      res.status(200).json({ status: 200, message: "Token verified. Proceed with reset." });
+    });
+
   } catch (error) {
     console.error("Error in resetpassword controller:", error);
     res.status(500).json({ status: 500, message: "Internal server error" });
   }
 };
 
+
 export const updateResetPassword = async (req, res, next) => {
   const { id, token } = req.params;
   const { password } = req.body;
 
   try {
-      const validuser = await User.findOne({ _id: id, verifytoken: token });
-      const verifyToken = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Updating password for user ID:", id);
 
-      if (validuser && verifyToken.id) {
-          const newpassword = await bcryptjs.hash(password, 10);
+    // Validate user and token
+    const validUser = await User.findOne({ _id: id, verifyToken: token });
 
-          await User.findByIdAndUpdate(id, { password: newpassword });
+    if (!validUser) {
+      return res.status(404).json({ status: 404, message: "Invalid or expired token" });
+    }
 
-          res.status(201).json({ status: 201, message: "Password updated successfully" });
-      } else {
-          res.status(401).json({ status: 401, message: "User does not exist or invalid token" });
+    // Verify JWT token
+    jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
+      if (err) {
+        console.error("JWT verification failed:", err);
+        return res.status(401).json({ status: 401, message: "Invalid token" });
       }
-  } catch (error) {
-      res.status(500).json({ status: 500, error: error.message });
-  }
 
+      // Hash the new password
+      const newPassword = await bcryptjs.hash(password, 10);
+      await User.findByIdAndUpdate(id, { password: newPassword, verifyToken: "" });
+
+      res.status(200).json({ status: 200, message: "Password updated successfully" });
+    });
+
+  } catch (error) {
+    console.error("Error updating password:", error);
+    res.status(500).json({ status: 500, message: "Internal server error" });
+  }
 };

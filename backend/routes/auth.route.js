@@ -1,9 +1,6 @@
 import express from 'express'
 import { google, signin, signup, signout } from '../controller/auth.controller.js';
-import nodemailer from 'nodemailer'
-import User from '../model/user.model.js';
-import jwt from 'jsonwebtoken'
-import bcryptjs from 'bcryptjs'
+
 
 const router = express.Router();
 
