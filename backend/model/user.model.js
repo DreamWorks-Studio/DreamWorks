@@ -27,6 +27,10 @@ const userSchema = new mongoose.Schema({
         default : false,
        
     },
+
+    verifytoken:{
+        type:String
+    },
     // // Add the following fields for password reset functionality
     //  resetToken: {
     //     type: String,
