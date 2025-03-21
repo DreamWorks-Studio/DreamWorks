@@ -23,13 +23,14 @@ const UserProfile = () => {
     const [imagePercent, setImagePercent] = useState(0);
     const [imageError, setImageError] = useState(false);
     const [updateSuccess, setUpdateSuccess] = useState(false);
+    const [redirect, setRedirect] = useState(false); 
     const { currentUser, loading, error } = useSelector((state) => state.user);
 
     const [formData, setFormData] = useState({
         username: currentUser?.username || "",
         email: currentUser?.email || "",
         password: "",
-        avatar: currentUser?.avatar || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp",
+        avatar: currentUser.avatar || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp",
     });
 
    
@@ -112,6 +113,7 @@ const UserProfile = () => {
         try {
             await fetch('/api/auth/signout');
             dispatch(signOut());
+           
             
         } catch (error) {
             console.log(error);
@@ -129,6 +131,7 @@ const UserProfile = () => {
             setImage(file);
         }
     };
+    
 
     return (
         <>
