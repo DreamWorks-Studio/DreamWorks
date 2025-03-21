@@ -13,7 +13,7 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/
 import { app } from '../src/firebase'; 
 import Navbar from "../components/Navbar";
 import Header from "../components/Header";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 const UserProfile = () => {
 
@@ -25,6 +25,7 @@ const UserProfile = () => {
     const [updateSuccess, setUpdateSuccess] = useState(false);
     const [redirect, setRedirect] = useState(false); 
     const { currentUser, loading, error } = useSelector((state) => state.user);
+    const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
         username: currentUser?.username || "",
@@ -118,6 +119,15 @@ const UserProfile = () => {
         } catch (error) {
             console.log(error);
         }
+
+         localStorage.removeItem('currentUser');
+            localStorage.removeItem('role');
+        
+            // Optionally, dispatch a logout action in Redux (if you're using Redux for user state management)
+           
+        
+            // Redirect to the home page
+            
     };
 
     const handleFileChange = (e) => {
@@ -175,10 +185,12 @@ const UserProfile = () => {
                     <span onClick={handleDeleteAccount} className="text-red-500 cursor-pointer hover:underline">
                         Delete Account
                     </span>
-                  
+                    
+                    
                     <span onClick={handleSignOut} className="text-gray-400 cursor-pointer hover:text-red-500">
                         Sign out
                     </span>
+                    
                     
                    
                 </div>

@@ -12,6 +12,7 @@ import PrivateRoute from '../components/PrivateRoute';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
 import AdminFinance from '../components/AdminFinance';
+import Prehome from '../pages/Prehome';
 
 const App = () => {
 
@@ -28,7 +29,7 @@ const App = () => {
           <Route path='/home' element={<Home />} />
           <Route path='/forgot-password' element={<ForgotPassword/>}/>
           <Route path="/reset-password/:id/:token" element={<ResetPassword />} />
-
+          <Route path = "/prehome" element = {<Prehome/>}/>
           {/* Private route for authenticated users */}
           <Route element={<PrivateRoute />}>
             <Route path='/profile' element={<UserProfile />} />
