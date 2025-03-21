@@ -12,6 +12,8 @@ import {
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../src/firebase'; 
 import Navbar from "../components/Navbar";
+import Header from "../components/Header";
+import { Link, Navigate } from "react-router-dom";
 
 const UserProfile = () => {
 
@@ -110,6 +112,7 @@ const UserProfile = () => {
         try {
             await fetch('/api/auth/signout');
             dispatch(signOut());
+            
         } catch (error) {
             console.log(error);
         }
@@ -139,11 +142,11 @@ const UserProfile = () => {
 
                         <div className="flex flex-col items-center">
                         <img
-          onClick={() => fileRef.current.click()}
-          src={formData.avatar || currentUser.avatar}
-          alt='profile'
-          className='rounded-full h-24 w-24 object-cover cursor-pointer self-center mt-2'
-        />
+                            onClick={() => fileRef.current.click()}
+                            src={formData.avatar || currentUser.avatar}
+                            alt='profile'
+                            className='rounded-full h-24 w-24 object-cover cursor-pointer border-2 border-amber-500'
+                        />
                             <p className="text-sm mt-2 text-gray-400 cursor-pointer hover:text-amber-500" onClick={() => fileRef.current.click()}>
                                 Change Profile Picture
                             </p>
@@ -169,9 +172,12 @@ const UserProfile = () => {
                     <span onClick={handleDeleteAccount} className="text-red-500 cursor-pointer hover:underline">
                         Delete Account
                     </span>
+                  
                     <span onClick={handleSignOut} className="text-gray-400 cursor-pointer hover:text-red-500">
                         Sign out
                     </span>
+                    
+                   
                 </div>
                      
                 <p className='text-red-700 mt-5'>{error && 'Something went wrong!'}</p>

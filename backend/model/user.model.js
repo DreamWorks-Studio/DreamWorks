@@ -5,6 +5,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
+       
     },
     email: {
         type: String,
@@ -14,6 +15,10 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String, // Should be hashed before storing
         required: true,
+        isLength: {
+            options: { min: 8 },
+            errorMessage: 'Password should be at least 8 chars',
+          },
     },
     confirmpassword: {
         type: String,
