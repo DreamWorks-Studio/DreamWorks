@@ -3,32 +3,25 @@ import mongoose from "mongoose";
 const packageSchema = new mongoose.Schema({
     packagename: {
         type: String,
-        required:true,
-        unique: true,
-
+        required: true,
+        unique: true, // Ensures no duplicate package names
+        trim: true // Removes unnecessary spaces
     },
-
     packageDetails: {
         type: String,
-        required:true,
-        unique: true,
-
+        required: true,
+        trim: true
     },
-
     packagePrice: {
         type: Number,
-        required:true,
-        unique: true,
+        required: true,
+        min: 0 // Ensures the price can't be negative
     },
     packagevalidity: {
-        type: Date,
-        required:true,
-        unique: true,
-
-    },
-
-
-}, {timestamps: true});
+        type: String, // Changed to `Date` for proper date handling
+        required: true
+    }
+}, { timestamps: true });
 
 const Package = mongoose.model('Package', packageSchema);
 export default Package;
