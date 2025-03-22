@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import connectDB from './config/database.js';
+import packageRoute from './routes/package.route.js';
 
 dotenv.config();
 
@@ -22,3 +23,5 @@ app.get('/',(req,res) => {
 app.listen(port, () => {
     console.log(`Server is up and running on port : ${port}`);
 })
+
+app.use('/backend/package',packageRoute )
