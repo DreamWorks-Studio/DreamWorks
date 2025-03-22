@@ -4,7 +4,14 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Header from '../components/Header'
 import Contact from '../pages/Contact'
 import ScrollUp from '../components/ScrollUp'
-import Footer from '../components/Footer'
+import Pack from '../pages/Pack'
+import Promo from '../pages/Promo'
+import Standard from '../pages/Standard'
+import Promoadd from '../pages/Promoadd'
+
+
+
+
 
 const App = () => {
   return (
@@ -13,13 +20,22 @@ const App = () => {
     <Routes>
       <Route path='/' element={<Header/>}/>
       <Route path='/contact' element={<Contact />}/>
-    </Routes>
+      <Route path='/package' element={<Pack/>}/>
+      <Route path='/Promo' element={<Promo/>}/>
+      <Route path='/Standard' element={<Standard/>}/>
+      <Route path='/Promoadd' element={<Promoadd/>}/>
+     
+      
+
+      
+   </Routes>
     <ScrollUp/>
-    <Footer/>
+    
+   
     </div>
     </BrowserRouter>
     
   )
 }
 
-export default App
+export default App;
