@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
-
-
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -10,48 +8,46 @@ const ForgotPassword = () => {
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
-      setEmail(e.target.value);
+    setEmail(e.target.value);
   };
 
   const sendLink = async (e) => {
-      e.preventDefault();
-      setError("");
-      setMessage("");
-      
-      if (email === "") {
-          setError("Email is required!");
-          return;
-      } 
-      if (!email.includes("@")) {
-          setError("Please include @ in your email!");
-          return;
-      }
+    e.preventDefault();
+    setError("");
+    setMessage("");
 
-      setLoading(true);
-      try {
-          const res = await fetch("/api/user/forgetpassword", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify({ email })
-          });
+    if (email === "") {
+      setError("Email is required!");
+      return;
+    }
+    if (!email.includes("@")) {
+      setError("Please include @ in your email!");
+      return;
+    }
 
-          const data = await res.json();
-          if (data.status === 201) {
-              setEmail("");
-              setMessage("Password reset link sent successfully!");
-          } else {
-              setError("Invalid User");
-          }
-      } catch(error) {
-          setError(error.message);
-      } finally {
-          setLoading(false);
+    setLoading(true);
+    try {
+      const res = await fetch("/api/user/forgetpassword", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await res.json();
+      if (data.status === 201) {
+        setEmail("");
+        setMessage("Password reset link sent successfully!");
+      } else {
+        setError("Invalid User");
       }
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
   };
-
-  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-6">
@@ -67,7 +63,7 @@ const ForgotPassword = () => {
             Enter your email address and we'll send you a link to reset your password.
           </p>
 
-          <form onSubmit={sendLink}  className="space-y-6">
+          <form onSubmit={sendLink} className="space-y-6">
             {/* Email Input */}
             <div className="space-y-2">
               <label className="block text-gray-300 text-sm font-medium">Email Address</label>
@@ -82,14 +78,19 @@ const ForgotPassword = () => {
               />
             </div>
 
-            {/* Error/Success Messages */}
+            {/* Error Message */}
             {error && (
               <div className="bg-red-900/30 border border-red-500/50 text-red-300 p-3 rounded">
                 <p>{error}</p>
               </div>
             )}
-            
-       
+
+            {/* Success Message */}
+            {message && (
+              <div className="bg-green-900/30 border border-green-500/50 text-green-300 p-3 rounded">
+                <p>{message}</p>
+              </div>
+            )}
 
             {/* Submit Button */}
             <button

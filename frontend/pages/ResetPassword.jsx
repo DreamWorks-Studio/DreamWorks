@@ -22,7 +22,7 @@ const ResetPassword = () => {
           setError("Invalid or expired reset link.");
         }
       } catch (error) {
-        setError("An error occurred while verifying the reset link.");
+        //setError("An error occurred while verifying the reset link.");
       }
       setLoading(false);
     };
