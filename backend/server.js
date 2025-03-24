@@ -7,6 +7,7 @@ import connectDB from "./config/database.js";
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
+import portfolioRouter from "./routes/portfolio.route.js";
 
 const app = express();
 const port = process.env.PORT || 5003;
@@ -27,6 +28,7 @@ app.use(express.json())
 app.use('/api/booking', bookingRouter);
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
+app.use('/api/portfolio', portfolioRouter);
 
 
 
