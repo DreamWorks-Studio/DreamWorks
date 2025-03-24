@@ -23,13 +23,14 @@ const Navbar = () => {
   };
 
   return (
-    <div className={`absolute top-0 left-0 w-full z-20 ${navbarColor}`}>
-      <div className="container mx-auto flex justify-between items-center px-2 md:px-2 lg:px-32">
-        <img src="src/assets/web_logo.png" alt="logo" className="w-24" />
-        <ul className="hidden md:flex gap-7 text-white">
-          <Link to="/" className="text-white hover:text-amber-500">Home</Link>
-          <Link to="/gallery" className="text-white hover:text-amber-500">Gallery</Link>
-          <Link to="/contact" className="text-white hover:text-amber-500">Contact</Link>
+    <div className = {`absolute top-0 left-0 w-full z-50 ${navbarColor}`}>
+      <div className='container mx-auto flex justify-between items-center py-2 px-6 md:px-20 lg:px-32'>
+        <img src="src/assets/web_logo.png" alt="logo" className='w-24'/>
+        <ul className='hidden md:flex gap-7 text-white'>
+          <Link to="/" className=' text-white hover:text-amber-500'>Home</Link>
+          <Link to='/gallery' className=' text-white hover:text-amber-500'>Gallery</Link>
+          <Link to="/contact" className=' text-white hover:text-amber-500'>Contact</Link>
+          <Link to="/booking" className=' text-white hover:text-amber-500'>Book Now</Link>
         </ul>
 
         <div className="relative">

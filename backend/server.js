@@ -19,8 +19,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 //middlewares
-app.use(express.json())
 app.use(cors())
+app.use(express.json())
+
 
 // API Routes
 app.use('/api/booking', bookingRouter);

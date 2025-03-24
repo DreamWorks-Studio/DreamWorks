@@ -13,6 +13,7 @@ const Header = () => {
         <About/>
         <Footer/>
         <PrivateRoute/>
+
     </div>
   )
 }
