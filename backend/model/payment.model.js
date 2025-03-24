@@ -27,7 +27,7 @@ const paymentSchema = new mongoose.Schema({
     },
     totalAmount: {
         type: Number,
-        required: function() { return this.paymentType === 'partial'; }
+        required: true
     },
     remainingAmount: {
         type: Number,
@@ -52,6 +52,15 @@ const paymentSchema = new mongoose.Schema({
     }
     
 }, { timestamps:true });
+
+paymentSchema.pre('save', function(next){
+    if (this.paymentType === 'partial') {
+        this.remainingAmount = this.totalAmount - this.amountPaid;
+    } else {
+        this.remainingAmount = 0;
+    }
+    next();
+});
 
 const Payment = mongoose.model('Payment', paymentSchema);
 export default Payment;
