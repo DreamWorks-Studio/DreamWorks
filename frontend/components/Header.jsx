@@ -2,6 +2,7 @@ import React from 'react'
 import Navbar from './Navbar'
 import Carousel from './Carousel'
 import About from '../pages/About'
+import PrivateRoute from './PrivateRoute'
 
 const Header = () => {
   return (
@@ -9,6 +10,7 @@ const Header = () => {
         <Navbar/>
         <Carousel/>
         <About/>
+        <PrivateRoute/>
     </div>
   )
 }
