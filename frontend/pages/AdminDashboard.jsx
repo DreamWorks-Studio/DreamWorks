@@ -42,7 +42,7 @@ const AdminDashboard = () => {
     } else if (activePage === 'user') {
       return (
         <div>
-
+         <AdminUser  activePage={activePage}/>;
         </div>
       );
 
@@ -123,8 +123,6 @@ const AdminDashboard = () => {
     } 
   };
 
-  
-
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
@@ -201,33 +199,61 @@ const AdminDashboard = () => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="bg-white shadow-sm z-10">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center rounded-md bg-gray-100 px-3 py-2 w-64">
-              <Search size={18} className="text-gray-500" />
-              <input 
-                type="text" 
-                placeholder="Search..." 
-                className="bg-transparent border-none ml-2 focus:outline-none w-full text-sm"
-              />
-            </div>
-            <div className="flex items-center">
-              <button className="p-2 rounded-full hover:bg-gray-100 relative">
-                <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              </button>
-              <button className="ml-4 px-4 py-2 border rounded-full">Logout</button>
-            </div>
+        <header className="bg-white shadow-sm z-10 p-4 flex justify-between items-center">
+          <div className="flex items-center bg-gray-100 px-3 py-2 rounded-md w-64">
+            <Search size={18} className="text-gray-500" />
+            <input
+              type="text"
+              placeholder="Search..."
+              className="bg-transparent border-none ml-2 focus:outline-none w-full text-sm"
+            />
+          </div>
+          <div className="flex items-center">
+            <button className="p-2 rounded-full hover:bg-gray-100 relative">
+              <Bell size={20} />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+            <button onClick={handleLogout} className="ml-4 px-4 py-2 border rounded-full">
+              Logout
+            </button>
+            
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-4 bg-gray-100">
-          {renderContent()}
-        </main>
+        <main className="flex-1 overflow-y-auto p-4 bg-gray-100">{renderContent()}</main>
       </div>
     </div>
   );
 };
+
+/* Sidebar Navigation Item Component */
+const NavItem = ({ icon: Icon, title, active, onClick, sidebarOpen }) => (
+  <button
+    onClick={onClick}
+    className={`flex items-center w-full p-3 ${
+      active ? "bg-white text-gray-950" : "text-white"
+    }`}
+  >
+    <Icon size={20} className="flex-shrink-0" />
+    {sidebarOpen && <span className="ml-3">{title}</span>}
+  </button>
+);
+
+/* Dashboard Card Component */
+const DashboardCard = ({ title, value, icon, percentage, color }) => (
+  <div className={`bg-white rounded-lg shadow p-4`}>
+    <div className="flex items-center justify-between">
+      <div>
+        <p className="text-gray-500 text-sm">{title}</p>
+        <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
+        <p className={`text-${color}-500 text-sm flex items-center mt-1`}>
+          <TrendingUp size={14} className="mr-1" /> {percentage}
+        </p>
+      </div>
+      <div className={`p-3 bg-${color}-100 rounded-full`}>{icon}</div>
+    </div>
+  </div>
+);
 
 export default AdminDashboard;
