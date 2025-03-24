@@ -292,6 +292,17 @@ export const undoBookingStatus = async (req, res) => {
     }
 };
 
+export const getBookedDates = async (req, res) => {
+    try {
+        const bookings = await Booking.find({}, "date"); // Fetch only the 'date' field
+        const bookedDates = bookings.map(booking => booking.date);
+        res.status(200).json(bookedDates);
+    } catch (error) {
+        console.error("Error fetching booked dates:", error);
+        res.status(500).json({ message: "Failed to retrieve booked dates", error: error.message });
+    }
+};
+
 
     /*const update = await Booking.findByIdAndUpdate(userId, updateBooking)
 
