@@ -2,7 +2,6 @@ import dotenv from "dotenv";
 dotenv.config(); // Load .env variables at the top
 import express from 'express'
 import cors from 'cors'
-import connectDB from './config/database.js';
 import bookingRouter from './routes/booking.route.js';
 import connectDB from "./config/database.js";
 import userRouter from "./routes/user.route.js";
