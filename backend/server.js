@@ -1,14 +1,14 @@
 import dotenv from "dotenv";
 dotenv.config(); // Load .env variables at the top
-
-import express from "express";
-import cors from "cors";
+import express from 'express'
+import cors from 'cors'
+import connectDB from './config/database.js';
+import bookingRouter from './routes/booking.route.js';
 import connectDB from "./config/database.js";
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 
-// Initialize Express
 const app = express();
 const port = process.env.PORT || 5003;
 
@@ -19,6 +19,19 @@ connectDB();
 app.use(express.json());
 app.use(cookieParser());
 
+//middlewares
+app.use(express.json())
+app.use(cors())
+
+// API Routes
+app.use('/api/booking', bookingRouter);
+app.use("/api/user", userRouter);
+app.use("/api/auth", authRouter);
+
+
+
+
+
 // CORS Configuration
 app.use(
   cors({
@@ -26,10 +39,6 @@ app.use(
     credentials: true,
   })
 );
-
-// API Routes
-app.use("/api/user", userRouter);
-app.use("/api/auth", authRouter);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
