@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
 import Adminbooking from '../components/Adminbooking';
+import AdminPortfolio from '../components/AdminPortfolio';
 
 
 const AdminDashboard = () => {
@@ -28,7 +29,7 @@ const AdminDashboard = () => {
     } else if (activePage === 'images') {
       return (
         <div>
-
+             <AdminPortfolio activePage={activePage} />
         </div>
       );
 
