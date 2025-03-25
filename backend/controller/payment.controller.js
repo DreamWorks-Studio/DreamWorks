@@ -9,131 +9,67 @@ export const test = (req,res) => {
     });
 };
 
-export const createPayment = async (req, res) => {
-    
+export const selectPaymentMethod = async (req, res) => {
     try {
-        console.log('Payment endpoint hit');
+        console.log('Select Payment Method endpoint hit');
         console.log('Headers:', req.headers);
         console.log('Received request body:', req.body);
 
-        const { 
-            bookingId, 
-            amountPaid, 
-            paymentMethod,
-            paymentType,
-            cardNumber,
-            expiryDate,
-            saveCard,
-            totalAmount, 
-        } = req.body;
+        const { bookingId, paymentMethod, userId } = req.body;
 
-        
-        if (!bookingId || !amountPaid || !paymentMethod) {
+        //Validate required fields
+        if (!bookingId || !paymentMethod || !userId) {
             return res.status(400).json({ message: 'Missing required fields' });
         }
 
-        if (paymentMethod === 'card') {
-            if (!paymentType || !['full', 'partial'].includes(paymentType)) {
-              return res.status(400).json({ message: 'Valid payment type (full/partial) is required for card payments' });
-            }
+        //Find the booking
+        const booking = await Booking.findById(bookingId).populate('user').populate('packageId');
 
-            if(paymentType === 'partial' && amountPaid < 3000) {
-                return res.status(400).json({ message: 'Partial payments must be at least 3000' });
-            }
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
         }
-          
-        let paymentStatus;
+
+        //Ensure the booking belongs to the correct user
+        if (booking.user._id.toString() !== userId.toString()) {
+            return res.status(403).json({ message: 'Booking does not belong to the current user' });
+        }
+
+        //Extract package price
+        const packagePrice = booking.packageId.price; // Ensure `price` exists in the Package schema
+        const totalAmount = (packagePrice * 1.05) + 1000; // 
+        const amountPaid = paymentMethod === 'cash' ? totalAmount : 0; // If cash, full amount is paid
+
+        //If cash payment, complete immediately
         if (paymentMethod === 'cash') {
-            paymentStatus = 'pending';
-        } else if (paymentMethod === 'card') {
-            paymentStatus = paymentType === 'partial' ? 'partial' : 'completed';
-        }
-
-        //calculate remaining amount for partial payment
-        let remainingAmount = 0;
-        if (paymentMethod === 'card' && paymentType === 'partial' && totalAmount) {
-            remainingAmount = totalAmount - amountPaid;
-        }
-
-        // Only store the last 4 digits of the card number for security
-        const maskedCardNumber = cardNumber ? 
-            '*'.repeat(cardNumber.replace(/\s/g, '').length - 4) + 
-            cardNumber.replace(/\s/g, '').slice(-4) : null;
-
-        const existingPayment = await Payment.findOne({ bookingId, paymentStatus: 'pending' });
-
-        if(existingPayment) {
-            existingPayment.amountPaid += amountPaid;
-            existingPayment.remainingAmount -= amountPaid;
-
-            if (existingPayment.remainingAmount === 0) {
-                existingPayment.paymentStatus = 'completed';
-            } else {
-                existingPayment.paymentStatus = 'partial';
-            }
-
-            await existingPayment.save();
-
-            const booking = await mongoose.model('Booking').findById(bookingId);
-            if (booking) {
-                booking.paymentStatus = existingPayment.paymentStatus;
-                if (paymentType === 'partial') {
-                    booking.paidAmount = existingPayment.amountPaid;
-                }
-                await booking.save();
-            }
-
-            return res.status(200).json({
-                message: 'Payment updated successfully',
-                payment: {
-                    id: existingPayment._id,
-                    amountPaid: existingPayment.amountPaid,
-                    paymentStatus: existingPayment.paymentStatus,
-                    paymentMethod: existingPayment.paymentMethod,
-                    paymentType: existingPayment.paymentType,
-                }
-            });
-
-        } else {
-            const payment = new Payment({
+            const newPayment = new Payment({
                 bookingId,
-                amountPaid,
-                paymentMethod,
-                paymentStatus,
-                paymentType: paymentMethod === 'card' ? paymentType : null,
-                totalAmount: totalAmount || amountPaid,
-                remainingAmount,
-                cardNumber: (paymentType === 'partial' && paymentMethod === 'card') ? maskedCardNumber : null,
-                expiryDate: (paymentType === 'partial' && paymentMethod === 'card') ? expiryDate : null,
-                isCardSaved: (paymentType === 'partial' && paymentMethod === 'card') ? (saveCard || false) : false
+                userId,
+                packageId: booking.packageId._id,
+                packagePrice,
+                amountPaid, 
+                paymentMethod: 'cash',
+                paymentStatus: 'paid',
+                totalAmount, 
+                remainingAmount: 0
             });
 
-            await payment.save();
+            await newPayment.save();
+            booking.paymentStatus = 'paid';
+            booking.paidAmount = totalAmount;
+            await booking.save();
 
-            const booking = await mongoose.model('Booking').findById(bookingId);
-            if (booking) {
-                booking.paymentStatus = paymentStatus;
-                if (paymentType === 'partial') {
-                    booking.paidAmount = amountPaid;
-                }
-                await booking.save();
-            }
-
-            return res.status(201).json({
-                message: 'Payment recorded successfully',
-                payment: {
-                    id: payment._id,
-                    amountPaid: payment.amountPaid,
-                    paymentStatus: payment.paymentStatus,
-                    paymentMethod: payment.paymentMethod,
-                    paymentType: payment.paymentType
-                }
-            });
+            return res.status(201).json({ message: 'Cash payment recorded successfully', payment: newPayment });
         }
+
+
+        return res.status(200).json({
+            message: 'Payment method selected successfully',
+            paymentDetails: { paymentMethod, bookingId, userId },
+        });
 
     } catch (error) {
-        console.error('Error processing payment:', error);
-        res.status(500).json({ message: 'Failed to process payment', error: error.message });
+        console.error('Error selecting payment method:', error);
+        res.status(500).json({ message: 'Failed to select payment method', error: error.message });
     }
 };
 
