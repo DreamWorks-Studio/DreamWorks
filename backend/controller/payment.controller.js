@@ -73,6 +73,137 @@ export const selectPaymentMethod = async (req, res) => {
     }
 };
 
+export const processCardPayment = async (req, res) => {
+    try {
+      console.log('Process Card Payment endpoint hit');
+      console.log('Headers:', req.headers);
+      console.log('Received request body:', req.body);
+      
+      const { 
+        bookingId, 
+        userId, 
+        paymentType, 
+        amountPaid,
+        cardNumber,
+        expiryDate,
+        saveCard
+      } = req.body;
+      
+      // Validate required fields
+      if (!bookingId || !userId || !paymentType || !amountPaid || !cardNumber || !expiryDate) {
+        return res.status(400).json({ message: 'Missing required payment fields' });
+      }
+      
+      // Find the booking
+      const booking = await Booking.findById(bookingId).populate('user').populate('packageId');
+      
+      if (!booking) {
+        return res.status(404).json({ message: 'Booking not found' });
+      }
+      
+      //  Ensure the booking belongs to the correct user
+      if (booking.user._id.toString() !== userId.toString()) {
+        return res.status(403).json({ message: 'Booking does not belong to the current user' });
+      }
+      
+      // Extract package price
+      const packagePrice = booking.packageId.price;
+      const calculatedTotalAmount = packagePrice * 1.05 + 1000;
+      
+      //  Check for existing payments
+      const existingPayments = await Payment.find({ bookingId });
+      const totalPaidSoFar = existingPayments.reduce((sum, payment) => sum + payment.amountPaid, 0);
+      const remainingBeforeThisPayment = calculatedTotalAmount - totalPaidSoFar;
+      
+      //  Validate payment amount
+      if (parseFloat(amountPaid) > remainingBeforeThisPayment) {
+        return res.status(400).json({ 
+          message: 'Payment amount exceeds the remaining balance',
+          remainingAmount: remainingBeforeThisPayment
+        });
+      }
+      
+      //  Validate first partial payment minimum
+      if (existingPayments.length === 0 && paymentType === 'partial' && parseFloat(amountPaid) < 3000) {
+        return res.status(400).json({ 
+          message: 'Initial partial payment amount must be at least 3000'
+        });
+      }
+      
+      // Calculate remaining amount after this payment
+      const remainingAmount = remainingBeforeThisPayment - parseFloat(amountPaid);
+      
+      // Determine payment status
+      const paymentStatus = remainingAmount <= 0 ? 'paid' : 'partial';
+
+      const last4Digits = cardNumber.slice(-4);
+      
+      // Create new payment record
+      const newPayment = new Payment({
+        bookingId,
+        userId,
+        packageId: booking.packageId._id,
+        packagePrice,
+        amountPaid,
+        paymentMethod: 'card',
+        paymentType: remainingAmount <= 0 ? 'full' : 'partial',
+        paymentStatus,
+        totalAmount: calculatedTotalAmount,
+        remainingAmount,
+        cardNumber: last4Digits,
+        expiryDate,
+        isCardSaved: saveCard 
+      });
+      
+      await newPayment.save();
+      
+      // Update booking status
+      booking.paymentStatus = paymentStatus;
+      booking.paidAmount = totalPaidSoFar + parseFloat(amountPaid);
+      await booking.save();
+      
+      // Save card for future payments if requested
+      if (saveCard) {
+        // Check if the card already exists
+        const existingCard = await Card.findOne({ 
+          userId, 
+          cardNumber: last4Digits
+        });
+        
+        if (!existingCard) {
+          const userCard = new Card({
+            userId,
+            cardNumber: last4Digits, 
+            expiryDate,
+            isDefault: true
+          });
+          
+          await userCard.save();
+        }
+      }
+      
+      return res.status(201).json({ 
+        message: `${paymentStatus === 'paid' ? 'Full' : 'Partial'} card payment processed successfully`, 
+        payment: {
+          id: newPayment._id,
+          bookingId: newPayment.bookingId,
+          amountPaid: newPayment.amountPaid,
+          paymentType: newPayment.paymentType,
+          paymentStatus: newPayment.paymentStatus,
+          remainingAmount: newPayment.remainingAmount,
+          totalPaid: totalPaidSoFar + parseFloat(amountPaid)
+        }
+      });
+      
+    } catch (error) {
+      console.error('Error processing card payment:', error);
+      res.status(500).json({ 
+        message: 'Failed to process card payment', 
+        error: error.message 
+      });
+    }
+  };
+
 export const onSubmit = (req, res) => {
   // In the onSubmit function, replace this part:
   if (data.saveCard) {
