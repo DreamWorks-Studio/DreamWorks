@@ -494,3 +494,16 @@ export const getInvoice = (req, res) => {
         res.status(500).json({ message: 'Error serving invoice file'});
     }
 };
+
+export const getAllPayments = async (req, res) => {
+    try {
+        const payments = await Payment.find()
+        .populate('bookingId')
+        .sort({ createdAt: -1 });
+
+        res.json(payments);
+    } catch (error) {
+        consoler.error('Error fetching payments:', error);
+        res.status(500).json({ message: 'Failed to get payments', error: error.message });
+    }
+};    
