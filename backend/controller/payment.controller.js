@@ -1,6 +1,11 @@
-import mongoose from "mongoose";
-import { response } from "express";
+import PDFDocument from 'pdfkit';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import Payment from "../model/payment.model.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const test = (req,res) => {
     res.json({
