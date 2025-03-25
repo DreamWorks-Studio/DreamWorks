@@ -2,8 +2,8 @@ import express from 'express'
 import cors from 'cors'
 import dotenv from 'dotenv'
 import connectDB from './config/database.js';
-import packageRoute from './routes/package.route.js';
-import authRoute from './routes/auth.route.js';
+import packageRouter from './routes/package.route.js';
+//import authRoute from './routes/auth.route.js';
 dotenv.config();
 
 //App config
@@ -24,5 +24,5 @@ app.listen(port, () => {
     console.log(`Server is up and running on port : ${port}`);
 })
 
-app.use('/backend/package',packageRoute )
-app.use('/backend/auth',authRoute)
+app.use('/api/package',packageRouter)
+//app.use('/backend/auth',authRoute)
