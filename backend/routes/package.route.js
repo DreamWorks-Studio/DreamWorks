@@ -1,6 +1,6 @@
 import express from 'express';
-import { test } from '../controllers/package.controller.js';
-import { promo, updateUser, getPackages, updatePackage, deletePackage, getPackage } from '../controllers/package.controller.js';
+import { test } from '../controller/package.controller.js';
+import { promo, updateUser, getPackages, updatePackage, deletePackage, getPackage } from '../controller/package.controller.js';
 const router = express.Router();
 
 router.get('/test', test )
