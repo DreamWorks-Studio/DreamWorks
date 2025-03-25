@@ -1,8 +1,12 @@
 import React from 'react'
+import Navbar from '../components/Navbar'
+import Footer from '../components/Footer'
 
 const Contact = () => {
   return (
-    <div className='text-center p-6 py-20 lg:px-32 w-full overflow-hidden bg-black' id='Contact'>
+    <div className='flex flex-col min-h-screen'>
+      <Navbar/>
+    <div className='text-center p-6 py-20 lg:px-32 w-full overflow-hidden bg-black pt-42' id='Contact'>
         <h1 className='text-2xl sm:text-4xl font-bold mb-2 text-center text-amber-600'>Contact 
             <span className='underline underline-offset-4 decoration-2 under font-light'> Us</span></h1>
             <p className='text-center text-gray-300 mb-12 max-w-80 mx-auto'>
@@ -30,6 +34,8 @@ const Contact = () => {
                 <button className='cursor-pointer bg-transparent text-amber-600 hover:text-white px-5 py-2
                 border-2 border-amber-600 hover:border-white rounded-full'>Send</button>
             </form>
+    </div>
+    <Footer/>
     </div>
   )
 }

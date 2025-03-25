@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
 import Adminbooking from '../components/Adminbooking';
 import AdminPortfolio from '../components/AdminPortfolio';
-
+import AdminUser from '../components/AdminUser';
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -18,6 +18,10 @@ const AdminDashboard = () => {
     { month: 'Jun', amount: 30000 }
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Remove token
+    window.location.href = "/sign-in"; // Redirect to login page
+  };
   // Render content based on active page
   const renderContent = () => {
     if (activePage === 'payments') {

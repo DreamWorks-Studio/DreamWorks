@@ -14,7 +14,6 @@ import ResetPassword from '../pages/ResetPassword';
 import AdminFinance from '../components/AdminFinance';
 import Prehome from '../pages/Prehome';
 import BookingPage from '../pages/BookingPage'
-import { BookingEdit } from '../pages/BookingEdit'
 import BookingSummary from '../pages/BookingSummary'
 import CategoryDetail from '../pages/CategoryDetail'
 import Portfolio from '../pages/Portfolio'
@@ -44,7 +43,6 @@ const App = () => {
           </Route>
           <Route path='/booking' element={<BookingPage/>}/>
           <Route path='/booking-summary' element={<BookingSummary/>}/>
-          <Route path='/bookingedit' element={<BookingEdit/>}/>
           <Route path='/gallery' element={<Portfolio />}/>
           <Route path="/portfolio/:id" element={<CategoryDetail />} />
           <Route path='/viewGallery' element={<UpdatePortfolio/>}/>
