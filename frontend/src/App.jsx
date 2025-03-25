@@ -4,11 +4,9 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Header from '../components/Header'
 import Contact from '../pages/Contact'
 import ScrollUp from '../components/ScrollUp'
-import Footer from '../components/Footer'
 import PaymentSummary from '../pages/PaymentSummary'
 import PaymentGateway from '../pages/PaymentGateway'
 import AdminDashboard from '../pages/AdminDashboard'
-import { ToastContainer } from 'react-toastify'
 
 const App = () => {
   return (
@@ -20,9 +18,9 @@ const App = () => {
       <Route path='/payment' element={<PaymentSummary/>}/>
       <Route path='/gateway' element={<PaymentGateway/>}/>
       <Route path='/dashboard' element={<AdminDashboard/>}/>
+      <Route path='/payment'element={<PaymentSummary/>}/>
     </Routes>
     <ScrollUp/>
-    <ToastContainer/>
     </div>
     </BrowserRouter>
     
