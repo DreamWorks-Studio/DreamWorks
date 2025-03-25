@@ -85,7 +85,7 @@ const PaymentManagementPage = () => {
                 throw new Error("No user ID available to fetch booking details");
             }
 
-            const response = await fetch(`http://localhost:5004/api/booking/display-summary/${effectiveUserId}`);
+            const response = await fetch(`http://localhost:5003/api/booking/display-summary/${effectiveUserId}`);
             
             if (!response.ok) {
                 throw new Error(`HTTP error: ${response.status}`);
@@ -230,7 +230,7 @@ const PaymentManagementPage = () => {
       });
       
       // Use fetch instead of axios
-      const response = await fetch('http://localhost:5004/api/payments/card', {
+      const response = await fetch('http://localhost:5003/api/payments/card', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
