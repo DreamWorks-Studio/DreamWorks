@@ -473,3 +473,24 @@ export const generateInvoice = async (req, res) => {
         res.status(500).json({ message: 'Failed to generate invoice', error: error.message });
     }
 };
+
+export const getInvoice = (req, res) => {
+    try {
+        const { filename } = req.params;
+        const invoicePath = path.join(__dirname, '../public/invoices', filename);
+
+        if(!fs.existsSync(invoicePath)) {
+            console.error('Invoice not found:', invoicePath);
+            return res.status(404).json({ message: 'Invoice not found' });
+        }
+
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+
+        const fileStream = fs.createReadStream(invoicePath);
+        fileStream.pipe(res);
+    } catch (error) {
+        console.error('Error loading invoice:', error);
+        res.status(500).json({ message: 'Error serving invoice file'});
+    }
+};
