@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import { test, selectPaymentMethod, enterCardDetails, getPayments, generateInvoice, onSubmit, processPayment, getAllPayments, processCardPayment, getInvoice } from '../controllers/payment.controllers.js';
+import { test, selectPaymentMethod, enterCardDetails, getPayments, generateInvoice, onSubmit, processPayment, getAllPayments, processCardPayment, getInvoice } from '../controller/payment.controller.js';
 
 router.get('/test', test);
 router.post('/select-method', selectPaymentMethod);
