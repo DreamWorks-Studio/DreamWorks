@@ -8,7 +8,7 @@ import Pack from '../pages/Pack'
 import Promo from '../pages/Promo'
 import Standard from '../pages/Standard'
 import Promoadd from '../pages/Promoadd'
-
+import Editpromo from '../pages/Editpromo'
 
 
 
@@ -24,6 +24,7 @@ const App = () => {
       <Route path='/Promo' element={<Promo/>}/>
       <Route path='/Standard' element={<Standard/>}/>
       <Route path='/Promoadd' element={<Promoadd/>}/>
+      <Route path='/Editpromo' element={<Editpromo/>}/>
      
       
 

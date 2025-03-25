@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom';
 const Promo = () => {
   return (
     <div className="flex">
-     %
 
 
       {/* Sidebar */}
