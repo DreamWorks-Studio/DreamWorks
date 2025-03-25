@@ -380,67 +380,73 @@ export const getPayments = async (req, res) => {
 
 export const generateInvoice = async (req, res) => {
     try {
-       const { paymentMethod, bookingId } = req.body;
-       const booking = await Booking.findById(bookingId)
-           .populate('user')
-           .populate('package'); 
+        const { paymentMethod, bookingId } = req.body;
+        
+        const booking = await Booking.findById(bookingId)
+            .populate('user')
+            .populate('packageId');
 
-       if(!booking) {
-        return res.status(404).json({ message: 'Booking not found' });
-       }
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
 
-       const filename = `invoice-${bookingId}.pdf`;
+        const filename = `invoice-${bookingId}.pdf`;
+        const invoiceDir = path.join(__dirname, '../public/invoices');
 
-       const invoiceDir = path.join(__dirname, '../public/invoices');
-       if(!fs.existsSync(invoiceDir)) {
-        fs.mkdirSync(invoiceDir, { recursive:true });
-       }
+        if (!fs.existsSync(invoiceDir)) {
+            fs.mkdirSync(invoiceDir, { recursive: true });
+        }
 
-       const filePath = path.join(invoiceDir, filename);
+        const filePath = path.join(invoiceDir, filename);
+        console.log('Invoice File Path:', filePath); 
+        const doc = new PDFDocument();
+        const stream = fs.createWriteStream(filePath); // Fixed variable name
+        stream.on('error', (err) => console.error('Stream Error:', err));
 
-       const doc = new PDFDocument();
-       const stream = fs.createWriteStream(filepath);
+        doc.pipe(stream);
 
-       doc.pipe(stream);
+        doc.fontSize(24).text('Cash Payment Invoice', { align: 'center' });
+        doc.moveDown();
 
-       doc.fontSize(24).text('Cash Payment Invoice', { align: 'center' });
-       doc.moveDown();
+        doc.fillColor('#f3f4f6').roundedRect(50, doc.y, 500, 60, 5).fill();
+        doc.fillColor('#000');
+        doc.fontSize(12).text(
+            'Please download this invoice and present it at the studio for cash payment. ' +
+            'Payment terms and partial payment options can be discussed with the owner during your visit.',
+            {
+                width: 400,
+                align: 'left', // Fixed missing string quotes
+                indent: 10,
+                height: 50,
+                ellipsis: true,
+                x: 60,
+                y: doc.y + 10
+            }
+        );
 
-       doc.fillColor('#f3f4f6').roundedRect(50, doc.y, 500, 60, 5).fill();
-       doc.fillColor('#000');
-       doc.fontSize(12).text('Please download this invoice and present it at the studio for cash payment. Payment terms and partial payment options can be discussed with the owner during your visit.', {
-        width: 400,
-        align: left,
-        indent: 10,
-        height: 50,
-        ellipsis: true,
-        x: 60,
-        y: doc.y + 10
-       });
+        doc.moveDown(2);
 
-       doc.moveDown(2);
+        doc.fontSize(14).text(`Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
+        doc.fontSize(12).text(`Booking ID: ${booking._id}`, { align: 'right' });
 
-       doc.fontSize(14).text(`Date: ${new Date().toLocaleDateString()}`, { align: 'right' });
-       doc.fontSize(12).text(`Booking ID: ${booking._id}`, { align: 'right' });
+        doc.moveDown();
 
-       doc.moveDown();
+        doc.rect(50, doc.y, 500, 25).stroke();
+        doc.fontSize(12).text('Description', 60, doc.y + 10);
+        doc.text('Amount', 450, doc.y - 2);
 
-       doc.rect(50, doc.y, 500, 25).stroke();
-       doc.fontSize(12).text('Description', 60, doc.y + 10);
-       doc.text('Amount', 450, doc.y - 2);
-
-       const rowY = doc.y + 25;
+        const rowY = doc.y + 25;
         doc.rect(50, rowY, 500, 50).stroke();
         
         const serviceDate = new Date(booking.date).toLocaleDateString();
-        doc.text(`${booking.package.name}`, 60, rowY + 10);
+        doc.text(`${booking.packageId.title}`, 60, rowY + 10); // Fixed field reference
         doc.text(`Date: ${serviceDate}`, 60, rowY + 30);
-        doc.text(`Rs.${booking.package.price.toFixed(2)}`, 450, rowY + 20);
+        doc.text(`Rs.${booking.packageId.price.toFixed(2)}`, 450, rowY + 20);
 
         const totalY = rowY + 50;
         doc.rect(50, totalY, 500, 25).stroke();
         
-        const totalAmount = (booking.package.price * 1.05 + 1000).toFixed(2);
+        const totalAmount = (booking.packageId.price * 1.05 + 1000).toFixed(2);
         doc.text('Total Amount Due:', 350, totalY + 10);
         doc.text(`Rs.${totalAmount}`, 450, totalY + 10);
 
@@ -454,8 +460,12 @@ export const generateInvoice = async (req, res) => {
         doc.end();
 
         stream.on('finish', () => {
-            const invoiceUrl = `/invoices/${filename}`;
-            res.json({ invoiceUrl });
+            const invoiceUrl = `api/payments/invoices/${filename}`;
+            res.json({
+                success: true,
+                filename,
+                invoiceUrl
+            });
         });
 
     } catch (error) {
