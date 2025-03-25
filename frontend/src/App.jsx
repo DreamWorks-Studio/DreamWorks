@@ -9,6 +9,9 @@ import Promo from '../pages/Promo'
 import Standard from '../pages/Standard'
 import Promoadd from '../pages/Promoadd'
 import Editpromo from '../pages/Editpromo'
+import AdminDashboard from '../pages/AdminDashboard'
+import AdminPackages from '../components/AdminPackages'
+import ViewPackages from '../pages/ViewPackages'
 
 
 
@@ -25,9 +28,10 @@ const App = () => {
       <Route path='/Standard' element={<Standard/>}/>
       <Route path='/Promoadd' element={<Promoadd/>}/>
       <Route path='/Editpromo' element={<Editpromo/>}/>
-     
-      
-
+      <Route path='/admin' element={<AdminDashboard />} />
+      <Route path='/adminPack' element={<AdminPackages/>}/>
+      <Route path="/update-package/:id" element={<Pack />} />
+      <Route path="/packages" element={<ViewPackages />}/>
       
    </Routes>
     <ScrollUp/>
