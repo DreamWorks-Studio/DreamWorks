@@ -204,6 +204,93 @@ export const processCardPayment = async (req, res) => {
     }
   };
 
+  export const enterCardDetails = async (req, res) => {
+    try {
+        console.log('Enter Card Details endpoint hit');
+        console.log('Headers:', req.headers);
+        console.log('Received request body:', req.body);
+
+        const { 
+            bookingId, 
+            amountPaid, 
+            paymentType, 
+            cardNumber, 
+            expiryDate, 
+            saveCard, 
+            totalAmount, 
+            userId 
+        } = req.body;
+
+        if (!bookingId || !amountPaid || !paymentType || !userId || !cardNumber || !expiryDate) {
+            return res.status(400).json({ message: 'Missing required fields' });
+        }
+
+        if (!['full', 'partial'].includes(paymentType)) {
+            return res.status(400).json({ message: 'Invalid payment type (must be full or partial)' });
+        }
+
+        const booking = await Booking.findById(bookingId).populate('user').populate('packageId');
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        if (booking.user._id.toString() !== userId.toString()) {
+            return res.status(403).json({ message: 'Booking does not belong to the current user' });
+        }
+
+        let existingPayment = await Payment.findOne({ bookingId });
+
+        if (existingPayment && existingPayment.paymentStatus === 'completed') {
+            return res.status(400).json({ message: 'Full payment already completed for this booking' });
+        }
+
+        let paymentStatus;
+        let remainingAmount = 0;
+
+        if (paymentType === 'partial') {
+            if (amountPaid < 3000) {
+                return res.status(400).json({ message: 'Partial payments must be at least 3000' });
+            }
+            remainingAmount = totalAmount - amountPaid;
+            paymentStatus = remainingAmount === 0 ? 'completed' : 'partial';
+        } else {
+            remainingAmount = 0;
+            paymentStatus = 'completed';
+        }
+
+        const newPayment = new Payment({
+            bookingId,
+            userId,
+            packageId: booking.packageId._id,
+            amountPaid,
+            paymentMethod: 'card',
+            paymentStatus,
+            paymentType,
+            totalAmount,
+            remainingAmount,
+            cardNumber,
+            expiryDate,
+            isCardSaved: saveCard || false,
+        });
+
+        await newPayment.save();
+
+        booking.paymentStatus = paymentStatus;
+        booking.paidAmount = (existingPayment ? existingPayment.amountPaid : 0) + amountPaid;
+        await booking.save();
+
+        return res.status(201).json({
+            message: 'Card payment recorded successfully',
+            payment: newPayment,
+        });
+
+    } catch (error) {
+        console.error('Error processing card payment:', error);
+        res.status(500).json({ message: 'Failed to process card payment', error: error.message });
+    }
+};  
+
 export const onSubmit = (req, res) => {
   // In the onSubmit function, replace this part:
   if (data.saveCard) {
