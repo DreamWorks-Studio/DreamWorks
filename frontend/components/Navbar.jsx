@@ -31,6 +31,7 @@ const navbarColor = location.pathname === '/' ? 'bg-transparent' : 'bg-black';
           <Link to='/gallery' className=' text-white hover:text-amber-500'>Gallery</Link>
           {/*<a href='#Gallery' className=' text-white hover:text-amber-500'>Gallery</a>*/}
           <Link to="/contact" className=' text-white hover:text-amber-500'>Contact</Link>
+          <Link to="/packages" className=' text-white hover:text-amber-500'>Packages</Link>
         </ul>
         <Link to="/signup" className='hidden md:block bg-transparent text-amber-500 hover:text-white px-5 py-2
         border-2 border-amber-500 hover:border-white rounded-full'>SignUp</Link>
