@@ -66,7 +66,6 @@ const App = () => {
       <Route path="/portfolio/:id" element={<CategoryDetail />} />
       <Route path='/viewGallery' element={<UpdatePortfolio/>}/>
       <Route path='/payment'element={<PaymentSummary/>}/>
-      <Route path='/payment' element={<PaymentSummary/>}/>
       <Route path='/gateway' element={<PaymentGateway/>}/>  
         
     </Routes>

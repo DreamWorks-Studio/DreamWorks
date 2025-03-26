@@ -1,4 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 const BookingSummary = () => {
     const navigate = useNavigate();
@@ -48,10 +49,11 @@ const BookingSummary = () => {
                         className="bg-gray-400 text-white px-4 py-2 rounded-lg hover:bg-gray-500">
                         Edit
                     </button>
-                    
+                    <Link to = '/payment'>
                     <button className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
                         Confirm
                     </button>
+                    </Link>
                 </div>
             </div>
         </div>
