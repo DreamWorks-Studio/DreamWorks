@@ -27,7 +27,6 @@ const AdminFinance = ({}) => {
     const filteredPayments = paymentData.filter(payment =>
         payment.bookingId?.fullName?.toLowerCase().includes(searchQuery.toLowerCase())
     );
-    
 
   return (
     <><div className="mb-6">
@@ -89,6 +88,7 @@ const AdminFinance = ({}) => {
 
                                       </td>
                                       {/*----
+
                                       <td className="py-3 px-4 border-b text-center">
                                           <button
                                               onClick={() => handleViewPayment(payment.id)}
@@ -97,6 +97,7 @@ const AdminFinance = ({}) => {
                                               View
                                           </button>
                                       </td>---*/}
+
                                   </tr>
                               ))}
                           </tbody>

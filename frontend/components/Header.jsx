@@ -3,6 +3,7 @@ import Navbar from './Navbar'
 import Carousel from './Carousel'
 import About from '../pages/About'
 import Footer from './Footer'
+import PrivateRoute from './PrivateRoute'
 
 const Header = () => {
   return (
@@ -11,6 +12,7 @@ const Header = () => {
         <Carousel/>
         <About/>
         <Footer/>
+        <PrivateRoute/>
     </div>
   )
 }
