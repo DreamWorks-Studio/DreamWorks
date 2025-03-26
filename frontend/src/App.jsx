@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
@@ -8,7 +7,6 @@ import Promo from '../pages/Promo'
 import Standard from '../pages/Standard'
 import Promoadd from '../pages/Promoadd'
 import Editpromo from '../pages/Editpromo'
-import AdminDashboard from '../pages/AdminDashboard'
 import AdminPackages from '../components/AdminPackages'
 import ViewPackages from '../pages/ViewPackages'
 import Header from '../components/Header';
@@ -22,8 +20,6 @@ import UserProfile from '../pages/UserProfile';
 import PrivateRoute from '../components/PrivateRoute';
 import ForgotPassword from '../pages/ForgotPassword';
 import ResetPassword from '../pages/ResetPassword';
-import AdminFinance from '../components/AdminFinance';
-import Prehome from '../pages/Prehome';
 import BookingPage from '../pages/BookingPage'
 import BookingSummary from '../pages/BookingSummary'
 import CategoryDetail from '../pages/CategoryDetail'
@@ -54,7 +50,7 @@ const App = () => {
       <Route path='/home' element={<Home />} />
       <Route path='/forgot-password' element={<ForgotPassword/>}/>
       <Route path="/reset-password/:id/:token" element={<ResetPassword />} />
-          <Route path = "/prehome" element = {<Prehome/>}/>
+          
           {/* Private route for authenticated users */}
           <Route element={<PrivateRoute />}>
             <Route path='/profile' element={<UserProfile />} />
@@ -63,13 +59,13 @@ const App = () => {
           {/* Role-based protected route for Admin */}
           <Route element={<PrivateRoute allowedRoles={['admin']} />}>
           </Route>
-          <Route path='/booking' element={<BookingPage/>}/>
-          <Route path='/booking-summary' element={<BookingSummary/>}/>
-          <Route path='/gallery' element={<Portfolio />}/>
-          <Route path="/portfolio/:id" element={<CategoryDetail />} />
-          <Route path='/viewGallery' element={<UpdatePortfolio/>}/>
+      <Route path='/booking' element={<BookingPage/>}/>
+      <Route path='/booking-summary' element={<BookingSummary/>}/>
+      <Route path='/gallery' element={<Portfolio />}/>
+      <Route path="/portfolio/:id" element={<CategoryDetail />} />
+      <Route path='/viewGallery' element={<UpdatePortfolio/>}/>
       
-   </Routes>
+    </Routes>
     <ScrollUp/>
     
    

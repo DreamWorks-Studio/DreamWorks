@@ -6,6 +6,7 @@ import AdminPackages from '../components/AdminPackages';
 import Adminbooking from '../components/Adminbooking';
 import AdminPortfolio from '../components/AdminPortfolio';
 import AdminUser from '../components/AdminUser';
+import AdminFinance from '../components/AdminFinance';
 
 
 const AdminDashboard = () => {
@@ -31,6 +32,7 @@ const AdminDashboard = () => {
     if (activePage === 'payments') {
       return (
         <div>
+          <AdminFinance activePage={activePage}/>
         </div>
       );
 
