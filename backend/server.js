@@ -2,12 +2,20 @@ import dotenv from "dotenv";
 dotenv.config(); // Load .env variables at the top
 import express from 'express'
 import cors from 'cors'
+
+
+import connectDB from './config/database.js';
+import packageRouter from './routes/package.route.js';
+
+dotenv.config();
+
+
 import bookingRouter from './routes/booking.route.js';
-import connectDB from "./config/database.js";
 import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 import portfolioRouter from "./routes/portfolio.route.js";
+
 
 const app = express();
 const port = process.env.PORT || 5003;
@@ -21,7 +29,7 @@ app.use(cookieParser());
 
 //middlewares
 app.use(cors())
-app.use(express.json())
+
 
 
 // API Routes
@@ -29,7 +37,7 @@ app.use('/api/booking', bookingRouter);
 app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use('/api/portfolio', portfolioRouter);
-
+app.use('/api/package',packageRouter)
 
 
 
@@ -55,7 +63,13 @@ app.use((err, req, res, next) => {
 
 // Start Server (Keep this last)
 app.listen(port, () => {
-  console.log(` Server is running on port: ${port}`);
-});
+
+    console.log(`Server is up and running on port : ${port}`);
+})
+
+
+//app.use('/backend/auth',authRoute)
+
+
 
 

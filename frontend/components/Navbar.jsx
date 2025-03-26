@@ -30,7 +30,11 @@ const Navbar = () => {
           <Link to="/" className=' text-white hover:text-amber-500'>Home</Link>
           <Link to='/gallery' className=' text-white hover:text-amber-500'>Gallery</Link>
           <Link to="/contact" className=' text-white hover:text-amber-500'>Contact</Link>
+
+          <Link to="/packages" className=' text-white hover:text-amber-500'>Packages</Link>
+
           <Link to="/booking" className=' text-white hover:text-amber-500'>Book Now</Link>
+
         </ul>
 
         <div className="relative">
