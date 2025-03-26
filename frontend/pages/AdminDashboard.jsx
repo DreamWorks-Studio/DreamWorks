@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
-//import Adminbooking from '../components/Adminbooking';
-//import AdminPortfolio from '../components/AdminPortfolio';
-//import AdminUser from '../components/AdminUser';
+
+
 import AdminPackages from '../components/AdminPackages';
+import Adminbooking from '../components/Adminbooking';
+import AdminPortfolio from '../components/AdminPortfolio';
+import AdminUser from '../components/AdminUser';
+
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -41,7 +44,11 @@ const AdminDashboard = () => {
     } else if (activePage === 'packages') {
       return (
         <div>
+
         <AdminPackages activePage={activePage} />
+
+
+
         </div>
       );
 
@@ -262,4 +269,6 @@ const DashboardCard = ({ title, value, icon, percentage, color }) => (
   </div>
 );
 
+
 export default AdminDashboard;
+
