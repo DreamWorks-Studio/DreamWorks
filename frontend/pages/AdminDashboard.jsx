@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
 
-
+import AdminFinance from '../components/AdminFinance';
 import AdminPackages from '../components/AdminPackages';
 import Adminbooking from '../components/Adminbooking';
 import AdminPortfolio from '../components/AdminPortfolio';
@@ -46,11 +46,7 @@ const AdminDashboard = () => {
     } else if (activePage === 'packages') {
       return (
         <div>
-
         <AdminPackages activePage={activePage} />
-
-
-
         </div>
       );
 
@@ -231,7 +227,6 @@ const AdminDashboard = () => {
             <button onClick={handleLogout} className="ml-4 px-4 py-2 border rounded-full">
               Logout
             </button>
-            
           </div>
         </header>
 
@@ -270,7 +265,6 @@ const DashboardCard = ({ title, value, icon, percentage, color }) => (
     </div>
   </div>
 );
-
 
 export default AdminDashboard;
 

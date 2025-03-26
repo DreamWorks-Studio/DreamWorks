@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
@@ -25,6 +24,8 @@ import BookingSummary from '../pages/BookingSummary'
 import CategoryDetail from '../pages/CategoryDetail'
 import Portfolio from '../pages/Portfolio'
 import UpdatePortfolio from '../pages/UpdatePortfolio'
+import PaymentSummary from '../pages/PaymentSummary'
+import PaymentGateway from '../pages/PaymentGateway'
 
 
 const App = () => {
@@ -64,15 +65,14 @@ const App = () => {
       <Route path='/gallery' element={<Portfolio />}/>
       <Route path="/portfolio/:id" element={<CategoryDetail />} />
       <Route path='/viewGallery' element={<UpdatePortfolio/>}/>
-      
+      <Route path='/payment'element={<PaymentSummary/>}/>
+      <Route path='/payment' element={<PaymentSummary/>}/>
+      <Route path='/gateway' element={<PaymentGateway/>}/>  
+        
     </Routes>
     <ScrollUp/>
     
-   
     </div>
-    
-          
-
       
     </BrowserRouter>
   );

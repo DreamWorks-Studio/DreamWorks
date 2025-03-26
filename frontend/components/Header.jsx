@@ -2,7 +2,7 @@ import React from 'react'
 import Navbar from './Navbar'
 import Carousel from './Carousel'
 import About from '../pages/About'
-import Footer from '../components/Footer'
+import Footer from './Footer'
 import PrivateRoute from './PrivateRoute'
 
 const Header = () => {
@@ -13,7 +13,6 @@ const Header = () => {
         <About/>
         <Footer/>
         <PrivateRoute/>
-
     </div>
   )
 }
