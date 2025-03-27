@@ -14,7 +14,6 @@ import ResetPassword from '../pages/ResetPassword';
 import AdminFinance from '../components/AdminFinance';
 import Prehome from '../pages/Prehome';
 import BookingPage from '../pages/BookingPage'
-import { BookingEdit } from '../pages/BookingEdit'
 import BookingSummary from '../pages/BookingSummary'
 
 const App = () => {
@@ -41,7 +40,7 @@ const App = () => {
           </Route>
           <Route path='/booking' element={<BookingPage/>}/>
           <Route path='/booking-summary' element={<BookingSummary/>}/>
-          <Route path='/bookingedit' element={<BookingEdit/>}/>
+         
 
         
         </Routes>

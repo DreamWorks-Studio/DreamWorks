@@ -104,10 +104,17 @@ const BookingPage = () => {
                     <div className="w-full md:w-1/2 text-left mb-4">
                         <label className="block text-gray-600 text-sm mb-1">Full Name</label>
                         <input
-                            type="text"
-                            {...register("fullName", { required: "Full Name is required" })}
-                            className="w-full border border-amber-600 rounded py-2 px-4 mt-2"
-                        />
+    type="text"
+    {...register("fullName", { 
+        required: "Full Name is required",
+        pattern: { 
+            value: /^[A-Za-z\s]+$/, 
+            message: "Only letters and spaces are allowed" 
+        },
+        minLength: { value: 3, message: "Must be at least 3 characters long" }
+    })}
+    className="w-full border border-amber-600 rounded py-2 px-4 mt-2"
+/>
                         {errors.fullName && <p className="text-red-500 text-sm">{errors.fullName.message}</p>}
                     </div>
 
@@ -205,7 +212,7 @@ const BookingPage = () => {
             />
             {errors.date && <p className="text-red-500 text-sm">{errors.date.message}</p>}
         </div>
-                <button type="submit" className="cursor-pointer bg-transparent text-amber-600 hover:text-white px-5 py-2 border-2 border-amber-600 hover:border-white rounded-full">
+                <button type="submit" className="cursor-pointer bg-transparent text-amber-600 hover:text-black px-5 py-2 border-2 border-amber-600 hover:border-black rounded-full">
                     {existingBooking ? "Update Booking" : "Book Appointment"}
                 </button>
             </form>
