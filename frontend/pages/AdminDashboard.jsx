@@ -1,6 +1,12 @@
 import React, { useState } from 'react';
 import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
+
+
+import AdminPackages from '../components/AdminPackages';
 import Adminbooking from '../components/Adminbooking';
+import AdminPortfolio from '../components/AdminPortfolio';
+import AdminUser from '../components/AdminUser';
+import AdminFinance from '../components/AdminFinance';
 
 
 const AdminDashboard = () => {
@@ -17,25 +23,30 @@ const AdminDashboard = () => {
     { month: 'Jun', amount: 30000 }
   ];
 
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Remove token
+    window.location.href = "/sign-in"; // Redirect to login page
+  };
   // Render content based on active page
   const renderContent = () => {
     if (activePage === 'payments') {
       return (
         <div>
+          <AdminFinance activePage={activePage}/>
         </div>
       );
 
     } else if (activePage === 'images') {
       return (
         <div>
-
+             <AdminPortfolio activePage={activePage} />
         </div>
       );
 
     } else if (activePage === 'packages') {
       return (
         <div>
-
+        <AdminPackages activePage={activePage} />
         </div>
       );
 
@@ -216,7 +227,6 @@ const AdminDashboard = () => {
             <button onClick={handleLogout} className="ml-4 px-4 py-2 border rounded-full">
               Logout
             </button>
-            
           </div>
         </header>
 
@@ -257,3 +267,4 @@ const DashboardCard = ({ title, value, icon, percentage, color }) => (
 );
 
 export default AdminDashboard;
+
