@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Camera, DollarSign, CreditCard, RefreshCw, Download, Filter, Calendar, ChevronDown, Eye, ArrowUpDown, FileText, Printer, BarChart4, PieChart, AlertCircle, Clock } from 'lucide-react';
 import AutoGenReport from './AutoGenReport';
-import FinancialReports from './FinancialReports';
+import FinancialReports from './FinancialReport';
 
 const AdminFinance = ({}) => {
   const [paymentData, setPaymentData] = useState([]);
