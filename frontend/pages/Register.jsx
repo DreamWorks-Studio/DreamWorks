@@ -92,107 +92,158 @@ export default function Register() {
   };
 
   return (
-    <div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black p-3'>
-      <div className=' w-110 max-w-md bg-gray-800 rounded-lg shadow-2xl overflow-hidden '>
-      <div className="bg-amber-700 p-1 relative">
-        <h1 className='text-3xl text-center font-bold mb-6 text-white'>
-         Create An Account
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+        {/* Photography-themed header */}
+        <div className="bg-gradient-to-r from-black/90 to-black/80 p-8 text-center">
+          <h1 className="text-3xl font-bold text-white">Create Your Account</h1>
+          <p className="text-amber-400 text-sm mt-2">Start capturing your memories</p>
         </div>
+
+        {/* Form Section */}
         <div className="p-8">
-        <form onSubmit={handleSubmit} className='flex flex-col gap-2 space-y-2'>
-          {/* Username */}
-          <div>
-            <label className='block text-sm font-medium text-gray-300'>
-              Username
-            </label>
-            <input
-              type='text'
-              name='username'
-              id='username'
-              className='w-full mt-2 p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-amber-500'
-              placeholder='Enter your username'
-              value={formData.username}
-              onChange={handleChange}
-            />
-            {error.username && <p className='text-red-500 text-sm'>{error.username}</p>}
-          </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            {/* Username Input with user icon */}
+            <div className="space-y-2">
+              <label className="block text-gray-700 text-sm font-medium">Username</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  id="username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="block w-full pl-10 p-3 rounded-lg bg-white border border-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 text-gray-900 transition-colors"
+                  placeholder='Enter your username'
+                  required
+                />
+              </div>
+              {error.username && <p className="text-red-500 text-sm mt-1">{error.username}</p>}
+            </div>
 
-          {/* Email */}
-          <div>
-            <label className='block text-sm font-medium text-gray-300'>
-              Email
-            </label>
-            <input
-              type='email'
-              name='email'
-              id='email'
-              className='w-full mt-2 p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-amber-500'
-              placeholder='Enter your email'
-              value={formData.email}
-              onChange={handleChange}
-            />
-            {error.email && <p className='text-red-500 text-sm'>{error.email}</p>}
-          </div>
+            {/* Email Input with email icon */}
+            <div className="space-y-2">
+              <label className="block text-gray-700 text-sm font-medium">Email Address</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                </div>
+                <input
+                  type="email"
+                  id="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="block w-full pl-10 p-3 rounded-lg bg-white border border-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 text-gray-900 transition-colors"
+                  placeholder="your.email@example.com"
+                  required
+                />
+              </div>
+              {error.email && <p className="text-red-500 text-sm mt-1">{error.email}</p>}
+            </div>
 
-          {/* Password */}
-          <div>
-            <label className='block text-sm font-medium text-gray-300'>
-              Password
-            </label>
-            <input
-              type='password'
-              name='password'
-              id='password'
-              className='w-full mt-2 p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-amber-500'
-              placeholder='Enter your password'
-              value={formData.password}
-              onChange={handleChange}
-            />
-            {error.password && <p className='text-red-500 text-sm'>{error.password}</p>}
-          </div>
+            {/* Password Input with lock icon */}
+            <div className="space-y-2">
+              <label className="block text-gray-700 text-sm font-medium">Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <input
+                  type="password"
+                  id="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="block w-full pl-10 p-3 rounded-lg bg-white border border-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 text-gray-900 transition-colors"
+                  placeholder='Enter your password'
+                  required
+                />
+              </div>
+              {error.password && <p className="text-red-500 text-sm mt-1">{error.password}</p>}
+            </div>
 
-          {/* Confirm Password */}
-          <div>
-            <label className='block text-sm font-medium text-gray-300'>
-              Confirm Password
-            </label>
-            <input
-              type='password'
-              name='confirmpassword'
-              id='confirmpassword'
-              className='w-full mt-2 p-3 rounded-lg bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-amber-500'
-              placeholder='Confirm your password'
-              value={formData.confirmpassword}
-              onChange={handleChange}
-            />
-            {error.confirmpassword && <p className='text-red-500 text-sm'>{error.confirmpassword}</p>}
-          </div>
+            {/* Confirm Password Input with lock icon */}
+            <div className="space-y-2">
+              <label className="block text-gray-700 text-sm font-medium">Confirm Password</label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <input
+                  type="password"
+                  id="confirmpassword"
+                  value={formData.confirmpassword}
+                  onChange={handleChange}
+                  className="block w-full pl-10 p-3 rounded-lg bg-white border border-gray-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 text-gray-900 transition-colors"
+                  placeholder='Confirm your password'
+                  required
+                />
+              </div>
+              {error.confirmpassword && <p className="text-red-500 text-sm mt-1">{error.confirmpassword}</p>}
+            </div>
 
-          {/* Submit Button */}
-          <button
-            disabled={loading}
-            className='w-full bg-amber-700 text-white p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-70'
-          >
-            {loading ? 'Loading...' : 'Sign Up'}
-          </button>
+            {/* Submit Button with camera shutter animation on loading */}
+            <button
+              type="submit"
+              className="w-full flex justify-center items-center py-3 px-4 rounded-lg text-white bg-black hover:bg-gray-800 transition-colors focus:ring-2 focus:ring-offset-2 focus:ring-amber-500"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center">
+                  <svg className="animate-spin h-5 w-5 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                <span className="flex items-center">
+                  <svg className="w-5 h-5 mr-2" viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm0-2a6 6 0 110-12 6 6 0 010 12zm0-8a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                  </svg>
+                  Sign Up
+                </span>
+              )}
+            </button>
 
-          {/* OAuth Login */}
-          <OAuth />
+            {/* API Error Message */}
+            {error.api && <p className="text-red-500 text-center mt-2">{error.api}</p>}
 
-          {/* Sign-in link */}
-          <div className='text-center mt-4'>
-            <p className='text-gray-400'>
-              Already have an account?{' '}
-              <Link to='/sign-in' className='text-amber-600 hover:underline'>
-                Sign in
-              </Link>
+            {/* Divider with film strip design */}
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <div className="bg-white px-4 flex items-center">
+                  <div className="w-2 h-4 bg-gray-300 mx-1 rounded-sm"></div>
+                  <div className="w-2 h-4 bg-gray-300 mx-1 rounded-sm"></div>
+                  <div className="w-2 h-4 bg-gray-300 mx-1 rounded-sm"></div>
+                </div>
+              </div>
+            </div>
+            
+            {/* OAuth Sign-up */}
+            <OAuth />
+          </form>
+
+          {/* Sign-In Redirect - Enhanced */}
+          <div className="mt-8 text-center">
+            <p className="text-sm text-gray-600">
+              Already have an account? 
+              <Link to="/sign-in" className="ml-1 font-medium text-amber-600 hover:text-amber-800 transition-colors"> Sign in</Link>
             </p>
           </div>
-
-          {/* API Error Message */}
-          {error.api && <p className='text-red-500 text-center mt-4'>{error.api}</p>}
-        </form>
         </div>
       </div>
     </div>
