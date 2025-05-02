@@ -231,3 +231,35 @@ export const toggleUserStatus = async (req, res, next) => {
     next(err);
   }
 };
+
+// Toggle Admin Privileges
+export const toggleAdminPrivileges = async (req, res, next) => {
+  try {
+    // Ensure the logged-in user is a Super Admin
+    if (!req.user.isAdmin) {
+      return next(errorHandler(403, 'Only a Super Admin can assign admin privileges.'));
+    }
+
+    const { id } = req.params;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return next(errorHandler(404, 'User not found.'));
+    }
+
+    // Toggle the admin status
+    user.isAdmin = !user.isAdmin;
+
+    await user.save();
+
+    // Exclude the password and send the updated user details back
+    const { password, ...rest } = user._doc;
+
+    res.status(200).json({
+      message: `User has been ${user.isAdmin ? 'promoted to' : 'demoted from'} admin.`,
+      user: rest,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

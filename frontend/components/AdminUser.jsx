@@ -11,6 +11,7 @@ export default function AdminUser() {
   const [showMore, setShowMore] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState("");
+  const [userIdToToggleAdmin, setUserIdToToggleAdmin] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
@@ -72,10 +73,10 @@ export default function AdminUser() {
     }
   };
 
-  const toggleUserStatus = async (id) => {
+  const toggleAdminStatus = async (id, isAdmin) => {
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`/api/user/toggle-status/${id}`, {
+      const res = await fetch(`/api/user/toggle-admin/${id}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -85,32 +86,33 @@ export default function AdminUser() {
       if (res.ok) {
         setUsers((prevUsers) =>
           prevUsers.map((user) =>
-            user._id === id ? { ...user, status: data.user.status } : user
+            user._id === id ? { ...user, isAdmin: !isAdmin } : user
           )
         );
         setFilteredUsers((prevFiltered) =>
           prevFiltered.map((user) =>
-            user._id === id ? { ...user, status: data.user.status } : user
+            user._id === id ? { ...user, isAdmin: !isAdmin } : user
           )
         );
-        setSuccessMessage(`User status updated to ${data.user.status}`);
+        setSuccessMessage(
+          `User ${!isAdmin ? "promoted to" : "demoted from"} admin`
+        );
         setTimeout(() => setSuccessMessage(""), 3000);
       } else {
         console.error(data.message);
       }
     } catch (error) {
-      console.error("Toggle Status Error:", error.message);
+      console.error("Toggle Admin Status Error:", error.message);
     }
   };
 
   const generateCSV = () => {
-    const headers = ["Username", "Email", "Admin", "Date Created", "Status"];
+    const headers = ["Username", "Email", "Admin", "Date Created"];
     const rows = filteredUsers.map((user) => [
       user.username,
       user.email,
       user.isAdmin ? "Yes" : "No",
       new Date(user.createdAt).toLocaleDateString(),
-      user.status,
     ]);
 
     const csvContent = [headers, ...rows].map((e) => e.join(",")).join("\n");
@@ -171,7 +173,7 @@ export default function AdminUser() {
                   <th className="py-3 px-6">Username</th>
                   <th className="py-3 px-6">Email</th>
                   <th className="py-3 px-6">Admin</th>
-                  <th className="py-3 px-6">Status</th>
+                  <th className="py-3 px-6">Assign New Admin</th>
                   <th className="py-3 px-6 text-center">Actions</th>
                 </tr>
               </thead>
@@ -204,14 +206,12 @@ export default function AdminUser() {
                     </td>
                     <td className="py-4 px-6 border-b">
                       <button
-                        onClick={() => toggleUserStatus(user._id)}
-                        className={`px-4 py-1 rounded ${
-                          user.status === "active"
-                            ? "bg-green-500 text-white"
-                            : "bg-gray-500 text-white"
-                        }`}
+                        onClick={() => toggleAdminStatus(user._id, user.isAdmin)}
+                        className={`px-4 py-1 ${
+                          user.isAdmin ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                        } text-white rounded transition`}
                       >
-                        {user.status === "active" ? "Deactivate" : "Activate"}
+                        {user.isAdmin ? "Remove Admin" : "Assign Admin"}
                       </button>
                     </td>
                     <td className="py-4 px-6 border-b text-center">
@@ -220,7 +220,7 @@ export default function AdminUser() {
                           setShowModal(true);
                           setUserIdToDelete(user._id);
                         }}
-                        className="px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition"
+                        className="ml-2 px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition"
                       >
                         Delete
                       </button>
