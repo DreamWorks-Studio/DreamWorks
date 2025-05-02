@@ -14,7 +14,7 @@ const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
     user: "it23394124@my.sliit.lk",
-    pass: "vocn tinv qwld awic"  // Use the generated App Password
+    pass: "jwnr zezu szkp lgzz"  // Use the generated App Password
   }
 });
 
@@ -209,4 +209,25 @@ export const updateResetPassword = async (req, res, next) => {
       res.status(500).json({ status: 500, error: error.message });
   }
 
+};
+
+export const toggleUserStatus = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return next(errorHandler(404, 'User not found'));
+    }
+
+    user.status = user.status === 'active' ? 'inactive' : 'active';
+    await user.save();
+
+    const { password, ...rest } = user._doc;
+
+    res.status(200).json({
+      message: `User status updated to ${user.status}`,
+      user: rest,
+    });
+  } catch (err) {
+    next(err);
+  }
 };

@@ -43,6 +43,12 @@ const userSchema = new mongoose.Schema({
     //  resetTokenExpiry: {
     //     type: Date,
     //  }
+
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active',
+      },
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);

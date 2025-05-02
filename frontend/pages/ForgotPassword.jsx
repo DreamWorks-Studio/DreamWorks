@@ -16,12 +16,14 @@ const ForgotPassword = () => {
     setError("");
     setMessage("");
 
-    if (email === "") {
+    if (!email.trim()) {
       setError("Email is required!");
       return;
     }
-    if (!email.includes("@")) {
-      setError("Please include @ in your email!");
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address!");
       return;
     }
 
@@ -36,14 +38,16 @@ const ForgotPassword = () => {
       });
 
       const data = await res.json();
-      if (data.status === 201) {
-        setEmail("");
+
+      if (res.status === 201) {
         setMessage("Password reset link sent successfully!");
+        setEmail("");
       } else {
-        setError("Invalid User");
+        setError(data.message || "Failed to send reset link.");
       }
-    } catch (error) {
-      setError(error.message);
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Something went wrong. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -54,7 +58,9 @@ const ForgotPassword = () => {
       <div className="w-full max-w-md bg-gray-800 rounded-lg shadow-2xl overflow-hidden">
         {/* Header Section */}
         <div className="bg-amber-700 p-4">
-          <h1 className="text-3xl font-bold text-white text-center">Reset Your Password</h1>
+          <h1 className="text-3xl font-bold text-white text-center">
+            Reset Your Password
+          </h1>
         </div>
 
         {/* Form Section */}
@@ -66,10 +72,11 @@ const ForgotPassword = () => {
           <form onSubmit={sendLink} className="space-y-6">
             {/* Email Input */}
             <div className="space-y-2">
-              <label className="block text-gray-300 text-sm font-medium">Email Address</label>
+              <label className="block text-gray-300 text-sm font-medium">
+                Email Address
+              </label>
               <input
                 type="email"
-                name="email"
                 value={email}
                 onChange={handleChange}
                 className="block w-full p-3 rounded-lg bg-gray-700 border border-gray-600 placeholder-gray-400 text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent"
@@ -103,7 +110,10 @@ const ForgotPassword = () => {
 
             {/* Back to Login */}
             <div className="text-center mt-4">
-              <Link to="/sign-in" className="text-amber-500 hover:text-amber-400 text-sm">
+              <Link
+                to="/sign-in"
+                className="text-amber-500 hover:text-amber-400 text-sm"
+              >
                 Remember your password? Back to Login
               </Link>
             </div>

@@ -5,7 +5,7 @@ import { getUser } from '../controller/user.controller.js';
 import { signout } from '../controller/auth.controller.js';
 import { forgetpassword,resetpassword,updateResetPassword } from '../controller/user.controller.js';
 const router = express.Router();
-
+import { toggleUserStatus } from '../controller/user.controller.js';
 
 
 router.get('/test', test);
@@ -17,5 +17,6 @@ router.get('/:userId', getUser);
 router.post('/forgetpassword',forgetpassword);
 router.get('/resetpassword/:id/:token',resetpassword);
 router.post('/updateResetPassword/:id/:token',updateResetPassword);
+router.patch('/toggle-status/:id', verifyToken, toggleUserStatus);
 
 export default router;
