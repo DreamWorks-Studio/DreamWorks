@@ -72,24 +72,35 @@ export const signin = async (req, res, next) => {
 export const google = async (req, res, next) => {
   const { email, name, googlePhotoUrl } = req.body;
   try {
-    const user = await User.findOne({ email });
+    let user = await User.findOne({ email });
     if (user) {
       const token = jwt.sign(
         {
           id: user._id,
           isAdmin: user.isAdmin,
-          isSuperAdmin: user.isSuperAdmin // Added
+          isSuperAdmin: user.isSuperAdmin
         },
         process.env.JWT_SECRET
       );
-      // ... rest of the code ...
+      return res.status(200).json({ user, token });
     } else {
       const newUser = new User({
-        // ... other fields ...
+        email,
+        name,
+        googlePhotoUrl,
         isAdmin: false,
         isSuperAdmin: false
       });
-      // ... rest of the code ...
+      await newUser.save();
+      const token = jwt.sign(
+        {
+          id: newUser._id,
+          isAdmin: newUser.isAdmin,
+          isSuperAdmin: newUser.isSuperAdmin
+        },
+        process.env.JWT_SECRET
+      );
+      return res.status(201).json({ user: newUser, token });
     }
   } catch (error) {
     next(error);
