@@ -19,7 +19,9 @@ export const signup = async (req, res, next) => {
     password: hashedPassword,
     confirmpassword: hashedPassword,
     isAdmin: false,       // Explicitly set
-    isSuperAdmin: false   // Explicitly set
+    isSuperAdmin: false ,  // Explicitly set
+    lastActive: new Date(),
+    
   });
 
   try {
@@ -44,7 +46,9 @@ export const signin = async (req, res, next) => {
       {
         id: validUser._id,
         isAdmin: validUser.isAdmin,
-        isSuperAdmin: validUser.isSuperAdmin // Added
+        isSuperAdmin: validUser.isSuperAdmin ,// Added
+        lastActive: new Date(),
+        
       },
       process.env.JWT_SECRET,
       { expiresIn: '1d' } // Added expiration

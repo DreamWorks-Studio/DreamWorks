@@ -8,6 +8,7 @@ const router = express.Router();
 import { toggleUserStatus } from '../controller/user.controller.js';
 import { toggleAdminPrivileges } from '../controller/user.controller.js';
 import { verifySuperAdmin } from '../utils/UserVerify.js';
+import { updateLastActive } from '../utils/UserVerify.js';
 
 router.get('/test', test);
 router.post('/update/:id' , verifyToken , UpdateUser);
@@ -27,5 +28,8 @@ router.patch(
     verifySuperAdmin, 
     toggleAdminPrivileges
   );
+
+  router.use(verifyToken, updateLastActive);
+
 
 export default router;

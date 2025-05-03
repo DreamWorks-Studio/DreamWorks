@@ -35,3 +35,16 @@ export const verifySuperAdmin = (req, res, next) => {
   }
   next();
 };
+
+export const updateLastActive = async (req, res, next) => {
+  try {
+    if (req.user?.id) {
+      await User.findByIdAndUpdate(req.user.id, {
+        lastActive: new Date(),
+      });
+    }
+  } catch (err) {
+    console.error("Failed to update lastActive:", err);
+  }
+  next();
+};
