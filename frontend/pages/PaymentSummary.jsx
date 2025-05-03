@@ -24,21 +24,30 @@ const PaymentSummary = () => {
     const userId = passedUser?.id;
 
     useEffect(() => {
+        console.log("Passed booking details:", passedBookingDetails);
+        console.log("Passed package:", passedPackage);
+        console.log("Passed user:", passedUser);
+        console.log("Package price specifically:", passedPackage?.price);
+
         // If we have booking details passed from BookingPage
-        if (passedBookingDetails && passedPackage && passedUser) {
+        if (passedBookingDetails && passedPackage) {
+            // Ensure the price is a number - this is important
+            const packagePrice = Number(passedPackage.price) || 0;
+            console.log("Converted package price:", packagePrice);
+            
             // Format the data to match the expected structure in the render
             setBookingDetails({
                 _id: passedBookingDetails._id,
                 date: passedBookingDetails.date,
                 package: {
                     name: passedPackage.packageType,
-                    price: passedPackage.price
+                    price: packagePrice // Use the converted number
                 },
                 user: {
-                    id: passedUser.id,
-                    email: passedUser.email
+                    id: passedUser?.id || "",
+                    email: passedUser?.email || ""
                 },
-                totalAmount: passedPackage.price * 1.05 + 1000
+                totalAmount: packagePrice * 1.05 + 1000 // Calculate with the number
             });
             setLoading(false);
             return;
@@ -91,14 +100,29 @@ const PaymentSummary = () => {
             alert("No booking information found!");
             return;
         }
-    
         setProcessingPayment(true);
         
         try {
             let totalAmount = 0;
+            let packageId = null;
+            let packagePrice = 0;
+
             if (bookingDetails && bookingDetails.package && bookingDetails.package.price) {
-                totalAmount = (bookingDetails.package.price || 0) * 1.05 + 1000;
+                packagePrice = Number(bookingDetails.package.price);
+                totalAmount = packagePrice * 1.05 + 1000;
             }
+
+            packageId = passedBookingDetails?.packageId ||
+                (bookingDetails?.package?.id) ||
+                (passedPackage?._id);
+
+            console.log("Payment details being sent:", {
+                bookingId,
+                userId,
+                packageId,
+                packagePrice,
+                totalAmount
+            });
             
             if (paymentMethod === "cash") {
                 // First, store the payment method selection
@@ -111,6 +135,8 @@ const PaymentSummary = () => {
                         bookingId,
                         paymentMethod: "cash",
                         userId: userId,
+                        packageId: packageId,
+                        packagePrice: packagePrice
                     })
                 });
                 
@@ -148,12 +174,21 @@ const PaymentSummary = () => {
                     body: JSON.stringify({
                         bookingId,
                         paymentMethod: "card",
-                        userId: userId
+                        userId: userId,
+                        packageId: packageId,  
+                        packagePrice: packagePrice
                     })
                 });
                 
                 if (selectMethodResponse.status === 200) {
                     const selectMethodData = await selectMethodResponse.json();
+                    
+                    // Log what's being sent to the payment processing API
+                    console.log("Payment process data:", {
+                        paymentMethod: "card",
+                        bookingId,
+                        userId
+                    });
                     
                     // Then proceed to payment gateway
                     const paymentResponse = await fetch("http://localhost:5003/api/payments/payment-process", {
@@ -178,16 +213,34 @@ const PaymentSummary = () => {
                     }
                     
                     console.log("Booking Details before navigation:", bookingDetails);
+                    console.log("Package info being passed:", {
+                        packageId: passedBookingDetails?.packageId || passedPackage?._id,
+                        packagePrice: bookingDetails?.package?.price || passedPackage?.price
+                    });
 
                     navigate('/gateway', {
                         state: {
                             bookingId: bookingId,
-                            bookingDetails : {
+                            bookingDetails: {
                                 ...bookingDetails,
-                                _id: bookingId
+                                _id: bookingId,
+                                packageId: passedBookingDetails?.packageId || passedPackage?._id, 
+                                package: {
+                                    ...(bookingDetails.package || {}),
+                                    price: bookingDetails.package?.price || passedPackage?.price,
+                                    id: passedBookingDetails?.packageId || passedPackage?._id,
+                                    _id: passedBookingDetails?.packageId || passedPackage?._id,
+                                    name: bookingDetails?.package?.name || passedPackage?.packageType
+                                },
+                                user: {
+                                    id: passedUser?.id,
+                                    email: passedUser?.email
+                                }
                             },
-                            packageName: passedPackage?.packageType, // Pass the package name
-                            userId: passedUser?.id, // Pass the user id
+                            packageId: passedBookingDetails?.packageId || passedPackage?._id,
+                            packagePrice: Number(bookingDetails?.package?.price) || Number(passedPackage?.price) || 0,
+                            packageName: passedPackage?.packageType,
+                            userId: passedUser?.id,
                             paymentMethod: "card",
                             totalAmount
                         }
@@ -205,176 +258,192 @@ const PaymentSummary = () => {
             setProcessingPayment(false);
         }
     };
-    
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+                <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
+        );
+    }
 
     return (
-        <div className="flex flex-col min-h-screen bg-gray-50">
-            <ToastContainer position="top-right" autoClose={3000} />
-            <main className="flex-1 py-24">
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-                    <div className="bg-white shadow-lg rounded-4xl overflow-hidden">
-                        <div className="md:grid md:grid-cols-12">
-                            <div className="md:col-span-5 bg-gradient-to-br from-gray-950 to-gray-900 text-white p-8">
-                                <h2 className="text-xl font-bold mb-6">Booking Summary</h2>
-
-                                <div className="space-y-4">
-                                    {loading ? (
-                                        <div className="flex justify-between items-center py-3">
-                                            <ClipLoader color="#FFF" size={16} />
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <div className="flex justify-between items-center border-b border-amber-500 border-opacity-30 py-3">
-                                                <span className="text-blue-100">Package</span>
-                                                <span className="font-medium">{bookingDetails?.package?.name}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center border-b border-amber-500 border-opacity-30 py-3">
-                                                <span className="text-blue-100">Email</span>
-                                                <span className="font-medium">{bookingDetails?.user?.email}</span>
-                                            </div>
-                                            <div className="flex justify-between items-center border-b border-amber-500 border-opacity-30 py-3">
-                                                <span className="text-blue-100">Date</span>
-                                                <span className="font-medium">{bookingDetails?.date ? new Date(bookingDetails.date).toLocaleDateString() : ''}</span>
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-
-                                <h2 className="text-xl font-bold mb-6 mt-10">Payment Summary</h2>
-                                <div className="space-y-4">
-                                {loading ? (
-                                    <ClipLoader color="#FFF" size={16} />
-                                ) : (
-                                    <>
-                                        <div className="flex justify-between items-center py-3">
-                                            <span className="text-blue-100">Package Price:</span>
-                                            <span className="font-medium">Rs.{(bookingDetails?.package?.price || 0).toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center py-3">
-                                            <span className="text-blue-100">TAX (5%):</span>
-                                            <span className="font-medium">Rs.{((bookingDetails?.package?.price || 0) * 0.05).toFixed(2)}</span>
-                                        </div>
-                                        <div className="flex justify-between items-center py-3">
-                                            <span className="text-blue-100">Booking Fee:</span>
-                                            <span className="font-medium">Rs.1000.00</span>
-                                        </div>
-                                        <div className="flex justify-between font-medium text-base pt-3 border-t mt-2">
-                                            <span>Total:</span>
-                                            <span className="text-lg font-bold">
-                                                Rs.{(((bookingDetails?.package?.price || 0) * 1.05 + 1000).toFixed(2))}
-                                            </span>
-                                        </div>
-                                    </>
-                                )}
+        <div className="min-h-screen bg-gray-900 text-white pb-20">
+            <ToastContainer position="top-center" />
+            
+            {/* Hero section */}
+            <div className="bg-gradient-to-r from-amber-700 to-amber-500 py-12">
+                <div className="container mx-auto px-4 max-w-4xl">
+                    <h1 className="text-3xl font-bold mb-2">Choose Payment Method</h1>
+                    <p className="text-amber-100">Select your preferred payment method to secure your booking</p>
+                </div>
+            </div>
+            
+            <div className="container mx-auto max-w-4xl px-4 py-12">
+                {/* Booking Summary Card */}
+                <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl mb-10">
+                    <div className="p-6 border-b border-gray-700">
+                        <h2 className="text-xl font-bold mb-2">Booking Summary</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                            <div>
+                                <p className="text-gray-400 text-sm mb-1">Package</p>
+                                <p className="font-medium">{bookingDetails?.package?.name}</p>
                             </div>
+                            <div>
+                                <p className="text-gray-400 text-sm mb-1">Date</p>
+                                <p className="font-medium">
+                                    {bookingDetails?.date ? new Date(bookingDetails.date).toLocaleDateString('en-US', {
+                                        weekday: 'long',
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    }) : 'Not specified'}
+                                </p>
                             </div>
-
-                            <div className="md:col-span-7 p-10 pt-30">
-                                <h2 className="text-xl font-bold text-gray-800 mb-6">Choose Payment Method</h2>
-
-                                <div className="space-y-4">
-                                    <div 
-                                        className={`rounded-3xl border-2 ${paymentMethod === 'card' ? 'border-amber-600' : 'border-gray-200'} p-5 cursor-pointer transition-all duration-200 hover:shadow-md`}
-                                        onClick={() => setPaymentMethod('card')}
-                                    >
-                                        <div className="flex items-center mb-4">
-                                            <input 
-                                                type="radio" 
-                                                name="paymentMethod" 
-                                                value="card" 
-                                                checked={paymentMethod === 'card'} 
-                                                onChange={() => setPaymentMethod('card')} 
-                                                className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500"
-                                            />
-                                            <label className="ml-3 block text-lg font-medium text-gray-700">
-                                                Card Payment
-                                            </label>
-                                        </div>
-                                        {paymentMethod === 'card' && (
-                                            <div className="ml-8 space-y-3 text-gray-700">
-                                                <p className="flex items-center text-sm">
-                                                    <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                                    Process payment online now with secure encryption
-                                                </p>
-                                                <p className="flex items-center text-sm">
-                                                    <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                                    Flexible options for full or partial payment
-                                                </p>
-                                                <p className="flex items-center text-sm">
-                                                    <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                                    Instant confirmation and digital receipt
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div 
-                                        className={`rounded-3xl border-2 ${paymentMethod === 'cash' ? 'border-amber-600' : 'border-gray-200'} p-5 cursor-pointer transition-all duration-200 hover:shadow-md`}
-                                        onClick={() => setPaymentMethod('cash')}
-                                    >
-                                        <div className="flex items-center mb-4">
-                                            <input 
-                                                type="radio" 
-                                                name="paymentMethod" 
-                                                value="cash" 
-                                                checked={paymentMethod === 'cash'} 
-                                                onChange={() => setPaymentMethod('cash')} 
-                                                className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500"
-                                            />
-                                            <label className="ml-3 block text-lg font-medium text-gray-700">
-                                                Cash Payment
-                                            </label>
-                                        </div>
-                                        {paymentMethod === 'cash' && (
-                                            <div className="ml-8 space-y-3 text-gray-700">
-                                                <p className="flex items-center text-sm">
-                                                    <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                                    Visit our studio for in-person payment
-                                                </p>
-                                                <p className="flex items-center text-sm">
-                                                    <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                                    Discuss payment plans with our team
-                                                </p>
-                                                <p className="flex items-center text-sm">
-                                                    <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
-                                                    Downloadable invoice available for your records
-                                                </p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-
-                                <div className="mt-8">
-                                    <div className="flex justify-end">
-                                        <button 
-                                            onClick={handlePayment}
-                                            disabled={processingPayment}
-                                            className={`bg-gray-900 hover:bg-gray-950 text-white font-medium rounded-lg px-5 py-3 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 duration-200 cursor-pointer ${processingPayment ? 'opacity-70 cursor-not-allowed' : ''}`}
-                                        >
-                                            {processingPayment ? (
-                                                <span className="flex items-center">
-                                                    <ClipLoader color="#FFF" size={16} />
-                                                    <span className="ml-2">Processing...</span>
-                                                </span>
-                                            ) : (
-                                                paymentMethod === 'card' ? 'Proceed to Payment' : 'Generate Invoice'
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
+                            <div>
+                                <p className="text-gray-400 text-sm mb-1">Email</p>
+                                <p className="font-medium">{bookingDetails?.user?.email}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Payment Summary */}
+                    <div className="p-6 bg-gray-700">
+                        <h3 className="text-lg font-medium mb-4">Payment Summary</h3>
+                        <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-300">Package Price:</span>
+                                <span className="font-medium">Rs. {(bookingDetails?.package?.price || 0).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-300">TAX (5%):</span>
+                                <span className="font-medium">Rs. {((bookingDetails?.package?.price || 0) * 0.05).toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <span className="text-gray-300">Booking Fee:</span>
+                                <span className="font-medium">Rs. 1,000.00</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-3 border-t border-gray-600 mt-3">
+                                <span className="text-amber-300 font-medium">Total Amount:</span>
+                                <span className="text-2xl font-bold">Rs. {((bookingDetails?.package?.price || 0) * 1.05 + 1000).toLocaleString()}</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
+                
+                {/* Payment Method Selection Card */}
+                <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl">
+                    <div className="p-6 border-b border-gray-700">
+                        <h2 className="text-xl font-bold mb-2">Payment Method</h2>
+                        <p className="text-gray-400">Select your preferred payment method</p>
+                    </div>
+                    
+                    <div className="p-6 space-y-6">
+                        {/* Card Payment Option */}
+                        <div 
+                            className={`p-5 rounded border-2 cursor-pointer transition ${
+                                paymentMethod === 'card' ? 'border-amber-500 bg-amber-500/20' : 'border-gray-600 hover:border-gray-500'
+                            }`}
+                            onClick={() => setPaymentMethod('card')}
+                        >
+                            <div className="flex items-center">
+                                <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                                    paymentMethod === 'card' ? 'border-amber-500' : 'border-gray-400'
+                                }`}>
+                                    {paymentMethod === 'card' && (
+                                        <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="font-medium">Card Payment</p>
+                                    <p className="text-sm text-gray-400">Process payment online with secure encryption</p>
+                                </div>
+                            </div>
+                            
+                            {paymentMethod === 'card' && (
+                                <div className="ml-8 mt-4 space-y-3 text-gray-300">
+                                    <p className="flex items-center text-sm">
+                                        <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Process payment online now with secure encryption
+                                    </p>
+                                    <p className="flex items-center text-sm">
+                                        <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Flexible options for full or partial payment
+                                    </p>
+                                    <p className="flex items-center text-sm">
+                                        <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Instant confirmation and digital receipt
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Cash Payment Option */}
+                        <div 
+                            className={`p-5 rounded border-2 cursor-pointer transition ${
+                                paymentMethod === 'cash' ? 'border-amber-500 bg-amber-500/20' : 'border-gray-600 hover:border-gray-500'
+                            }`}
+                            onClick={() => setPaymentMethod('cash')}
+                        >
+                            <div className="flex items-center">
+                                <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                                    paymentMethod === 'cash' ? 'border-amber-500' : 'border-gray-400'
+                                }`}>
+                                    {paymentMethod === 'cash' && (
+                                        <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                                    )}
+                                </div>
+                                <div>
+                                    <p className="font-medium">Cash Payment</p>
+                                    <p className="text-sm text-gray-400">Pay in person at our studio</p>
+                                </div>
+                            </div>
+                            
+                            {paymentMethod === 'cash' && (
+                                <div className="ml-8 mt-4 space-y-3 text-gray-300">
+                                    <p className="flex items-center text-sm">
+                                        <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Visit our studio for in-person payment
+                                    </p>
+                                    <p className="flex items-center text-sm">
+                                        <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Discuss payment plans with our team
+                                    </p>
+                                    <p className="flex items-center text-sm">
+                                        <svg className="w-5 h-5 mr-3 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path></svg>
+                                        Downloadable invoice available for your records
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Submit button */}
+                        <div className="mt-8">
+                            <button
+                                onClick={handlePayment}
+                                disabled={processingPayment}
+                                className="w-full py-3 px-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded transition duration-200 flex items-center justify-center"
+                            >
+                                {processingPayment ? (
+                                    <>
+                                        <ClipLoader size={20} color="#ffffff" className="mr-2" />
+                                        Processing...
+                                    </>
+                                ) : (
+                                    paymentMethod === 'card' ? 'Proceed to Payment' : 'Generate Invoice'
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             {/* Popup for Invoice */}
             {showPopup && (
-                <div className="fixed inset-0 z-50 flex justify-center items-center bg-gray-500 bg-opacity-75">
-                    <div className="bg-white p-8 rounded-xl shadow-lg max-w-md">
-                        <h3 className="text-xl font-semibold mb-4">Payment Recorded Successfully</h3>
-                        <p className="mb-6 text-gray-600">
+                <div className="fixed inset-0 z-50 flex justify-center items-center bg-gray-900 bg-opacity-75 backdrop-blur-sm">
+                    <div className="bg-gray-800 p-8 rounded-lg shadow-lg max-w-md border border-gray-700">
+                        <h3 className="text-xl font-semibold mb-4 text-white">Payment Recorded Successfully</h3>
+                        <p className="mb-6 text-gray-300">
                             Your cash payment has been recorded in our system. Please download the invoice and bring it when you visit our studio for payment.
                         </p>
                         <div className="flex flex-col space-y-4">
@@ -382,14 +451,14 @@ const PaymentSummary = () => {
                                 href={invoiceLink}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                                className="inline-flex items-center justify-center bg-amber-600 hover:bg-amber-700 text-white py-3 px-4 rounded transition-colors"
                                 onClick={async (e) => {
                                     e.preventDefault();
                                     try {
                                         console.log('Attempting to download from:', invoiceLink);
 
                                         if(!invoiceLink) {
-                                            throw new Error('Invoice Url is not available!');
+                                            throw new Error('Invoice URL is not available!');
                                         }
 
                                         const url = new URL(invoiceLink);
@@ -400,13 +469,6 @@ const PaymentSummary = () => {
                                                 'Accept': 'application/pdf'
                                             }
                                         });
-                                        {/*const response = await fetch(invoiceLink, {
-                                            method: 'GET',
-                                            headers: {
-                                                'Accept': 'application/pdf',
-                                                'Content-Type': 'application/pdf'
-                                            }
-                                        });*/}
 
                                         if (!response.ok) {
                                             console.error('Download failed with status:', response.status);
@@ -438,9 +500,17 @@ const PaymentSummary = () => {
                             <button 
                                 onClick={() => {
                                     setShowPopup(false);
-                                    navigate('/'); // Navigate to dashboard or appropriate page
+                                    navigate('/profile', {
+                                        state: {
+                                            currentUser: {
+                                                id: userId,
+                                                email: passedUser?.email,
+                                                fullname: passedUser?.fullname
+                                            }
+                                        }
+                                    }); // Navigate to dashboard or appropriate page
                                 }} 
-                                className="text-gray-700 py-2 px-4 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                className="text-gray-300 py-3 px-4 border border-gray-600 rounded hover:bg-gray-700 transition-colors"
                             >
                                 Close and Return to Dashboard
                             </button>
