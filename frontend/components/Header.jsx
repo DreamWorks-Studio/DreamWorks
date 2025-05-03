@@ -12,7 +12,7 @@ const Header = () => {
         <Carousel/>
         <About/>
         <Footer/>
-        <PrivateRoute/>
+        {/*<PrivateRoute/>*/}
     </div>
   )
 }
