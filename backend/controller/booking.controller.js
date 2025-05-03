@@ -3,8 +3,8 @@ import mongoose from "mongoose";
 import { response } from "express";
 import Booking from "../model/booking.model.js";
 import { validationResult } from 'express-validator';
-//import User from "../model/user.model.js";
-//import Package from "../model/package.model.js";
+import User from "../model/user.model.js";
+import Package from "../model/package.model.js";
 
 export const test = (req, res) => {
     res.json({
@@ -24,10 +24,10 @@ export const createBooking = async (req, res) => {
         console.log('Headers:', req.headers);
         console.log('Received request body:', req.body);
 
-        const { fullName, email, telephone, date, time, location, addsOn, packageType } = req.body;
+        const { fullName, email, telephone, date, time, location, addsOn, packageType, userId, packageId } = req.body;
 
         // ✅ Check if all required fields are provided (except fullName and email which will be auto-filled)
-        if (!fullName || !email || !telephone || !date || !time || !location || !packageType) {
+        if (!fullName || !email || !telephone || !date || !time || !location || !packageType || !userId || !packageId) {
             return res.status(400).json({ message: 'All required fields must be provided' });
         }
 
@@ -60,6 +60,8 @@ export const createBooking = async (req, res) => {
            time,
            location,
            addson: addsOn, // Fix field name mismatch
+           userId,     
+           packageId
        });
 
        await newBooking.save();
@@ -169,7 +171,35 @@ export const getBooking = async (req, res) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        return res.status(200).json(booking);
+        // Format response to match what the frontend expects
+        return res.status(200).json({
+            _id: booking._id,
+            fullName: booking.fullName,
+            email: booking.email,
+            telephone: booking.telephone,
+            date: booking.date,
+            time: booking.time,
+            location: booking.location,
+            addson: booking.addson,
+            status: booking.status,
+            packageType: booking.packageType,
+            userId: booking.userId?._id,
+            packageId: booking.packageId?._id,
+            package: booking.packageId ? {
+                id: booking.packageId._id,
+                _id: booking.packageId._id,
+                name: booking.packageId.packagename || booking.packageType,
+                price: booking.packageId.packagePrice || 0,
+                details: booking.packageId.packageDetails || ''
+            } : null,
+            user: booking.userId ? {
+                id: booking.userId._id,
+                _id: booking.userId._id,
+                email: booking.userId.email,
+                fullName: booking.userId.fullName
+            } : null
+        });
+
     } catch (error) {
         console.error('Error fetching booking:', error);
         res.status(500).json({ message: 'Failed to retrieve booking', error: error.message });
@@ -300,6 +330,28 @@ export const getBookedDates = async (req, res) => {
     } catch (error) {
         console.error("Error fetching booked dates:", error);
         res.status(500).json({ message: "Failed to retrieve booked dates", error: error.message });
+    }
+};
+
+export const getUserBookings = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+        
+        // Validate if userId is a valid MongoDB ObjectId
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID format' });
+        }
+        
+        const bookings = await Booking.find({ userId }).sort({ createdAt: -1 });
+        
+        return res.status(200).json(bookings);
+    } catch (error) {
+        console.error('Error fetching user bookings:', error);
+        res.status(500).json({ message: 'Failed to retrieve user bookings', error: error.message });
     }
 };
 
