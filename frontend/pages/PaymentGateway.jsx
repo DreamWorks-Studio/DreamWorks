@@ -6,7 +6,7 @@ import { toast, ToastContainer } from 'react-toastify';
 
 import 'react-toastify/ReactToastify.css';
 
-const PaymentManagementPage = () => {
+const PaymentGateway = () => {
   const [paymentType, setPaymentType] = useState('full');
   const [bookingDetails, setBookingDetails] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -20,28 +20,51 @@ const PaymentManagementPage = () => {
   const passedUser = location.state?.user;
   const passedTotalAmount = location.state?.totalAmount;
   const passedPaymentMethod = location.state?.paymentMethod;
-  
+  const passedPackageId = location.state?.packageId;
+  const passedPackagePrice = location.state?.packagePrice;
+  const isRemainingPayment = location.state?.isRemainingPayment;
+  const defaultCard = location.state?.defaultCard;
+  const [selectedCardId, setSelectedCardId] = useState(defaultCard?.id || null);
+
+
   // Get bookingId from the passed booking details
   const bookingId = passedBookingDetails?._id || location.state?.bookingId;
   const userId = passedUser?.id;
 
+  const { register, handleSubmit, formState: { errors }, watch, trigger, setValue } = useForm({
+    mode: 'onChange',
+    reValidateMode: 'onSubmit',
+    defaultValues: {
+      paymentType: 'full',
+      amount: '',
+      cardNumber: '',
+      expiry: '',
+      cvc: '',
+      saveCard: false,
+    }
+  });
+  
   useEffect(() => {
     console.log("Initial state:", bookingDetails);
     console.log("Passed booking details:", passedBookingDetails);
+    console.log("Package ID from location:", passedBookingDetails?.packageId || location.state?.packageId);
+    console.log("Passed package ID:", passedPackageId);
+    console.log("Passed package price:", passedPackagePrice);
     
     // First, check if we already have booking details set
     if (bookingDetails) {
         return;
     }
-
     // Handle case when booking details are passed directly
     if (passedBookingDetails) {
         const formattedBookingDetails = {
             _id: passedBookingDetails._id,
             date: passedBookingDetails.date,
+            packageId: passedBookingDetails.packageId,
             package: {
                 name: passedBookingDetails.package?.name || passedPackage?.packageType,
-                price: passedBookingDetails.package?.price || passedPackage?.price || 0
+                price: passedBookingDetails.package?.price || passedPackage?.price || 0,
+                id: passedBookingDetails.package?.id || passedPackageId // Include package ID
             },
             user: {
                 id: passedUser?.id || passedBookingDetails.user?.id,
@@ -65,7 +88,10 @@ const PaymentManagementPage = () => {
                 id: passedUser.id,
                 email: passedUser.email,
             },
-            package: passedPackage || null,
+            package: {
+                id: passedPackageId,
+                price: passedPackagePrice || 0
+            },
             totalAmount: passedTotalAmount
         };
         
@@ -74,17 +100,14 @@ const PaymentManagementPage = () => {
         setLoading(false);
         return;
     }
-
     // Fallback: fetch booking details if not passed directly
     const fetchBookingDetails = async () => {
         try {
             setLoading(true);
             const effectiveUserId = userId || location.state?.userId;
-
             if (!effectiveUserId) {
                 throw new Error("No user ID available to fetch booking details");
             }
-
             const response = await fetch(`http://localhost:5003/api/booking/display-summary/${effectiveUserId}`);
             
             if (!response.ok) {
@@ -92,7 +115,6 @@ const PaymentManagementPage = () => {
             }
             
             const data = await response.json();
-
             if (data?.bookings?.[0]) {
                 const booking = data.bookings[0];
                 const packagePrice = booking.package?.price || 0;
@@ -100,14 +122,16 @@ const PaymentManagementPage = () => {
                 const fetchedBookingDetails = {
                     _id: booking._id,
                     date: booking.date,
-                    package: booking.package,
+                    package: {
+                        ...booking.package,
+                        id: booking.packageId // Ensure package ID is included
+                    },
                     user: {
                         id: data.user.id,
                         email: data.user.email
                     },
                     totalAmount: packagePrice * 1.05 + 1000
                 };
-
                 console.log("Setting fetched booking details:", fetchedBookingDetails);
                 setBookingDetails(fetchedBookingDetails);
             }
@@ -120,6 +144,10 @@ const PaymentManagementPage = () => {
                     id: userId || location.state?.userId || "fallback-user",
                     email: passedUser?.email || "fallback@email.com"
                 },
+                package: {
+                    id: passedPackageId,
+                    price: passedPackagePrice || 0
+                },
                 totalAmount: passedTotalAmount || 0
             };
             console.log("Setting fallback booking details:", fallbackDetails);
@@ -128,25 +156,33 @@ const PaymentManagementPage = () => {
             setLoading(false);
         }
     };
-
     // Only fetch if we don't have any booking details
     if (!bookingDetails && !passedBookingDetails) {
         fetchBookingDetails();
     }
-}, [bookingId, passedBookingDetails, passedPackage, passedUser, passedTotalAmount, userId, location.state]);
+  }, [bookingId, passedBookingDetails, passedPackage, passedUser, passedTotalAmount, userId, location.state, passedPackageId, passedPackagePrice]);
 
-  const { register, handleSubmit, formState: { errors }, watch, trigger } = useForm({
-    mode: 'onChange',
-    reValidateMode: 'onSubmit',
-    defaultValues: {
-      paymentType: 'full',
-      amount: '',
-      cardNumber: '',
-      expiry: '',
-      cvc: '',
-      saveCard: false,
+  useEffect(() => {
+    if (isRemainingPayment && defaultCard) {
+      console.log("Default card data:", defaultCard);
+
+      let formattedCardNumber = defaultCard.cardNumber;
+      if (formattedCardNumber && !formattedCardNumber.includes(' ') && formattedCardNumber.length === 16) {
+        formattedCardNumber = formattedCardNumber.replace(/(.{4})/g, '$1 ').trim();
+      }
+  
+      setValue('cardNumber', formattedCardNumber);
+      setValue('expiry', defaultCard.expiryDate);
+
+      setValue('cvc', '');
     }
-  });
+  }, [isRemainingPayment, defaultCard, setValue]);
+
+  useEffect(() => {
+    if (paymentType === 'full') {
+      setValue('saveCard', false);
+    }
+  }, [paymentType, setValue]);
 
   const watchAmount = watch('amount');
   const watchSaveCard = watch('saveCard');
@@ -154,19 +190,49 @@ const PaymentManagementPage = () => {
 
   const onSubmit = async (data) => {
     console.log('Form submission - bookingDetails:', bookingDetails);
-
+    
+    // Add full location.state debug logging to see what's available
+    console.log('Full location.state:', location.state);
     const effectiveBookingId = bookingDetails?._id || location.state?.bookingId;
+    
+    // Try to find packageId from multiple possible sources
+    // This makes the code resilient without hardcoding
+    const effectivePackageId = 
+        bookingDetails?.packageId ||
+        bookingDetails?.package?.id || 
+        bookingDetails?.package?._id || 
+        location.state?.packageId ||
+        location.state?.bookingDetails?.packageId;
+    console.log('Effective package ID found:', effectivePackageId);
+
+
+    const effectivePackagePrice = 
+        Number(bookingDetails?.package?.price) || 
+        Number(location.state?.packagePrice) || 
+        Number(passedPackagePrice) ||
+        Number(bookingDetails?.packagePrice) ||
+        13500; // Default price as last resort (replace with your actual default)
+    
+    console.log('Effective package price found:', effectivePackagePrice);
     
     // More detailed validation to help identify the specific issue
     if (!bookingDetails?._id) {
       console.error('Invalid booking details:', bookingDetails);
       toast.error('Missing booking information. Please try again.');
       return;
-  }
+    }
     
-    if (!bookingDetails._id) {
-      console.error('bookingDetails._id is missing', bookingDetails);
-      toast.error('Booking ID is missing. Please try again.');
+    // Add debug logging for package information
+    console.log('Package information:', {
+      packageFromBookingDetails: bookingDetails?.package,
+      price: bookingDetails?.package?.price,
+      id: effectivePackageId
+    });
+    
+    // Check if package ID is missing
+    if (!effectivePackageId) {
+      console.error('Missing package ID:', bookingDetails);
+      toast.error('Package information is incomplete. Please try again.');
       return;
     }
     
@@ -180,53 +246,54 @@ const PaymentManagementPage = () => {
       setSubmitting(true);
   
       // Calculate the amount to be paid based on payment type
-      const amountPaid = paymentType === 'full' 
-        ? bookingDetails.totalAmount 
-        : parseFloat(data.amount);
-
+      const amountPaid = isRemainingPayment
+        ? Number(passedTotalAmount) // For remaining payments, use the passed amount directly
+        : (paymentType === 'full' 
+            ? Number(bookingDetails.totalAmount) 
+            : parseFloat(data.amount));
       
-      if(paymentType === 'partial') {
+      if(paymentType === 'partial' && !isRemainingPayment) {
         if (isNaN(amountPaid)) {
           throw new Error('Please enter a valid amount');
         }
-
         if(amountPaid < 3000) {
           throw new Error('Minimum partial payment amount is Rs.3000.00')
         }
-
         if(amountPaid > bookingDetails.totalAmount) {
           throw new Error('Minimum amount cannot exceed total amount due')
         }
       }  
       
-      // Prepare request payload
+      // Prepare request payload with explicit packageId
       const paymentData = {
-        bookingId: effectiveBookingId || `recovery-${Date.now()}`,
+        bookingId: effectiveBookingId,
         userId: bookingDetails.user.id,
-        paymentType: paymentType,
-        paymentStatus: paymentType === 'full' ? 'paid' : 'partial',
-        amountPaid: amountPaid,
-        cardNumber: data.cardNumber.replace(/\s/g, ''), // Remove spaces from card number
-        expiryDate: data.expiry,
-        cvc: data.cvc,
-        isCardSaved: paymentType === 'partial' && data.saveCard,
-        totalAmount: bookingDetails.totalAmount,
-        remainingAmount: paymentType === 'full' ? 0 : bookingDetails.totalAmount - amountPaid
-        
-        /*cardStorage: paymentType === 'partial' && data.saveCard ? {
-          cardNumber: data.cardNumber.replace(/\s/g, ''),
-          expirDate: data.expiry,
-          lastFourDigits: lastFourDigits,
-          userId:bookingDetails.user.id,
-          bookingId: effectiveBookingId
-        } : null*/
-
+        packageId: effectivePackageId,
+        packagePrice: effectivePackagePrice,
+        paymentType: isRemainingPayment ? 'full' : paymentType,
+        paymentStatus: (isRemainingPayment || paymentType === 'full') ? 'paid' : 'partial',
+        amountPaid: isRemainingPayment ? Number(passedTotalAmount) : (paymentType === 'full' ? Number(bookingDetails.totalAmount) : parseFloat(data.amount)),
+        totalAmount: Number(bookingDetails.totalAmount) || 0,
+        remainingAmount: (isRemainingPayment || paymentType === 'full') ? 0 : Number(bookingDetails.totalAmount) - Number(amountPaid),
+        isRemainingPayment: isRemainingPayment,
+        isCardSaved: data.saveCard,
       };
+
+      if (data.cardNumber.includes('*') && defaultCard?.id) {
+        paymentData.savedCardId = defaultCard.id;
+      } else {
+        paymentData.cardNumber = data.cardNumber.replace(/\s/g, '');
+        paymentData.expiryDate = data.expiry;
+      }
+
+      paymentData.cvc = data.cvc;
   
       console.log('Sending payment data:', {
         ...paymentData,
         cardNumber: '*'.repeat(12) + paymentData.cardNumber.slice(-4),
-        cvc: '***'
+        cvc: '***',
+        packageId: paymentData.packageId,
+        packagePrice: paymentData.packagePrice
       });
       
       // Use fetch instead of axios
@@ -246,18 +313,53 @@ const PaymentManagementPage = () => {
       const result = await response.json();
       console.log('Payment successful:', result);
       
-      let successMessage = paymentType === 'full'
-      ? 'Full payment was successful! Thank you for your purchase.'
-      : `Partial payment of Rs.${amountPaid.toFixed(2)} successful! Your card has been charged and your booking is confirmed.`;
-      
-      if (paymentType === 'partial' && data.saveCard) {
-        successMessage += 'Your card has been saved for future payments.';
+      // Customize success message based on payment type
+      let successMessage;
+      if (isRemainingPayment) {
+        successMessage = `Payment of Rs.${amountPaid.toFixed(2)} completed successfully! Your booking is now fully paid.`;
+      } else if (paymentType === 'full') {
+        successMessage = 'Full payment was successful! Thank you for your purchase.';
+      } else {
+        successMessage = `Partial payment of Rs.${amountPaid.toFixed(2)} successful! Your card has been charged and your booking is confirmed.`;
       }
-
+      
+      if ((paymentType === 'partial' || isRemainingPayment) && data.saveCard) {
+        try {
+          // Save the card details
+          const saveCardResponse = await fetch('http://localhost:5003/api/cards/save', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              userId: bookingDetails.user.id,
+              cardNumber: data.cardNumber.replace(/\s/g, ''),
+              expiryDate: data.expiry
+            })
+          });
+          if (!saveCardResponse.ok) {
+            console.warn('Failed to save card:', await saveCardResponse.text());
+          } else {
+            console.log('Card saved successfully');
+            successMessage += ' Your card has been saved for future payments.';
+          }
+        } catch (cardError) {
+          console.warn('Error saving card:', cardError);
+        }
+      }
       toast.success(successMessage);
       
       setTimeout(() => {
-        navigate('/dashboard');
+        navigate('/profile', {
+          state: {
+            // Pass the full user object from the booking details
+            currentUser: {
+              id: bookingDetails.user.id
+            },
+            bookingId: effectiveBookingId,
+            fromPayment: true
+          }
+        });
       }, 2000);
       
     } catch (error) {
@@ -273,7 +375,7 @@ const PaymentManagementPage = () => {
     if (value) {
       value = value.match(/.{1,4}/g).join(' ');
     }
-    e.target.value = value.substring(0, 19); 
+    e.target.value = value.substring(0, 19);
   };
 
   const handleExpiryChange = (e) => {
@@ -284,236 +386,317 @@ const PaymentManagementPage = () => {
     e.target.value = value.substring(0, 5);
   };
 
-  const handleCancel = () => {
-    navigate(-1); // Go back to previous page
+  const handleCVCChange = (e) => {
+    e.target.value = e.target.value.replace(/\D/g, '').substring(0, 3);
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="w-16 h-16 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+      </div>
+    );
+  }
+
+  const bookingDate = bookingDetails.date
+    ? new Date(bookingDetails.date).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : 'Not specified';
+
+  
+  const getPackageName = () => {
+    // Try to get package name from multiple possible places
+    return passedBookingDetails?.packageType ||
+      bookingDetails?.package?.name ||
+      location.state?.packageType ||
+      passedPackage?.packageType ||
+      'Package';
+  };
+
+  const getBookingDate = () => {
+    // Try to get date from multiple possible places
+    const dateString = passedBookingDetails?.date || bookingDetails?.date;
+
+    if (!dateString) return 'Not specified';
+
+    try {
+      return new Date(dateString).toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
-      <ToastContainer position="top-right" autoClose={3000} />
-      <main className="flex-1 py-24">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-white shadow-lg rounded-4xl overflow-hidden">
-            <div className="md:grid md:grid-cols-12">
-              <div className="md:col-span-5 bg-gradient-to-br from-gray-950 to-gray-900 text-white p-8">
-                <h2 className="text-2xl font-bold mb-6 mt-22">
-                  Payment Summary
-                </h2>
-                <div className="space-y-4 text-lg">
-                  <div className="flex justify-between items-center py-3">
-                    <span className="text-blue-100">Package Price:</span>
-                    <span className="font-medium">
-                      {loading ? (
-                        <ClipLoader color="#FFF" size={16} />
-                      ) : (
-                        `Rs.${(bookingDetails?.package?.price || 0).toFixed(2)}`
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-3">
-                    <span className="text-blue-100">TAX (5%):</span>
-                    <span className="font-medium">
-                      {loading ? (
-                        <ClipLoader color="#FFF" size={16} />
-                      ) : (
-                        `Rs.${((bookingDetails?.package?.price || 0) * 0.05).toFixed(2)}`
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center py-3">
-                    <span className="text-blue-100">Booking Fee:</span>
-                    <span className="font-medium">Rs.1000.00</span>
-                  </div>
-                  <div className="flex justify-between font-medium pt-3 border-t mt-2">
-                    <span>Total:</span>
-                    <span className="text-lg font-bold">
-                      {loading ? (
-                        <ClipLoader color="#FFF" size={16} />
-                      ) : (
-                        `Rs.${(bookingDetails?.totalAmount || 0).toFixed(2)}`
-                      )}
-                    </span>
-                  </div>
-                </div>
+    <div className="min-h-screen bg-gray-900 text-white pb-20">
+      <ToastContainer position="top-right" />
+      
+      {/* Hero section */}
+      <div className="bg-gradient-to-r from-amber-700 to-amber-500 py-12">
+        <div className="container mx-auto px-4 max-w-4xl">
+          <h1 className="text-3xl font-bold mb-2">
+            {isRemainingPayment ? 'Complete Your Payment' : 'Secure Payment'}
+          </h1>
+          <p className="text-amber-100">
+            {isRemainingPayment 
+              ? 'Pay the remaining amount to complete your booking' 
+              : 'Please enter your payment details to secure your booking'
+            }
+          </p>
+        </div>
+      </div>
+      
+      <div className="container mx-auto max-w-4xl px-4 py-12">
+        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl mb-10">
+          <div className="p-6 border-b border-gray-700">
+            <h2 className="text-xl font-bold mb-2">Booking Summary</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              <div>
+                <p className="text-gray-400 text-sm mb-1">Package</p>
+                <p className="font-medium">{getPackageName()}</p>
               </div>
-              <div className="md:col-span-7 p-10 pt-20">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                  </svg>
-                  Card Payment Details
-                </h2>
-                <div className="border-b border-gray-200 mb-6"></div>
-                <form onSubmit={handleSubmit(onSubmit)}>
-                <div className="bg-white rounded-xl overflow-hidden">
-                  <div className="space-y-6">
-                    <div className="border border-gray-100 rounded-xl p-6 shadow-sm bg-white transition-all hover:shadow-md">
-                        <h2 className="text-xl font-medium text-gray-800 mb-4 flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        Pay Amount</h2>
-                        <div className='space-y-4'>
-                            <label className='flex items-center'>
-                                <input type="radio" name="paymentType" value="full" {...register('paymentType')} checked={paymentType === 'full'} onChange={() => setPaymentType('full')}
-                                className='h-5 w-5 text-amber-600 focus:ring-amber-600 border-gray-300'/>
-                                <span className='ml-3 text-gray-700'>Full Payment</span>
-                            </label>
-                            <label className='flex items-center'>
-                                <input type="radio" name="paymentType" value="partial" {...register('paymentType')} checked={paymentType === 'partial'} onChange={() => setPaymentType('partial')}
-                                className='h-5 w-5 text-amber-600 focus:ring-amber-600 border-gray-300'/>
-                                <span className='ml-3 text-gray-700'>Partial Payment</span>
-                            </label>
-
-                            {paymentType === 'partial' && (
-                                <div className='mt-3 pl-8'>
-                                    <div className='relative'>
-                                        <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                                            <span className='text-gray-500 sm:text-sm'>Rs.</span>
-                                        </div>
-                                        <input type="text" placeholder="Enter Amount" {...register('amount', { 
-                                         required: 'Amount is required',
-                                         min: {
-                                          value: 3000,
-                                          message: 'Amount must be at least Rs.3000.00'
-                                        },
-                                        pattern: {
-                                          value: /^[0-9]+$/,
-                                          message: 'Please enter a valid amount'
-                                        }
-                                        })}
-                                        className={`pl-12 block w-full border-gray-300 rounded-lg shadow-sm sm:text-sm transition-all focus:outline-none focus:ring-1 focus:ring-amber-600 hover:border-gray-400 py-3
-                                          ${errors.amount ? 'border-red-500' : ''}`}/>
-                                    </div>
-                                    {errors.amount && <p className='mt-2 text-sm text-red-600'>{errors.amount.message}</p>}
-                                    <p className='mt-2 text-sm text-gray-500 flex items-center'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1 text-amber-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>Minimum Payment: Rs.3000.00
-                                    </p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    <div className='border border-gray-100 rounded-xl p-6 shadow-sm bg-white transition-all hover:shadow-md'>
-                        <h2 className='text-lg font-medium text-gray-800 mb-4 flex items-center'>
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                        </svg>
-                        Card Details
-                        </h2>
-                        <div className='space-y-4'>
-                            <div>
-                                <div className='relative'>
-                                    <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                                    </svg>
-                                    </div>
-                                    <input type="text" placeholder='Card Number' {...register('cardNumber', { 
-                                        required: 'Card number is required',
-                                        minLength: {
-                                        value: 19,
-                                        message: 'Please enter a valid card number'
-                                       },
-                                      onChange: handleCardNumberChange
-                                      })}
-                                      className={`pl-10 block w-full border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-amber-600 sm:text-sm transition-all hover:border-gray-400 py-3
-                                        ${errors.cardNumber ? 'border-red-500' : ''}`}/>
-                                </div>
-                                {errors.cardNumber && <p className='mt-2 text-sm text-red-600'>{errors.cardNumber.message}</p>}
-                            </div>
-                            <div className='grid grid-cols-2 gap-4'>
-                              <div className='flex flex-col'>
-                                <div className='relative'>
-                                    <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
-                                    </div>
-                                    <input type="text" placeholder='MM/YY' {...register('expiry', { 
-                                      required: 'Expiry date is required',
-                                      pattern: {
-                                        value: /^(0[1-9]|1[0-2])\/([0-9]{2})$/,
-                                        message: 'Please enter a valid expiry date (MM/YY)'
-                                       },
-                                       validate: {
-                                        future: (value) => {
-                                          if (!value) return true;
-                                        const [month, year] = value.split('/');
-                                        const expiryDate = new Date(2000 + parseInt(year), parseInt(month) - 1);
-                                        return expiryDate > new Date() || 'Card has expired';
-                                        }
-                                        },
-                                        onChange: handleExpiryChange
-                                      })}
-                                      className={`pl-10 block w-full border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-amber-600 sm:text-sm transition-all hover:border-gray-400 py-3
-                                        ${errors.expiry ? 'border-red-500' : ''}`}/>
-                                </div>
-                                {errors.expiry && <p className='mt-1 text-sm text-red-600'>{errors.expiry.message}</p>}
-                                </div>
-                                <div className='flex flex-col'>
-                                <div className='relative'>
-                                    <div className='absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none'>
-                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                    </svg>
-                                    </div>
-                                    <input type="text" placeholder='CVC' {...register('cvc', { 
-                                      required: 'CVC is required',
-                                      pattern: {
-                                      value: /^[0-9]{3}$/,
-                                      message: 'Please enter a valid CVC'
-                                       }
-                                      })}
-                                      className={`pl-10 block w-full border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-amber-600 sm:text-sm transition-all hover:border-gray-400 py-3
-                                        ${errors.cvc ? 'border-red-500' : ''}`}
-                                        maxLength={4}/>
-                                </div>
-                                {errors.cvc && <p className='mt-1 text-sm text-red-600'>{errors.cvc.message}</p>}
-                                </div>
-                            </div>
-                            {paymentType === 'partial' && cardDetailsEntered && (
-                          <div className="flex items-center mt-4">
-                            <input
-                              type="checkbox"
-                              id="saveCard"
-                              {...register('saveCard')}
-                              className="h-5 w-5 text-amber-600 focus:ring-amber-600 border-gray-300"
-                            />
-                            <label htmlFor="saveCard" className="ml-2 text-gray-700">
-                              Save this card for future payments
-                            </label>
-                          </div>
-                        )}
-                        </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex justify-end space-x-4 mt-8">
-                  <button 
-                    type="button" 
-                    onClick={handleCancel}
-                    className="bg-white hover:bg-gray-50 text-gray-700 font-medium py-2.5 px-6 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all">
-                    Cancel
-                  </button>
-                  <button 
-                    type="submit" 
-                    className="bg-gradient-to-r bg-amber-500 hover:bg-amber-600 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-all cursor-pointer"
-                    disabled={submitting || (paymentType === 'partial' && (!watchAmount || parseFloat(watchAmount) < 3000 || errors.amount))}>
-                    {submitting ? 
-                      <ClipLoader color="#FFF" size={16} /> : 
-                      'Pay Now'}
-                  </button>
-                </div>
-                </form>
+              <div>
+                <p className="text-gray-400 text-sm mb-1">Date</p>
+                <p className="font-medium">{getBookingDate()}</p>
               </div>
             </div>
           </div>
+          
+          <div className="p-6 bg-gray-700">
+            <div className="flex justify-between items-center">
+              <span className="text-amber-300 font-medium">Amount to Pay</span>
+              <span className="text-2xl font-bold">Rs. {isRemainingPayment
+                ? Number(passedTotalAmount).toLocaleString()
+                : Number(bookingDetails?.totalAmount || 0).toLocaleString()
+              }</span>
+            </div>
+          </div>
         </div>
-      </main>
+        
+        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl">
+          <div className="p-6 border-b border-gray-700">
+            <h2 className="text-xl font-bold mb-2">Payment Details</h2>
+            <p className="text-gray-400">Complete your booking by providing your payment information</p>
+          </div>
+          
+          <form onSubmit={handleSubmit(onSubmit)} className="p-6">
+            {/* Payment type selection - conditionally show based on payment type */}
+            {!isRemainingPayment ? (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-300 mb-2">Payment Type</label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div 
+                    onClick={() => setPaymentType('full')}
+                    className={`p-4 rounded border cursor-pointer transition ${
+                      paymentType === 'full' 
+                        ? 'border-amber-500 bg-amber-500/20' 
+                        : 'border-gray-600 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                        paymentType === 'full' ? 'border-amber-500' : 'border-gray-400'
+                      }`}>
+                        {paymentType === 'full' && (
+                          <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">Full Payment</p>
+                        <p className="text-sm text-gray-400">Pay the entire amount now</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div 
+                    onClick={() => setPaymentType('partial')}
+                    className={`p-4 rounded border cursor-pointer transition ${
+                      paymentType === 'partial' 
+                        ? 'border-amber-500 bg-amber-500/20' 
+                        : 'border-gray-600 hover:border-gray-500'
+                    }`}
+                  >
+                    <div className="flex items-center">
+                      <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                        paymentType === 'partial' ? 'border-amber-500' : 'border-gray-400'
+                      }`}>
+                        {paymentType === 'partial' && (
+                          <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-medium">Partial Payment</p>
+                        <p className="text-sm text-gray-400">Pay a portion now</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mb-6">
+                <div className="p-4 rounded border border-amber-500 bg-amber-500/20">
+                  <p className="font-medium">Complete Your Payment</p>
+                  <p className="text-sm text-gray-300 mt-1">Pay the remaining amount to complete your booking</p>
+                  <p className="text-2xl font-bold mt-2">Rs. {parseFloat(passedTotalAmount).toLocaleString()}</p>
+                </div>
+              </div>
+            )}
+            
+            {/* Amount field for partial payments */}
+            {paymentType === 'partial' && !isRemainingPayment && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Amount to Pay (Minimum Rs.3000)
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <span className="text-gray-400">Rs.</span>
+                  </div>
+                  <input
+                    type="number"
+                    {...register('amount', { 
+                      required: 'Amount is required', 
+                      min: { value: 3000, message: 'Minimum amount is Rs.3000' } 
+                    })}
+                    className={`block w-full pl-12 pr-3 py-2 rounded border-2 text-gray-200 bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                      errors.amount ? 'border-red-500' : 'border-gray-600'
+                    }`}
+                    placeholder="0.00"
+                  />
+                </div>
+                {errors.amount && (
+                  <p className="mt-1 text-sm text-red-500">{errors.amount.message}</p>
+                )}
+              </div>
+            )}
+            
+            {/* Card details section */}
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-200 mb-4">Card Details</h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Card Number
+                  </label>
+                  <input
+                    {...register('cardNumber', {
+                      required: 'Card number is required',
+                      validate: (value) => {
+                        if (value.includes('*')) {
+                          return true;
+                        }
+                        const cardWithoutSpaces = value.replace(/\s/g, '');
+                        return cardWithoutSpaces.length === 16 || 'Card number must have 16 digits';
+                      }
+                    })}
+                    className={`w-full px-4 py-3 bg-gray-800 border ${errors.cardNumber ? 'border-red-500' : 'border-gray-700'} rounded text-white`}
+                    placeholder="Card Number"
+                    disabled={isRemainingPayment && defaultCard}
+                  />
+                  {errors.cardNumber && <p className="text-red-500 text-sm mt-1">{errors.cardNumber.message}</p>}
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Expiry Date
+                    </label>
+                    <input
+                      type="text"
+                      {...register('expiry', { 
+                        required: 'Expiry date is required',
+                        pattern: {
+                          value: /^(0[1-9]|1[0-2])\/\d{2}$/,
+                          message: 'Must be in MM/YY format'
+                        }
+                      })}
+                      onChange={handleExpiryChange}
+                      className={`block w-full px-3 py-2 rounded border-2 text-gray-200 bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                        errors.expiry ? 'border-red-500' : 'border-gray-600'
+                      }`}
+                      placeholder="MM/YY"
+                    />
+                    {errors.expiry && (
+                      <p className="mt-1 text-sm text-red-500">{errors.expiry.message}</p>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      CVC
+                    </label>
+                    <input
+                      type="text"
+                      {...register('cvc', { 
+                        required: 'CVC is required',
+                        pattern: {
+                          value: /^\d{3,4}$/,
+                          message: 'Must be 3 or 4 digits'
+                        }
+                      })}
+                      onChange={handleCVCChange}
+                      className={`block w-full px-3 py-2 rounded border-2 text-gray-200 bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                        errors.cvc ? 'border-red-500' : 'border-gray-600'
+                      }`}
+                      placeholder="123"
+                    />
+                    {errors.cvc && (
+                      <p className="mt-1 text-sm text-red-500">{errors.cvc.message}</p>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Save card option - show for all payments */}
+                {paymentType === 'partial' && !isRemainingPayment && (
+                  <div className="mt-4">
+                    <label className="flex items-center">
+                      <input
+                        type="checkbox"
+                        {...register('saveCard')}
+                        className="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-500 rounded"
+                      />
+                      <span className="ml-2 text-sm text-gray-300">
+                        Save card for future payments
+                      </span>
+                    </label>
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            {/* Submit button */}
+            <div className="mt-8">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="w-full py-3 px-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded transition duration-200 flex items-center justify-center"
+              >
+                {submitting ? (
+                  <>
+                    <ClipLoader size={20} color="#ffffff" className="mr-2" />
+                    Processing...
+                  </>
+                ) : isRemainingPayment ? (
+                  'Complete Payment'
+                ) : (
+                  `Pay ${paymentType === 'full' ? 'Full' : 'Partial'} Amount`
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default PaymentManagementPage;
+export default PaymentGateway;
