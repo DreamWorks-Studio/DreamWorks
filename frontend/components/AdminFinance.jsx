@@ -19,7 +19,7 @@ const AdminFinance = ({}) => {
   const filterRef = useRef(null);
 
   useEffect(() => {
-    fetch('http://localhost:5004/api/payments/getAllPayments')
+    fetch('http://localhost:5003/api/payments/getAllPayments')
       .then((response) => response.json())
       .then((data) => {
         if (Array.isArray(data)) {
