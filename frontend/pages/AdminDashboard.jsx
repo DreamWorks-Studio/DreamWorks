@@ -1,144 +1,96 @@
 import React, { useState } from 'react';
-import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
-
+import {
+  Home,
+  Images,
+  UsersRound,
+  WalletCards,
+  SquareLibrary,
+  X,
+  Menu,
+  Search,
+  Bell,
+  TrendingUp,
+  DollarSign,
+  ShoppingCart,
+  Settings
+} from 'lucide-react';
 
 import AdminPackages from '../components/AdminPackages';
 import Adminbooking from '../components/Adminbooking';
 import AdminPortfolio from '../components/AdminPortfolio';
 import AdminUser from '../components/AdminUser';
 import AdminFinance from '../components/AdminFinance';
-
+import AdminImageGenerator from '../components/AiImageGenerator';
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
 
-  // Sample data for the dashboard
-  const revenueData = [
-    { month: 'Jan', amount: 12000 },
-    { month: 'Feb', amount: 19000 },
-    { month: 'Mar', amount: 15000 },
-    { month: 'Apr', amount: 25000 },
-    { month: 'May', amount: 22000 },
-    { month: 'Jun', amount: 30000 }
-  ];
-
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove token
-    window.location.href = "/sign-in"; // Redirect to login page
+    localStorage.removeItem('token');
+    window.location.href = '/sign-in';
   };
-  // Render content based on active page
+
   const renderContent = () => {
-    if (activePage === 'payments') {
-      return (
-        <div>
-          <AdminFinance activePage={activePage}/>
-        </div>
-      );
-
-    } else if (activePage === 'images') {
-      return (
-        <div>
-             <AdminPortfolio activePage={activePage} />
-        </div>
-      );
-
-    } else if (activePage === 'packages') {
-      return (
-        <div>
-        <AdminPackages activePage={activePage} />
-        </div>
-      );
-
-    } else if (activePage === 'user') {
-      return (
-        <div>
-         <AdminUser  activePage={activePage}/>;
-        </div>
-      );
-
-    } else if (activePage === 'booking') {
-      return (
-        <div>
-          <Adminbooking activePage={activePage} />
-        </div>
-      );
-
-    } else {
-      return (
-        <div>
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-            <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Total Revenue</p>
-                  <h3 className="text-2xl font-bold text-gray-800">$124,563</h3>
-                  <p className="text-green-500 text-sm flex items-center mt-1">
-                    <TrendingUp size={14} className="mr-1" /> +12.5%
-                  </p>
-                </div>
-                <div className="p-3 bg-indigo-100 rounded-full">
-                  <DollarSign size={24} className="text-indigo-600" />
-                </div>
-              </div>
+    switch (activePage) {
+      case 'payments':
+        return <AdminFinance />;
+      case 'images':
+        return <AdminPortfolio />;
+      case 'packages':
+        return <AdminPackages />;
+      case 'user':
+        return <AdminUser />;
+      case 'booking':
+        return <Adminbooking />;
+      case 'ai-image':
+        return <AdminImageGenerator />;
+      default:
+        return (
+          <div>
+            <div className="mb-6">
+              <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+              <p className="text-gray-600">Welcome back! Here's what's happening today.</p>
             </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">New Orders</p>
-                  <h3 className="text-2xl font-bold text-gray-800">243</h3>
-                  <p className="text-green-500 text-sm flex items-center mt-1">
-                    <TrendingUp size={14} className="mr-1" /> +5.2%
-                  </p>
-                </div>
-                <div className="p-3 bg-blue-100 rounded-full">
-                  <ShoppingCart size={24} className="text-blue-600" />
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Active Users</p>
-                  <h3 className="text-2xl font-bold text-gray-800">1,254</h3>
-                  <p className="text-green-500 text-sm flex items-center mt-1">
-                    <TrendingUp size={14} className="mr-1" /> +8.1%
-                  </p>
-                </div>
-                <div className="p-3 bg-green-100 rounded-full">
-                  <UsersRound size={24} className="text-green-600" />
-                </div>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg shadow p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm">Pending Tasks</p>
-                  <h3 className="text-2xl font-bold text-gray-800">28</h3>
-                  <p className="text-red-500 text-sm flex items-center mt-1">
-                    <TrendingUp size={14} className="mr-1 transform rotate-180" /> -2.4%
-                  </p>
-                </div>
-                <div className="p-3 bg-yellow-100 rounded-full">
-                  <Settings size={24} className="text-yellow-600" />
-                </div>
-              </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <DashboardCard
+                title="Total Revenue"
+                value="$124,563"
+                icon={<DollarSign size={24} className="text-indigo-600" />}
+                percentage="+12.5%"
+                color="green"
+              />
+              <DashboardCard
+                title="New Orders"
+                value="243"
+                icon={<ShoppingCart size={24} className="text-blue-600" />}
+                percentage="+5.2%"
+                color="green"
+              />
+              <DashboardCard
+                title="Active Users"
+                value="1,254"
+                icon={<UsersRound size={24} className="text-green-600" />}
+                percentage="+8.1%"
+                color="green"
+              />
+              <DashboardCard
+                title="Pending Tasks"
+                value="28"
+                icon={<Settings size={24} className="text-yellow-600" />}
+                percentage="-2.4%"
+                color="red"
+              />
             </div>
           </div>
-        </div>
-      );
-    } 
+        );
+    }
   };
 
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-gray-950 shadow-lg transition-all duration-300 flex flex-col`}>
-        {/* Logo */}
         <div className="flex items-center justify-between p-4 border-b">
           {sidebarOpen && <div className="text-xl font-bold text-white">AdminPanel</div>}
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-1 border-2 rounded-lg text-gray-100 border-gray-100">
@@ -147,69 +99,21 @@ const AdminDashboard = () => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-6 ml-">
+        <nav className="flex-1 overflow-y-auto py-6">
           <ul>
-            <li>
-              <button 
-                onClick={() => setActivePage('dashboard')} 
-                className={`flex items-center w-full p-3 ${activePage === 'dashboard' ? 'bg-white text-gray-950' : 'text-white'}`}
-              >
-                <Home size={20} className="flex-shrink-0" />
-                {sidebarOpen && <span className="ml-3">Profile</span>}
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => setActivePage('images')} 
-                className={`flex items-center w-full p-3 ${activePage === 'images' ? 'bg-white text-gray-950' : 'text-white'}`}
-              >
-                <Images size={20} className="flex-shrink-0" />
-                {sidebarOpen && <span className="ml-3">Gallery</span>}
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => setActivePage('user')} 
-                className={`flex items-center w-full p-3 ${activePage === 'user' ? 'bg-white text-gray-950' : 'text-white'}`}
-              >
-                <UsersRound size={20} className="flex-shrink-0" />
-                {sidebarOpen && <span className="ml-3">Users</span>}
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => setActivePage('payments')} 
-                className={`flex items-center w-full p-3 ${activePage === 'payments' ? 'bg-white text-gray-950' : 'text-white'}`}
-              >
-                <WalletCards size={20} className="flex-shrink-0" />
-                {sidebarOpen && <span className="ml-3">Finance</span>}
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => setActivePage('packages')} 
-                className={`flex items-center w-full p-3 ${activePage === 'packages' ? 'bg-white text-gray-950' : 'text-white'}`}
-              >
-                <SquareLibrary size={20} className="flex-shrink-0" />
-                {sidebarOpen && <span className="ml-3">Packages</span>}
-              </button>
-            </li>
-            <li>
-              <button 
-                onClick={() => setActivePage('booking')} 
-                className={`flex items-center w-full p-3 ${activePage === 'booking' ? 'bg-white text-gray-950' : 'text-white'}`}
-              >
-                <SquareLibrary size={20} className="flex-shrink-0" />
-                {sidebarOpen && <span className="ml-3">Booking</span>}
-              </button>
-            </li>
+            <SidebarItem icon={Home} label="Profile" active={activePage === 'dashboard'} onClick={() => setActivePage('dashboard')} sidebarOpen={sidebarOpen} />
+            <SidebarItem icon={Images} label="Gallery" active={activePage === 'images'} onClick={() => setActivePage('images')} sidebarOpen={sidebarOpen} />
+            <SidebarItem icon={UsersRound} label="Users" active={activePage === 'user'} onClick={() => setActivePage('user')} sidebarOpen={sidebarOpen} />
+            <SidebarItem icon={WalletCards} label="Finance" active={activePage === 'payments'} onClick={() => setActivePage('payments')} sidebarOpen={sidebarOpen} />
+            <SidebarItem icon={SquareLibrary} label="Packages" active={activePage === 'packages'} onClick={() => setActivePage('packages')} sidebarOpen={sidebarOpen} />
+            <SidebarItem icon={SquareLibrary} label="Booking" active={activePage === 'booking'} onClick={() => setActivePage('booking')} sidebarOpen={sidebarOpen} />
+            <SidebarItem icon={Images} label="AI Generator" active={activePage === 'ai-image'} onClick={() => setActivePage('ai-image')} sidebarOpen={sidebarOpen} />
           </ul>
         </nav>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
         <header className="bg-white shadow-sm z-10 p-4 flex justify-between items-center">
           <div className="flex items-center bg-gray-100 px-3 py-2 rounded-md w-64">
             <Search size={18} className="text-gray-500" />
@@ -230,41 +134,42 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-4 bg-gray-100">{renderContent()}</main>
       </div>
     </div>
   );
 };
 
-/* Sidebar Navigation Item Component */
-const NavItem = ({ icon: Icon, title, active, onClick, sidebarOpen }) => (
-  <button
-    onClick={onClick}
-    className={`flex items-center w-full p-3 ${
-      active ? "bg-white text-gray-950" : "text-white"
-    }`}
-  >
-    <Icon size={20} className="flex-shrink-0" />
-    {sidebarOpen && <span className="ml-3">{title}</span>}
-  </button>
+// Sidebar Item Component
+const SidebarItem = ({ icon: Icon, label, active, onClick, sidebarOpen }) => (
+  <li>
+    <button
+      onClick={onClick}
+      className={`flex items-center w-full p-3 ${active ? 'bg-white text-gray-950' : 'text-white'}`}
+    >
+      <Icon size={20} className="flex-shrink-0" />
+      {sidebarOpen && <span className="ml-3">{label}</span>}
+    </button>
+  </li>
 );
 
-/* Dashboard Card Component */
+// Dashboard Card Component
 const DashboardCard = ({ title, value, icon, percentage, color }) => (
-  <div className={`bg-white rounded-lg shadow p-4`}>
+  <div className="bg-white rounded-lg shadow p-4">
     <div className="flex items-center justify-between">
       <div>
         <p className="text-gray-500 text-sm">{title}</p>
         <h3 className="text-2xl font-bold text-gray-800">{value}</h3>
         <p className={`text-${color}-500 text-sm flex items-center mt-1`}>
-          <TrendingUp size={14} className="mr-1" /> {percentage}
+          <TrendingUp size={14} className={`mr-1 ${color === 'red' ? 'transform rotate-180' : ''}`} />
+          {percentage}
         </p>
       </div>
-      <div className={`p-3 bg-${color}-100 rounded-full`}>{icon}</div>
+      <div className={`p-3 bg-${color}-100 rounded-full`}>
+        {icon}
+      </div>
     </div>
   </div>
 );
 
 export default AdminDashboard;
-

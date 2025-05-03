@@ -7,6 +7,7 @@ import { forgetpassword,resetpassword,updateResetPassword } from '../controller/
 const router = express.Router();
 import { toggleUserStatus } from '../controller/user.controller.js';
 import { toggleAdminPrivileges } from '../controller/user.controller.js';
+import { generateAIImage } from '../controller/user.controller.js';
 
 router.get('/test', test);
 router.post('/update/:id' , verifyToken , UpdateUser);
@@ -19,5 +20,6 @@ router.get('/resetpassword/:id/:token',resetpassword);
 router.post('/updateResetPassword/:id/:token',updateResetPassword);
 router.patch('/toggle-status/:id', verifyToken, toggleUserStatus);
 router.patch('/toggle-admin/:id', verifyToken, toggleAdminPrivileges);
+router.post('/generate-image', verifyToken, generateAIImage);
 
 export default router;

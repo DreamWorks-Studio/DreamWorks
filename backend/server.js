@@ -10,6 +10,8 @@ import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 import portfolioRouter from "./routes/portfolio.route.js";
+import imageRouter from "./routes/user.route.js"
+
 
 
 const app = express();
@@ -69,6 +71,7 @@ app.listen(port, () => {
 
 //app.use('/backend/auth',authRoute)
 
+app.use('/api/user', imageRouter);
 
 
 
