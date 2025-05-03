@@ -33,6 +33,11 @@ const userSchema = new mongoose.Schema({
        
     },
 
+    isSuperAdmin: {
+        type: Boolean,
+        default: false,
+      },
+      
     verifytoken:{
         type:String
     },

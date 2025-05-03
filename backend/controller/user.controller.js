@@ -8,11 +8,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 
-import OpenAI from 'openai';
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
 
 
 export const test = (req, res) => {
@@ -234,26 +230,3 @@ export const toggleAdminPrivileges = async (req, res, next) => {
   }
 };
 
-export const generateAIImage = async (req, res) => {
-  const { prompt } = req.body; // Extracting the prompt from the request body
-
-  // Check if prompt is empty
-  if (!prompt || prompt.trim() === '') {
-    return res.status(400).json({ error: 'Prompt is required for image generation.' });
-  }
-
-  try {
-    // Calling OpenAI API to generate an image (using DALL·E model)
-    const response = await openai.images.generate({
-      prompt,
-      n: 1,  // Generate one image
-      size: '512x512',  // Set the size of the generated image
-    });
-
-    const imageUrl = response.data[0].url;  // Extract image URL from the API response
-    res.status(200).json({ imageUrl });  // Send the image URL back to the client
-  } catch (error) {
-    console.error('AI Image generation error:', error.response?.data || error.message);
-    res.status(500).json({ error: 'Image generation failed.' });  // Error handling
-  }
-};
