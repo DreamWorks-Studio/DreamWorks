@@ -52,7 +52,7 @@ const SignIn = () => {
         if (data.isAdmin) {
           navigate('/admin'); // Redirect admin to dashboard
         } else {
-          navigate('/profile'); // Redirect normal users to profile
+          navigate('/'); // Redirect normal users to profile
         }
     
       } catch (error) {
