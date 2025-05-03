@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  HiOutlineExclamationCircle, 
-  HiOutlineSearch, 
+import {
+  HiOutlineExclamationCircle,
+  HiOutlineSearch,
   HiOutlineDownload,
   HiOutlineUserCircle,
   HiOutlineMail,
@@ -15,21 +15,21 @@ import {
   HiOutlineTrendingUp,
   HiOutlineClock
 } from "react-icons/hi";
-import { FaCheck, FaTimes } from "react-icons/fa";
+import { FaCheck, FaTimes, FaCrown } from "react-icons/fa";
 
-// New Statistics Component
 const UserStatistics = ({ users }) => {
   const now = new Date();
   const currentMonth = now.getMonth();
   const currentYear = now.getFullYear();
-  
+
   const stats = {
     totalUsers: users.length,
-    totalAdmins: users.filter(user => user.isAdmin).length,
+    totalAdmins: users.filter(user => user.isAdmin && !user.isSuperAdmin).length,
+    totalSuperAdmins: users.filter(user => user.isSuperAdmin).length,
     newThisMonth: users.filter(user => {
       const created = new Date(user.createdAt);
-      return created.getMonth() === currentMonth && 
-             created.getFullYear() === currentYear;
+      return created.getMonth() === currentMonth &&
+        created.getFullYear() === currentYear;
     }).length,
     activeUsers: users.filter(user => {
       const lastActive = user.lastActive ? new Date(user.lastActive) : new Date(user.createdAt);
@@ -42,7 +42,7 @@ const UserStatistics = ({ users }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       {/* Total Users */}
-      <motion.div 
+      <motion.div
         whileHover={{ y: -2 }}
         className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
       >
@@ -64,7 +64,7 @@ const UserStatistics = ({ users }) => {
       >
         <div className="flex items-center">
           <div className="p-3 mr-4 rounded-full bg-blue-100 text-blue-600">
-            <HiOutlineShieldExclamation className="text-xl" />
+            <HiOutlineShieldCheck className="text-xl" />
           </div>
           <div>
             <p className="text-sm font-medium text-gray-500">Administrators</p>
@@ -73,18 +73,18 @@ const UserStatistics = ({ users }) => {
         </div>
       </motion.div>
 
-      {/* New This Month */}
+      {/* Super Admins */}
       <motion.div 
         whileHover={{ y: -2 }}
         className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm"
       >
         <div className="flex items-center">
-          <div className="p-3 mr-4 rounded-full bg-green-100 text-green-600">
-            <HiOutlineTrendingUp className="text-xl" />
+          <div className="p-3 mr-4 rounded-full bg-indigo-100 text-indigo-600">
+            <FaCrown className="text-xl" />
           </div>
           <div>
-            <p className="text-sm font-medium text-gray-500">New This Month</p>
-            <p className="text-2xl font-semibold">{stats.newThisMonth}</p>
+            <p className="text-sm font-medium text-gray-500">Super Admins</p>
+            <p className="text-2xl font-semibold">{stats.totalSuperAdmins}</p>
           </div>
         </div>
       </motion.div>
@@ -121,10 +121,8 @@ export default function AdminUser() {
   const [showMore, setShowMore] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [userIdToDelete, setUserIdToDelete] = useState("");
-  const [userIdToToggleAdmin, setUserIdToToggleAdmin] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -152,7 +150,9 @@ export default function AdminUser() {
       }
     };
 
-    if (currentUser?.isAdmin) fetchUsers();
+    if (currentUser?.isAdmin || currentUser?.isSuperAdmin) {
+      fetchUsers();
+    }
   }, [currentUser?._id]);
 
   useEffect(() => {
@@ -167,8 +167,10 @@ export default function AdminUser() {
 
   const handleDeleteUser = async () => {
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(`/api/user/delete/${userIdToDelete}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       const data = await res.json();
@@ -188,45 +190,53 @@ export default function AdminUser() {
     }
   };
 
-  const toggleAdminStatus = async (id, isAdmin) => {
+  const toggleAdminStatus = async (id, isAdmin, isSuperAdmin) => {
     try {
+      console.log('Attempting to toggle admin status for:', id); // Debug log
+      
       const token = localStorage.getItem("token");
+      console.log('Using token:', token ? 'Exists' : 'Missing'); // Token check
+  
       const res = await fetch(`/api/user/toggle-admin/${id}`, {
         method: "PATCH",
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
       });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            user._id === id ? { ...user, isAdmin: !isAdmin } : user
-          )
-        );
-        setFilteredUsers((prevFiltered) =>
-          prevFiltered.map((user) =>
-            user._id === id ? { ...user, isAdmin: !isAdmin } : user
-          )
-        );
-        setSuccessMessage(
-          `User ${!isAdmin ? "promoted to" : "demoted from"} admin`
-        );
-        setTimeout(() => setSuccessMessage(""), 3000);
-      } else {
-        console.error(data.message);
+  
+      console.log('Response status:', res.status); // Status check
+  
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error('API Error:', errorData); // Detailed error
+        throw new Error(errorData.message || "Failed to toggle admin status");
       }
+  
+      const data = await res.json();
+      console.log('API Response:', data); // Success response
+  
+      // Update state
+      setUsers(prevUsers =>
+        prevUsers.map(user =>
+          user._id === id ? { ...user, isAdmin: data.user.isAdmin } : user
+        )
+      );
+      
+      setSuccessMessage(data.message);
     } catch (error) {
-      console.error("Toggle Admin Status Error:", error.message);
+      console.error('Full Error:', error);
+      setSuccessMessage(error.message);
+    } finally {
+      setTimeout(() => setSuccessMessage(""), 3000);
     }
   };
-
   const generateCSV = () => {
-    const headers = ["Username", "Email", "Admin", "Date Created"];
+    const headers = ["Username", "Email", "Role", "Date Created"];
     const rows = filteredUsers.map((user) => [
       user.username,
       user.email,
-      user.isAdmin ? "Yes" : "No",
+      user.isSuperAdmin ? "Super Admin" : user.isAdmin ? "Admin" : "User",
       new Date(user.createdAt).toLocaleDateString(),
     ]);
 
@@ -249,7 +259,7 @@ export default function AdminUser() {
           <h1 className="text-4xl font-bold text-orange-600">
             User Management
           </h1>
-          <p className="text-gray-600 mt-1">Manage photography studio accounts</p>
+          <p className="text-gray-600 mt-1">Manage all user accounts</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -275,7 +285,6 @@ export default function AdminUser() {
         </div>
       </div>
 
-      {/* Add Statistics Cards Section */}
       <UserStatistics users={users} />
 
       <AnimatePresence>
@@ -303,7 +312,7 @@ export default function AdminUser() {
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-700"></div>
           </div>
-        ) : currentUser?.isAdmin && filteredUsers.length > 0 ? (
+        ) : (currentUser?.isAdmin || currentUser?.isSuperAdmin) && filteredUsers.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
@@ -332,7 +341,7 @@ export default function AdminUser() {
                   <th className="py-4 px-6 text-left font-medium">
                     <div className="flex items-center gap-2">
                       <HiOutlineShieldCheck className="text-lg" /> 
-                      Admin
+                      Role
                     </div>
                   </th>
                   <th className="py-4 px-6 text-left font-medium">
@@ -371,7 +380,12 @@ export default function AdminUser() {
                       {user.email}
                     </td>
                     <td className="py-4 px-6 border-b border-gray-100">
-                      {user.isAdmin ? (
+                      {user.isSuperAdmin ? (
+                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                          <FaCrown className="mr-1 text-indigo-500" />
+                          Super Admin
+                        </span>
+                      ) : user.isAdmin ? (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
                           <FaCheck className="mr-1 text-green-500" />
                           Admin
@@ -384,32 +398,46 @@ export default function AdminUser() {
                       )}
                     </td>
                     <td className="py-4 px-6 border-b border-gray-100">
-                      <motion.button
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => toggleAdminStatus(user._id, user.isAdmin)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                          user.isAdmin 
-                            ? "bg-red-500 text-white" 
-                            : "bg-purple-600 text-white"
-                        }`}
-                      >
-                        {user.isAdmin ? "Remove Admin" : "Make Admin"}
-                      </motion.button>
+                      {currentUser.isSuperAdmin && !user.isSuperAdmin && (
+                        <motion.button
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => toggleAdminStatus(user._id, user.isAdmin, user.isSuperAdmin)}
+                          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
+                            user.isAdmin 
+                              ? "bg-red-500 text-white" 
+                              : "bg-purple-600 text-white"
+                          }`}
+                        >
+                          {user.isAdmin ? "Remove Admin" : "Make Admin"}
+                        </motion.button>
+                      )}
+                      {user.isSuperAdmin && (
+                        <span className="inline-block px-4 py-2 text-sm text-gray-500">
+                          Super Admin
+                        </span>
+                      )}
+                      {!currentUser.isSuperAdmin && user.isAdmin && (
+                        <span className="inline-block px-4 py-2 text-sm text-gray-500">
+                          Admin
+                        </span>
+                      )}
                     </td>
                     <td className="py-4 px-6 border-b border-gray-100 text-center">
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.9 }}
-                        onClick={() => {
-                          setShowModal(true);
-                          setUserIdToDelete(user._id);
-                        }}
-                        className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors duration-300"
-                        aria-label="Delete user"
-                      >
-                        <HiOutlineTrash className="text-lg" />
-                      </motion.button>
+                      {!user.isSuperAdmin && (currentUser.isSuperAdmin || (currentUser.isAdmin && !user.isAdmin)) && (
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => {
+                            setShowModal(true);
+                            setUserIdToDelete(user._id);
+                          }}
+                          className="p-2 rounded-full text-red-500 hover:bg-red-50 transition-colors duration-300"
+                          aria-label="Delete user"
+                        >
+                          <HiOutlineTrash className="text-lg" />
+                        </motion.button>
+                      )}
                     </td>
                   </motion.tr>
                 ))}

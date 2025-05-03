@@ -1,4 +1,3 @@
-
 import User from "../model/user.model.js";
 import { errorHandler } from "../utils/error.js";
 import bcryptjs from 'bcryptjs';
@@ -6,14 +5,6 @@ import jwt from "jsonwebtoken";
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 dotenv.config();
-
-
-
-
-
-export const test = (req, res) => {
-  res.json({ message: 'API route is Working !!' });
-};
 
 // Email transporter
 const transporter = nodemailer.createTransport({
@@ -23,6 +14,11 @@ const transporter = nodemailer.createTransport({
     pass: "jwnr zezu szkp lgzz", // Use app password
   },
 });
+
+// Test Route
+export const test = (req, res) => {
+  res.json({ message: 'API route is Working !!' });
+};
 
 // Update User
 export const UpdateUser = async (req, res, next) => {
@@ -207,26 +203,40 @@ export const toggleUserStatus = async (req, res, next) => {
   }
 };
 
-// Toggle Admin Privileges
+
+// controller/user.controller.js
 export const toggleAdminPrivileges = async (req, res, next) => {
   try {
-    if (!req.user.isAdmin) {
-      return next(errorHandler(403, 'Only a Super Admin can assign admin privileges.'));
+    const userToModify = await User.findById(req.params.id);
+    if (!userToModify) {
+      return next(errorHandler(404, 'User not found'));
     }
 
-    const user = await User.findById(req.params.id);
-    if (!user) return next(errorHandler(404, 'User not found.'));
-
-    user.isAdmin = !user.isAdmin;
-    await user.save();
-
-    const { password, ...rest } = user._doc;
-    res.status(200).json({
-      message: `User has been ${user.isAdmin ? 'promoted to' : 'demoted from'} admin.`,
-      user: rest,
+    // Debug logs
+    console.log('Modifying user:', {
+      id: userToModify._id,
+      currentAdmin: userToModify.isAdmin,
+      currentSuperAdmin: userToModify.isSuperAdmin
     });
-  } catch (err) {
-    next(err);
+
+    // Only modify if not a superadmin
+    if (!userToModify.isSuperAdmin) {
+      userToModify.isAdmin = !userToModify.isAdmin;
+      await userToModify.save();
+    }
+
+    const { password, ...rest } = userToModify._doc;
+    
+    res.status(200).json({
+      success: true,
+      message: userToModify.isSuperAdmin 
+        ? 'User is a Super Admin' 
+        : `User ${userToModify.isAdmin ? 'promoted to admin' : 'demoted to user'}`,
+      user: rest
+    });
+    
+  } catch (error) {
+    console.error('Controller Error:', error);
+    next(error);
   }
 };
-
