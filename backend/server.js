@@ -10,6 +10,7 @@ import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 import portfolioRouter from "./routes/portfolio.route.js";
+import cardRouter from "./routes/card.route.js";
 
 
 
@@ -40,6 +41,7 @@ app.use("/api/auth", authRouter);
 app.use('/api/portfolio', portfolioRouter);
 app.use('/api/package',packageRouter)
 app.use('/api/payments', paymentRouter);
+app.use('/api/cards', cardRouter);
 
 
 
