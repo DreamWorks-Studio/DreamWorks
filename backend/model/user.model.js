@@ -33,6 +33,11 @@ const userSchema = new mongoose.Schema({
        
     },
 
+    isSuperAdmin: {
+        type: Boolean,
+        default: false,
+      },
+      
     verifytoken:{
         type:String
     },
@@ -43,6 +48,18 @@ const userSchema = new mongoose.Schema({
     //  resetTokenExpiry: {
     //     type: Date,
     //  }
+
+    status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'active',
+      },
+
+    lastActive: {
+        type: Date,
+        default: Date.now,
+      }
+      
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
