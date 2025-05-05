@@ -3,6 +3,7 @@ import { CheckCircleIcon, XCircleIcon, ArrowPathIcon, CalendarIcon, TableCellsIc
 import { Download, Camera, ChevronRight } from "lucide-react";
 import BookingCalenderView from './BookingCalenderView';
 import BookingCalendarView from "./BookingCalenderView";
+import { motion } from "framer-motion";
 
 const Adminbooking = () => {
     const [bookings, setBookings] = useState([]);
@@ -142,13 +143,18 @@ const Adminbooking = () => {
     };
 
     return (
-        <div className="p-6 bg-white">
+        <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
             <div className="flex justify-between mb-6 items-center">
                 <div>
-                    <div className="flex items-center gap-2">
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex items-center gap-2"
+                    >
                         <Camera size={24} className="text-amber-500" />
                         <h1 className="text-3xl font-bold text-gray-800">Booking Management</h1>
-                    </div>
+                    </motion.div>
                     <div
                         className="flex items-center text-sm text-gray-500 mt-2"
                         initial="hidden"

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Camera, DollarSign, CreditCard, RefreshCw, Download, Filter, Calendar, ChevronDown, Eye, ArrowUpDown, FileText, Printer, BarChart4, PieChart, AlertCircle, ChevronRight } from 'lucide-react';
 import AutoGenReport from './AutoGenReport';
 import FinancialReports from './FinancialReport';
+import { motion } from 'framer-motion';
 
 const AdminFinance = ({ }) => {
   const [paymentData, setPaymentData] = useState([]);
@@ -223,28 +224,33 @@ const AdminFinance = ({ }) => {
   return (
     <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
       <div className="mb-6 flex justify-between items-center">
-      <div>
-                    <div className="flex items-center gap-2">
-                        <Camera size={24} className="text-amber-500" />
-                        <h1 className="text-3xl font-bold text-gray-800">Finance</h1>
-                    </div>
-                    <div
-                        className="flex items-center text-sm text-gray-500 mt-2"
-                        initial="hidden"
-                        animate="visible"
-                        custom={1}
-                    >
-                        <button
-                            onClick={() => handleNavigate("/admin", () => { /* set your active page callback here */ })}
-                            className="hover:text-amber-600 transition-colors flex items-center"
-                            whileHover={{ scale: 1.05 }}
-                        >
-                            Dashboard
-                        </button>
-                        <ChevronRight size={14} className="mx-2" />
-                        <span className="text-amber-600 font-medium">Finance</span>
-                    </div>
-                </div>
+        <div>
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center gap-2"
+          >
+            <Camera size={24} className="text-amber-500" />
+            <h1 className="text-3xl font-bold text-gray-800">Finance</h1>
+          </motion.div>
+          <div
+            className="flex items-center text-sm text-gray-500 mt-2"
+            initial="hidden"
+            animate="visible"
+            custom={1}
+          >
+            <button
+              onClick={() => handleNavigate("/admin", () => { /* set your active page callback here */ })}
+              className="hover:text-amber-600 transition-colors flex items-center"
+              whileHover={{ scale: 1.05 }}
+            >
+              Dashboard
+            </button>
+            <ChevronRight size={14} className="mx-2" />
+            <span className="text-amber-600 font-medium">Finance</span>
+          </div>
+        </div>
 
         <div className="flex items-center gap-3">
           <button
@@ -430,7 +436,7 @@ const AdminFinance = ({ }) => {
           opacity: loading ? 0 : 1,
           transition: 'max-height 0.5s ease-in-out, opacity 0.3s ease-in-out'
         }}
-       >
+      >
         {loading ? (
           <div className="p-16 text-center overflow-hidden">
             <div className="relative mx-auto mb-4 w-20 h-20">
@@ -471,7 +477,7 @@ const AdminFinance = ({ }) => {
             <table className="min-w-full text-sm">
               <thead>
                 <tr className="bg-gray-900 text-white">
-                  
+
                   <th className="py-4 px-4 text-left font-medium cursor-pointer" onClick={() => handleSort('bookingId.fullName')}>
                     <div className="flex items-center">
                       Customer

@@ -17,6 +17,7 @@ import {
   HiOutlinePhotograph
 } from "react-icons/hi";
 import { FaCheck, FaTimes, FaCrown, FaCamera } from "react-icons/fa";
+import { Camera, ChevronRight, Search } from "lucide-react";
 
 const UserStatistics = ({ users }) => {
   const now = new Date();
@@ -60,7 +61,7 @@ const UserStatistics = ({ users }) => {
       </motion.div>
 
       {/* Admins */}
-      <motion.div 
+      <motion.div
         whileHover={{ y: -4 }}
         transition={{ type: "spring", stiffness: 300 }}
         className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
@@ -77,7 +78,7 @@ const UserStatistics = ({ users }) => {
       </motion.div>
 
       {/* Super Admins */}
-      <motion.div 
+      <motion.div
         whileHover={{ y: -4 }}
         transition={{ type: "spring", stiffness: 300 }}
         className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
@@ -94,7 +95,7 @@ const UserStatistics = ({ users }) => {
       </motion.div>
 
       {/* Active Users */}
-      <motion.div 
+      <motion.div
         whileHover={{ y: -4 }}
         transition={{ type: "spring", stiffness: 300 }}
         className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
@@ -116,7 +117,7 @@ const UserStatistics = ({ users }) => {
       </motion.div>
 
       {/* New Users This Month */}
-      <motion.div 
+      <motion.div
         whileHover={{ y: -4 }}
         transition={{ type: "spring", stiffness: 300 }}
         className="bg-gradient-to-br from-white to-gray-50 p-5 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
@@ -224,28 +225,28 @@ export default function AdminUser() {
   const toggleAdminStatus = async (id, isAdmin, isSuperAdmin) => {
     try {
       const token = localStorage.getItem("token");
-      
+
       const res = await fetch(`/api/user/toggle-admin/${id}`, {
         method: "PATCH",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}` 
+          Authorization: `Bearer ${token}`
         },
       });
-  
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to toggle admin status");
       }
-  
+
       const data = await res.json();
-  
+
       setUsers(prevUsers =>
         prevUsers.map(user =>
           user._id === id ? { ...user, isAdmin: data.user.isAdmin } : user
         )
       );
-      
+
       setSuccessMessage(data.message || (isAdmin ? "Admin status removed" : "Admin status added"));
     } catch (error) {
       console.error('Error:', error);
@@ -258,27 +259,27 @@ export default function AdminUser() {
   const toggleUserStatus = async (id, status) => {
     try {
       const token = localStorage.getItem("token");
-      
+
       const res = await fetch(`/api/user/toggle-status/${id}`, {
         method: "PUT",
-        headers: { 
-          Authorization: `Bearer ${token}` 
+        headers: {
+          Authorization: `Bearer ${token}`
         },
       });
-  
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to toggle user status");
       }
-  
+
       const data = await res.json();
-  
+
       setUsers(prevUsers =>
         prevUsers.map(user =>
           user._id === id ? { ...user, status: user.status === "active" ? "inactive" : "active" } : user
         )
       );
-      
+
       setShowModal(false);
       setSuccessMessage(data.message || "User status updated successfully");
     } catch (error) {
@@ -313,43 +314,58 @@ export default function AdminUser() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
       {/* Header Section */}
       <div className="mb-8 flex justify-between items-center flex-wrap gap-4">
         <div>
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="flex items-center gap-3"
+            className="flex items-center gap-2"
           >
-            <FaCamera className="text-3xl text-amber-600" />
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-amber-600 to-amber-800 bg-clip-text text-transparent">
-              Studio User Management
-            </h1>
+            <Camera size={24} className="text-amber-500" />
+            <h1 className="text-3xl font-bold text-gray-800">User Management</h1>
           </motion.div>
-          <p className="text-gray-600 mt-2">Manage all studio accounts and permissions</p>
+          <div
+            className="flex items-center text-sm text-gray-500 mt-2"
+            initial="hidden"
+            animate="visible"
+            custom={1}
+          >
+            <button
+              onClick={() => handleNavigate("/admin", () => { /* set your active page callback here */ })}
+              className="hover:text-amber-600 transition-colors flex items-center"
+              whileHover={{ scale: 1.05 }}
+            >
+              Dashboard
+            </button>
+            <ChevronRight size={14} className="mx-2" />
+            <span className="text-amber-600 font-medium">Users</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <motion.div 
+          <motion.div
             whileHover={{ scale: 1.02 }}
             className="relative"
           >
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 pr-4 py-2.5 w-64 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm transition-all duration-300 bg-white"
-            />
-            <HiOutlineSearch className="absolute top-3 left-3.5 text-gray-400" />
+            <div className="flex items-center rounded-full bg-white shadow-md border border-gray-100 px-4 py-2 w-64">
+              <Search size={18} className="text-amber-500" />
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="bg-transparent border-none ml-2 focus:outline-none w-full text-sm"
+              />
+            </div>
           </motion.div>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
             onClick={generateCSV}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-xl text-sm shadow-md hover:shadow-lg transition-all duration-300"
+            className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-3xl text-sm shadow-md hover:shadow-lg transition-all duration-300"
           >
             <HiOutlineDownload className="text-lg" />
             Export Users
@@ -381,23 +397,32 @@ export default function AdminUser() {
       </AnimatePresence>
 
       {/* Main Table */}
-      <div className="rounded-xl overflow-hidden bg-white shadow-lg border border-gray-100">
+      <div className="bg-white rounded-xl overflow-hidden transition-all duration-500 border border-gray-100">
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="h-12 w-12 rounded-full border-4 border-amber-500 border-t-transparent"
-            />
+          <div className="p-12 text-center mt-4">
+            <div className="relative mx-auto mb-6 w-16 h-16">
+              {/* Circular spinner representing a lens focusing */}
+              <div className="absolute inset-0 border-4 border-gray-200 border-opacity-30 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+
+              {/* Camera icon in the middle */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Camera size={20} className="text-gray-700" />
+              </div>
+
+              {/* Pulsing light effect */}
+              <div className="absolute top-0 right-0 w-3 h-3 bg-amber-500 rounded-full animate-ping opacity-75"></div>
+            </div>
+            <p className="text-gray-600 font-medium">Loading studio payment data...</p>
           </div>
         ) : (currentUser?.isAdmin || currentUser?.isSuperAdmin) && filteredUsers.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead>
-                <tr className="bg-gradient-to-r from-amber-700 to-amber-800 text-white">
+                <tr className="bg-gray-900 text-white">
                   <th className="py-4 px-6 text-left font-medium rounded-tl-xl">
                     <div className="flex items-center gap-2">
-                      <HiOutlineCalendar className="text-lg" /> 
+                      <HiOutlineCalendar className="text-lg" />
                       Date
                     </div>
                   </th>
@@ -406,20 +431,20 @@ export default function AdminUser() {
                   </th>
                   <th className="py-4 px-6 text-left font-medium">
                     <div className="flex items-center gap-2">
-                      <HiOutlineUserCircle className="text-lg" /> 
+                      <HiOutlineUserCircle className="text-lg" />
                       Username
                     </div>
                   </th>
                   <th className="py-4 px-6 text-left font-medium">
                     <div className="flex items-center gap-2">
-                      <HiOutlineMail className="text-lg" /> 
+                      <HiOutlineMail className="text-lg" />
                       Email
                     </div>
                   </th>
                   <th className="py-4 px-6 text-left font-medium">Status</th>
                   <th className="py-4 px-6 text-left font-medium">
                     <div className="flex items-center gap-2">
-                      <HiOutlineShieldCheck className="text-lg" /> 
+                      <HiOutlineShieldCheck className="text-lg" />
                       Role
                     </div>
                   </th>
@@ -454,9 +479,9 @@ export default function AdminUser() {
                       </td>
                       <td className="py-4 px-6 whitespace-nowrap text-center">
                         <div className="relative inline-block">
-                          <motion.div 
+                          <motion.div
                             whileHover={{ scale: 1.1 }}
-                            className="inline-block overflow-hidden rounded-xl w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-50 shadow-inner"
+                            className="inline-block overflow-hidden rounded-3xl w-10 h-10 bg-gradient-to-br from-gray-100 to-gray-50 shadow-inner"
                           >
                             <img
                               src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
@@ -465,7 +490,7 @@ export default function AdminUser() {
                             />
                           </motion.div>
                           {online && (
-                            <motion.span 
+                            <motion.span
                               animate={{ scale: [1, 1.2, 1] }}
                               transition={{ duration: 2, repeat: Infinity }}
                               className="absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full bg-green-400 ring-2 ring-white"
@@ -487,20 +512,19 @@ export default function AdminUser() {
                         <div className="text-gray-600">{user.email}</div>
                       </td>
                       <td className="py-4 px-6 whitespace-nowrap">
-                        <motion.span 
+                        <motion.span
                           whileHover={{ scale: 1.05 }}
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                            user.status === "inactive" 
-                              ? "bg-gradient-to-br from-red-100 to-red-50 text-red-800" 
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${user.status === "inactive"
+                              ? "bg-gradient-to-br from-red-100 to-red-50 text-red-800"
                               : "bg-gradient-to-br from-green-100 to-green-50 text-green-800"
-                          }`}
+                            }`}
                         >
                           {user.status === "inactive" ? "Inactive" : "Active"}
                         </motion.span>
                       </td>
                       <td className="py-4 px-6 whitespace-nowrap">
                         {user.isSuperAdmin ? (
-                          <motion.span 
+                          <motion.span
                             whileHover={{ scale: 1.05 }}
                             className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-br from-indigo-100 to-indigo-50 text-indigo-800"
                           >
@@ -508,7 +532,7 @@ export default function AdminUser() {
                             Super Admin
                           </motion.span>
                         ) : user.isAdmin ? (
-                          <motion.span 
+                          <motion.span
                             whileHover={{ scale: 1.05 }}
                             className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-br from-green-100 to-green-50 text-green-800"
                           >
@@ -516,7 +540,7 @@ export default function AdminUser() {
                             Admin
                           </motion.span>
                         ) : (
-                          <motion.span 
+                          <motion.span
                             whileHover={{ scale: 1.05 }}
                             className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-br from-gray-100 to-gray-50 text-gray-800"
                           >
@@ -531,11 +555,10 @@ export default function AdminUser() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => toggleAdminStatus(user._id, user.isAdmin, user.isSuperAdmin)}
-                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-sm ${
-                              user.isAdmin 
-                                ? "bg-gradient-to-br from-red-500 to-red-600 text-white" 
+                            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 shadow-sm ${user.isAdmin
+                                ? "bg-gradient-to-br from-red-500 to-red-600 text-white"
                                 : "bg-gradient-to-br from-purple-500 to-purple-600 text-white"
-                            }`}
+                              }`}
                           >
                             {user.isAdmin ? "Remove Admin" : "Make Admin"}
                           </motion.button>
@@ -563,18 +586,17 @@ export default function AdminUser() {
                                 setShowModal(true);
                                 setSelectedUserId(user._id);
                               }}
-                              className={`p-2 rounded-xl ${
-                                user.status === "inactive" 
-                                  ? "text-green-500 bg-green-50 hover:bg-green-100" 
+                              className={`p-2 rounded-xl ${user.status === "inactive"
+                                  ? "text-green-500 bg-green-50 hover:bg-green-100"
                                   : "text-yellow-500 bg-yellow-50 hover:bg-yellow-100"
-                              } transition-colors duration-300 shadow-sm`}
+                                } transition-colors duration-300 shadow-sm`}
                               aria-label={user.status === "inactive" ? "Activate user" : "Deactivate user"}
                               title={user.status === "inactive" ? "Activate" : "Deactivate"}
                             >
                               <HiOutlineShieldExclamation className="text-lg" />
                             </motion.button>
                           )}
-                          
+
                           {/* Delete Button */}
                           {!user.isSuperAdmin && (currentUser.isSuperAdmin || (currentUser.isAdmin && !user.isAdmin)) && (
                             <motion.button
@@ -620,7 +642,7 @@ export default function AdminUser() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50 backdrop-blur-sm"
+            className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
@@ -631,7 +653,7 @@ export default function AdminUser() {
               <div className="flex flex-col items-center text-center">
                 {modalType === "delete" ? (
                   <>
-                    <motion.div 
+                    <motion.div
                       animate={{ rotate: [0, 10, -10, 0] }}
                       transition={{ duration: 0.6 }}
                       className="p-4 bg-red-100 rounded-2xl mb-6"
@@ -663,7 +685,7 @@ export default function AdminUser() {
                   </>
                 ) : (
                   <>
-                    <motion.div 
+                    <motion.div
                       animate={{ scale: [1, 1.05, 1] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                       className="p-4 bg-amber-100 rounded-2xl mb-6"
