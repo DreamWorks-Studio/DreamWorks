@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, ShoppingCart, Settings } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Home, Images, UsersRound, WalletCards, SquareLibrary, X, Menu, Search, Bell,TrendingUp, DollarSign, Calendar, Settings } from 'lucide-react';
 
 
 import AdminPackages from '../components/AdminPackages';
@@ -12,16 +12,87 @@ import AdminFinance from '../components/AdminFinance';
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activePage, setActivePage] = useState('dashboard');
+  const [totalRevenue, setTotalRevenue] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalBookings, setTotalBookings] = useState(0);
+  const [userChange, setUserChange] = useState(0);
+  const [bookingChange, setBookingChange] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [revenueChange, setRevenueChange] = useState(0);
 
-  // Sample data for the dashboard
-  const revenueData = [
-    { month: 'Jan', amount: 12000 },
-    { month: 'Feb', amount: 19000 },
-    { month: 'Mar', amount: 15000 },
-    { month: 'Apr', amount: 25000 },
-    { month: 'May', amount: 22000 },
-    { month: 'Jun', amount: 30000 }
-  ];
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+  
+        // Try to fetch revenue data
+        try {
+          const revenueResponse = await fetch('http://localhost:5003/api/payments/getAllPayments');
+          if (revenueResponse.ok) {
+            const revenueData = await revenueResponse.json();
+            const totalRev = revenueData.reduce((acc, payment) => {
+              return acc + (payment.amountPaid || 0);
+            }, 0);
+            setTotalRevenue(totalRev);
+          }
+        } catch (error) {
+          console.error('Error fetching revenue data:', error);
+        }
+        
+        // Try to fetch users data
+        try {
+          const token = localStorage.getItem('token');
+          if (!token) {
+            console.warn('No authentication token found for fetching users');
+            // Set a default value or leave as 0
+            setTotalUsers(0);
+          } else {
+            const usersResponse = await fetch('http://localhost:5003/api/user/getusers', {
+              headers: {
+                'Authorization': `Bearer ${token}`
+              }
+            });
+            
+            if (usersResponse.ok) {
+              const usersData = await usersResponse.json();
+              setTotalUsers(usersData.length || 0);
+            } else {
+              console.warn('Failed to fetch users, status:', usersResponse.status);
+              // Set a default value or leave as 0
+              setTotalUsers(0);
+            }
+          }
+          setUserChange(5.2);
+        } catch (error) {
+          console.error('Error fetching users data:', error);
+          // Set default value
+          setTotalUsers(0);
+        }
+       
+        // Try to fetch bookings data
+        try {
+          const bookingsResponse = await fetch('http://localhost:5003/api/booking/display-summary');
+          if (bookingsResponse.ok) {
+            const bookingsData = await bookingsResponse.json();
+            const bookingsCount = bookingsData.bookings ? bookingsData.bookings.length : 0;
+            setTotalBookings(bookingsCount);
+          }
+          setBookingChange(3.8); 
+        } catch (error) {
+          console.error('Error fetching bookings data:', error);
+          // Set default value
+          setTotalBookings(0);
+        }
+        
+      } catch (error) {
+        console.error('Error in dashboard data fetching:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchDashboardData();
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token"); // Remove token
@@ -75,39 +146,73 @@ const AdminDashboard = () => {
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Total Revenue</p>
-                  <h3 className="text-2xl font-bold text-gray-800">$124,563</h3>
-                  <p className="text-green-500 text-sm flex items-center mt-1">
-                    <TrendingUp size={14} className="mr-1" /> +12.5%
-                  </p>
+                <p className="text-gray-500 text-sm">Total Revenue</p>
+                  {loading ? (
+                    <div className="animate-pulse h-8 w-32 bg-gray-200 rounded"></div>
+                  ) : (
+                    <>
+                      <h3 className="text-2xl font-bold text-gray-800">
+                        Rs.{totalRevenue.toLocaleString()}
+                      </h3>
+                      <p className={`text-sm flex items-center mt-1 ${revenueChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <TrendingUp
+                          size={14}
+                          className={`mr-1 ${revenueChange < 0 ? 'transform rotate-180' : ''}`}
+                        />
+                        {revenueChange.toFixed(1)}%
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="p-3 bg-indigo-100 rounded-full">
                   <DollarSign size={24} className="text-indigo-600" />
                 </div>
               </div>
             </div>
+            {/* Bookings Card */}
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">New Orders</p>
-                  <h3 className="text-2xl font-bold text-gray-800">243</h3>
-                  <p className="text-green-500 text-sm flex items-center mt-1">
-                    <TrendingUp size={14} className="mr-1" /> +5.2%
-                  </p>
+                  <p className="text-gray-500 text-sm">Total Bookings</p>
+                  {loading ? (
+                    <div className="animate-pulse h-8 w-32 bg-gray-200 rounded"></div>
+                  ) : (
+                    <>
+                      <h3 className="text-2xl font-bold text-gray-800">{totalBookings}</h3>
+                      <p className={`text-sm flex items-center mt-1 ${bookingChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <TrendingUp
+                          size={14}
+                          className={`mr-1 ${bookingChange < 0 ? 'transform rotate-180' : ''}`}
+                        />
+                        {bookingChange.toFixed(1)}%
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="p-3 bg-blue-100 rounded-full">
-                  <ShoppingCart size={24} className="text-blue-600" />
+                  <Calendar size={24} className="text-blue-600" />
                 </div>
               </div>
             </div>
+            {/* Users Card */}
             <div className="bg-white rounded-lg shadow p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-gray-500 text-sm">Active Users</p>
-                  <h3 className="text-2xl font-bold text-gray-800">1,254</h3>
-                  <p className="text-green-500 text-sm flex items-center mt-1">
-                    <TrendingUp size={14} className="mr-1" /> +8.1%
-                  </p>
+                  <p className="text-gray-500 text-sm">Total Users</p>
+                  {loading ? (
+                    <div className="animate-pulse h-8 w-32 bg-gray-200 rounded"></div>
+                  ) : (
+                    <>
+                      <h3 className="text-2xl font-bold text-gray-800">{totalUsers}</h3>
+                      <p className={`text-sm flex items-center mt-1 ${userChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        <TrendingUp
+                          size={14}
+                          className={`mr-1 ${userChange < 0 ? 'transform rotate-180' : ''}`}
+                        />
+                        {userChange.toFixed(1)}%
+                      </p>
+                    </>
+                  )}
                 </div>
                 <div className="p-3 bg-green-100 rounded-full">
                   <UsersRound size={24} className="text-green-600" />

@@ -26,6 +26,7 @@ dist-ssr
 # Environment variables
 .env
 backend/.env
+backend/public
 
 #Keep environment examples
 !.env.local
