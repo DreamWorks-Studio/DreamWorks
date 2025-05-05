@@ -10,7 +10,11 @@ import userRouter from "./routes/user.route.js";
 import authRouter from "./routes/auth.route.js";
 import cookieParser from "cookie-parser";
 import portfolioRouter from "./routes/portfolio.route.js";
+
+import contactRoutes from './routes/contact.route.js';
+
 import cardRouter from "./routes/card.route.js";
+
 
 
 
@@ -71,6 +75,7 @@ app.listen(port, () => {
 })
 
 
+app.use('/api', contactRoutes);
 //app.use('/backend/auth',authRoute)
 
 

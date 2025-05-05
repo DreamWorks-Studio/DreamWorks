@@ -27,20 +27,19 @@ export const UpdateUser = async (req, res, next) => {
       return next(errorHandler(401, 'You can only update your own account!'));
     }
 
-    if (req.body.password) {
-      req.body.password = bcryptjs.hashSync(req.body.password, 10);
+    const updateFields = {
+      username: req.body.username,
+      email: req.body.email,
+      avatar: req.body.avatar,
+    };
+
+    if (req.body.password && req.body.password.trim() !== "") {
+      updateFields.password = bcryptjs.hashSync(req.body.password, 10);
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      {
-        $set: {
-          username: req.body.username,
-          email: req.body.email,
-          password: req.body.password,
-          avatar: req.body.avatar,
-        },
-      },
+      { $set: updateFields },
       { new: true }
     );
 
@@ -52,6 +51,7 @@ export const UpdateUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // Delete User
 export const DeleteUser = async (req, res, next) => {
@@ -190,20 +190,44 @@ export const updateResetPassword = async (req, res, next) => {
 // Toggle User Status
 export const toggleUserStatus = async (req, res, next) => {
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return next(errorHandler(404, 'User not found'));
+    // 1. Check if user exists
+    const userToUpdate = await User.findById(req.params.id);
+    if (!userToUpdate) {
+      return next(errorHandler(404, 'User not found'));
+    }
 
-    user.status = user.status === 'active' ? 'inactive' : 'active';
-    await user.save();
+    // 2. Authorization check - only admins/superadmins can change status
+    if (!req.user.isAdmin && !req.user.isSuperAdmin) {
+      return next(errorHandler(403, 'Unauthorized to change user status'));
+    }
 
-    const { password, ...rest } = user._doc;
-    res.status(200).json({ message: `User status updated to ${user.status}`, user: rest });
+    // 3. Prevent self-deactivation
+    if (req.user._id.toString() === userToUpdate._id.toString()) {
+      return next(errorHandler(400, 'Cannot change your own status'));
+    }
+
+    // 4. Prevent modifying super admins (if needed)
+    if (userToUpdate.isSuperAdmin && !req.user.isSuperAdmin) {
+      return next(errorHandler(403, 'Cannot modify super admin status'));
+    }
+
+    // 5. Toggle status with validation
+    const newStatus = userToUpdate.status === 'active' ? 'inactive' : 'active';
+    userToUpdate.status = newStatus;
+    await userToUpdate.save();
+
+    // 6. Return response
+    const { password, ...rest } = userToUpdate._doc;
+    res.status(200).json({
+      success: true,
+      message: `User status updated to ${newStatus}`,
+      user: rest
+    });
+
   } catch (err) {
     next(err);
   }
 };
-
-
 // controller/user.controller.js
 export const toggleAdminPrivileges = async (req, res, next) => {
   try {
