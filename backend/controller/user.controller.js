@@ -27,20 +27,19 @@ export const UpdateUser = async (req, res, next) => {
       return next(errorHandler(401, 'You can only update your own account!'));
     }
 
-    if (req.body.password) {
-      req.body.password = bcryptjs.hashSync(req.body.password, 10);
+    const updateFields = {
+      username: req.body.username,
+      email: req.body.email,
+      avatar: req.body.avatar,
+    };
+
+    if (req.body.password && req.body.password.trim() !== "") {
+      updateFields.password = bcryptjs.hashSync(req.body.password, 10);
     }
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      {
-        $set: {
-          username: req.body.username,
-          email: req.body.email,
-          password: req.body.password,
-          avatar: req.body.avatar,
-        },
-      },
+      { $set: updateFields },
       { new: true }
     );
 
@@ -52,6 +51,7 @@ export const UpdateUser = async (req, res, next) => {
     next(error);
   }
 };
+
 
 // Delete User
 export const DeleteUser = async (req, res, next) => {
