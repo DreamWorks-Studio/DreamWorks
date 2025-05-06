@@ -4,8 +4,6 @@ import { Camera, Image, Upload, ArrowRight, LayoutGrid, ChevronRight, User, MapP
 import { motion, AnimatePresence } from "framer-motion";
 import DatePicker from "react-datepicker";
 import UpdatePortfolio from "../pages/UpdatePortfolio"; // Import UpdatePortfolio
-import { toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 
 const AdminPortfolio = ({ activePage }) => {
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -14,8 +12,10 @@ const AdminPortfolio = ({ activePage }) => {
   const [location, setLocation] = useState("");
   const [dateCaptured, setDateCaptured] = useState("");
   const [photographerName, setPhotographerName] = useState("");
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [uploadError, setUploadError] = useState(false);
+  const [uploadSuccess, setUploadSuccess] = useState({ show: false, imageCategory: '' });
+  const [uploadError, setUploadError] = useState({ show: false, message: '' });
+  const [deleteSuccess, setDeleteSuccess] = useState({ show: false, message: '' });
+  const [updateSuccess, setUpdateSuccess] = useState({ show: false, imageCategory: '' });
   const [errors, setErrors] = useState({});
   const [highestRatedImages, setHighestRatedImages] = useState([]);
   const [loadingTopImages, setLoadingTopImages] = useState(false);
@@ -110,24 +110,40 @@ const AdminPortfolio = ({ activePage }) => {
 
   const handleDelete = async () => {
     if (!imageToDelete) return;
-
     try {
       const response = await fetch(`http://localhost:5003/api/portfolio/delete/${imageToDelete}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Failed to delete image");
+
       // Update any state that needs refreshing after deletion
       setHighestRatedImages(highestRatedImages.filter(img => img._id !== imageToDelete));
-
       setDeleteModalOpen(false);
       setImageToDelete(null);
+
       // Increment refreshTrigger to trigger a refresh in UpdatePortfolio
       setRefreshTrigger(prev => prev + 1);
-      // Success notification
-      toast.success("Image deleted successfully!");
+
+      // Use custom popup instead of toast
+      setDeleteSuccess({
+        show: true,
+        message: "Image deleted successfully!"
+      });
+
+      // Auto close after 2.5 seconds
+      setTimeout(() => {
+        setDeleteSuccess({ show: false, message: '' });
+      }, 2500);
     } catch (error) {
       console.error("Delete error:", error);
-      toast.error("Failed to delete image.");
+      setUploadError({
+        show: true,
+        message: "Failed to delete image. Please try again."
+      });
+
+      setTimeout(() => {
+        setUploadError({ show: false, message: '' });
+      }, 2500);
     }
   };
 
@@ -187,7 +203,7 @@ const AdminPortfolio = ({ activePage }) => {
           const errorText = await response.text();
           console.error("Server error text:", errorText);
         }
-        
+
         setUploadError(true);
         setUploadSuccess(false);
         return;
@@ -388,63 +404,166 @@ const AdminPortfolio = ({ activePage }) => {
         </motion.div>
       </div>
 
-      {/* Notifications with improved animations */}
+      {/* Upload Success Popup */}
       <AnimatePresence>
-        {uploadSuccess && (
+        {uploadSuccess.show && (
           <motion.div
-            className="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl text-green-700 flex items-center shadow-md"
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
           >
-            <div className="p-2 bg-green-100 rounded-full mr-3">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <span className="font-medium">Image uploaded successfully!</span>
-            <motion.div
-              className="ml-auto"
-              whileHover={{ rotate: 180, scale: 1.1 }}
-              transition={{ duration: 0.3 }}
-              onClick={() => setUploadSuccess(false)}
-            >
-              <div className="cursor-pointer p-1 hover:bg-green-100 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
+                <svg
+                  className="checkmark"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="60"
+                  height="60"
+                  viewBox="0 0 52 52"
+                >
+                  <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                  <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
                 </svg>
               </div>
-            </motion.div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Upload Successful!</h3>
+              <p className="text-gray-600 text-center mb-5">
+                Your image has been added to the {uploadSuccess.imageCategory} gallery.
+              </p>
+              <div className="flex items-center justify-center">
+                <span className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-700 rounded-full font-medium">
+                  <Image size={16} />
+                  {uploadSuccess.imageCategory}
+                </span>
+              </div>
+            </div>
+
+            <style jsx>{`
+        .checkmark__circle {
+          stroke-dasharray: 166;
+          stroke-dashoffset: 166;
+          stroke-width: 2;
+          stroke-miterlimit: 10;
+          stroke: #f59e0b; /* amber-500 */
+          fill: none;
+          animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
+        }
+        
+        .checkmark {
+          border-radius: 50%;
+          display: block;
+          stroke-width: 3;
+          stroke: #f59e0b; /* amber-500 */
+          stroke-miterlimit: 10;
+        }
+        
+        .checkmark__check {
+          transform-origin: 50% 50%;
+          stroke-dasharray: 48;
+          stroke-dashoffset: 48;
+          animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.3s forwards;
+        }
+        
+        @keyframes stroke {
+          100% {
+            stroke-dashoffset: 0;
+          }
+        }
+      `}</style>
           </motion.div>
         )}
-
-        {uploadError && (
+      </AnimatePresence>
+      {/* Update Success Popup */}
+      <AnimatePresence>
+        {updateSuccess.show && (
           <motion.div
-            className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 flex items-center shadow-md"
-            initial={{ opacity: 0, y: -20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
           >
-            <div className="p-2 bg-red-100 rounded-full mr-3">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-              </svg>
-            </div>
-            <span className="font-medium">Upload failed. Please try again!</span>
-            <motion.div
-              className="ml-auto"
-              whileHover={{ rotate: 180, scale: 1.1 }}
-              transition={{ duration: 0.3 }}
-              onClick={() => setUploadError(false)}
-            >
-              <div className="cursor-pointer p-1 hover:bg-red-100 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-600" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+            <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
+                <svg
+                  className="checkmark"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="60"
+                  height="60"
+                  viewBox="0 0 52 52"
+                >
+                  <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                  <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
                 </svg>
               </div>
-            </motion.div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Update Successful!</h3>
+              <p className="text-gray-600 text-center mb-5">
+                Your image has been updated to the {updateSuccess.imageCategory} category.
+              </p>
+              <div className="flex items-center justify-center">
+                <span className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-700 rounded-full font-medium">
+                  <Image size={16} />
+                  {updateSuccess.imageCategory}
+                </span>
+              </div>
+            </div>
+            <style jsx>{/* Same style as above */}</style>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Delete Success Popup */}
+      <AnimatePresence>
+        {deleteSuccess.show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+          >
+            <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
+                <svg
+                  className="checkmark"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="60"
+                  height="60"
+                  viewBox="0 0 52 52"
+                >
+                  <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                  <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Delete Successful!</h3>
+              <p className="text-gray-600 text-center mb-5">
+                {deleteSuccess.message}
+              </p>
+            </div>
+            <style jsx>{/* Same style as above */}</style>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Error Popup */}
+      <AnimatePresence>
+        {uploadError.show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+          >
+            <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                <X size={48} className="text-red-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Operation Failed</h3>
+              <p className="text-gray-600 text-center mb-5">
+                {uploadError.message || "There was an error. Please try again."}
+              </p>
+            </div>
+            
           </motion.div>
         )}
       </AnimatePresence>
@@ -657,7 +776,7 @@ const AdminPortfolio = ({ activePage }) => {
                               ? "border-red-300 hover:border-red-400"
                               : "border-gray-200 hover:border-amber-300"
                             } rounded-lg shadow-sm py-3 px-4 cursor-pointer transition-all`}
-                         >
+                        >
                           <div className="flex items-center flex-1 truncate">
                             {selectedCategory ? (
                               <span className="text-gray-800">{selectedCategory}</span>
@@ -869,12 +988,11 @@ const AdminPortfolio = ({ activePage }) => {
 
         {/* Manage Mode Content - Embed UpdatePortfolio Component */}
         {viewMode === "manage" && (
-          <div>
-            <UpdatePortfolio
-              onDeleteRequest={confirmDelete}
-              refreshTrigger={refreshTrigger}
-            />
-          </div>
+          <UpdatePortfolio
+            onDeleteRequest={confirmDelete}
+            refreshTrigger={refreshTrigger}
+            setUpdateSuccess={setUpdateSuccess} // Pass this to UpdatePortfolio
+          />
         )}
       </div>
       <AnimatePresence>

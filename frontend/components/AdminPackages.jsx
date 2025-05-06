@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { Package, Search, Plus, Edit2, Trash2, ChevronRight, Image } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import Pack from '../pages/Pack'
@@ -17,6 +15,8 @@ const AdminPackages = () => {
   const [editPackageId, setEditPackageId] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [packageToDelete, setPackageToDelete] = useState(null);
+  const [successPopup, setSuccessPopup] = useState({ show: false, message: '' });
+  const [errorPopup, setErrorPopup] = useState({ show: false, message: '' });
 
 
   const fetchPackages = async () => {
@@ -76,33 +76,50 @@ const AdminPackages = () => {
 
       // Remove the package from the local state
       setPackages(packages.filter(pkg => pkg._id !== packageToDelete));
-      toast.success('Package deleted successfully!'); // Show success toast
+
+      // First close the dialog
       setDeleteDialogOpen(false);
+
+      // Then after a small delay show the success popup
+      setTimeout(() => {
+        setSuccessPopup({
+          show: true,
+          message: 'Package deleted successfully!'
+        });
+
+        // Auto close after 2.5 seconds
+        setTimeout(() => {
+          setSuccessPopup({ show: false, message: '' });
+        }, 2500);
+      }, 300); // Short delay to let the dialog close animation start
+
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error(error.message || 'Error deleting package'); // Show error toast
+
+      // First close the dialog
       setDeleteDialogOpen(false);
+
+      // Then after a small delay show the error popup
+      setTimeout(() => {
+        setErrorPopup({
+          show: true,
+          message: error.message || 'Error deleting package'
+        });
+
+        // Auto close after 2.5 seconds
+        setTimeout(() => {
+          setErrorPopup({ show: false, message: '' });
+        }, 2500);
+      }, 300); // Short delay to let the dialog close animation start
     }
   };
 
-  useEffect(() => {
-    const searchResultItem = sessionStorage.getItem('searchResultItem');
-    if (searchResultItem) {
-      const resultData = JSON.parse(searchResultItem);
-      
-      if (resultData.type === 'package' && Date.now() - resultData.timestamp < 2000) {
-        const packageToHighlight = packages.find(pkg => pkg._id === resultData.id);
-        
-        if (packageToHighlight) {
-          // For packages, you might want to:
-          // Scroll the package into view or open edit mode
-          handleUpdatePackage(resultData.id);
-        }
-        
-        sessionStorage.removeItem('searchResultItem');
-      }
+  const handleModalClose = (shouldRefresh = false) => {
+    setShowPackageModal(false);
+    if (shouldRefresh) {
+      fetchPackages();
     }
-  }, [packages]);
+  };
 
   // Animation variants
   const pageVariants = {
@@ -371,9 +388,6 @@ const AdminPackages = () => {
             </div>
           )}
         </div>
-
-        {/* Toast Container */}
-        <ToastContainer position="bottom-right" autoClose={3000} />
       </motion.div>
 
       {showPackageModal && (
@@ -403,11 +417,9 @@ const AdminPackages = () => {
               <Pack
                 isModal={true}
                 packageId={editPackageId}
-                onClose={() => {
-                  setShowPackageModal(false);
-                  // Refresh packages after submission
-                  fetchPackages();
-                }}
+                onClose={(shouldRefresh) => handleModalClose(shouldRefresh)}
+                setSuccessPopup={setSuccessPopup}
+                setErrorPopup={setErrorPopup}
               />
             </div>
           </motion.div>
@@ -457,6 +469,59 @@ const AdminPackages = () => {
           </motion.div>
         </div>
       )}
+      <AnimatePresence>
+        {successPopup.show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+          >
+            <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
+                <svg
+                  className="checkmark"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="60"
+                  height="60"
+                  viewBox="0 0 52 52"
+                >
+                  <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+                  <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+                </svg>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Success!</h3>
+              <p className="text-gray-600 text-center mb-5">
+                {successPopup.message}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      {/* Error Popup */}
+      <AnimatePresence>
+        {errorPopup.show && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+          >
+            <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
+              <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                <X size={48} className="text-red-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">Error</h3>
+              <p className="text-gray-600 text-center mb-5">
+                {errorPopup.message || "There was an error. Please try again."}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </AnimatePresence>
   );
 }

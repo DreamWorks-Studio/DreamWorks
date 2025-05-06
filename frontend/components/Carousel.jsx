@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react' 
 import { motion, AnimatePresence } from 'framer-motion'
+import { Link } from 'react-router-dom';
 
 const slides = [
   {
@@ -96,12 +97,12 @@ const Carousel = () => {
                 transition={{ duration: 0.8, delay: 0.7 }}
                 className="pt-8"
               >
-                <button className="border-2 border-white text-white font-bold py-3 px-8 rounded-full hover:bg-white/10 transition-all duration-300 mr-4">
+                <Link to="/gallery" className="border-2 border-white text-white font-bold py-3 px-8 rounded-full hover:bg-white/10 transition-all duration-300 mr-4">
                   View Gallery
-                </button>
-                <button className="border-2 border-white text-white font-bold py-3 px-8 rounded-full hover:bg-white/10 transition-all duration-300">
+                </Link>
+                <Link to="/packages" className="border-2 border-white text-white font-bold py-3 px-8 rounded-full hover:bg-white/10 transition-all duration-300">
                   Our Packages
-                </button>
+                </Link>
               </motion.div>
             </motion.div>
           </AnimatePresence>
