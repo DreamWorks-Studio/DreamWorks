@@ -14,6 +14,7 @@ import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/
 import { app } from '../src/firebase';
 import UserBooking from '../components/UserBookings'
 import UserPayment from '../components/UserPayment'
+import CustomPopup from "../components/CustomPopup";
 
 const UserProfile = () => {
     const dispatch = useDispatch();
@@ -27,8 +28,10 @@ const UserProfile = () => {
     const navigate = useNavigate();
     const [showEditProfile, setShowEditProfile] = useState(false);
     const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-    const [showToast, setShowToast] = useState(false);
-    
+    const [successPopup, setSuccessPopup] = useState({ show: false, message: '' });
+    const [errorPopup, setErrorPopup] = useState({ show: false, message: '' });
+
+
     // Using UserProfile's formData initialization
     const [formData, setFormData] = useState({
         username: currentUser?.username || "",
@@ -36,7 +39,7 @@ const UserProfile = () => {
         password: "",
         avatar: currentUser?.avatar || "https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp",
     });
-    
+
     // For file upload
     const [filePerc, setFilePerc] = useState(0);
     const [fileUploadError, setFileUploadError] = useState(false);
@@ -113,7 +116,7 @@ const UserProfile = () => {
         const fileName = new Date().getTime() + file.name;
         const storageRef = ref(storage, fileName);
         const uploadTask = uploadBytesResumable(storageRef, file);
-        
+
         uploadTask.on(
             'state_changed',
             (snapshot) => {
@@ -138,7 +141,7 @@ const UserProfile = () => {
     // From UserProfile - exact copy
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+
         // Create a new FormData object from the form element
         const form = e.target;
         const newFormData = {
@@ -146,12 +149,12 @@ const UserProfile = () => {
             email: form.email.value || currentUser.email,
             avatar: formData.avatar // Keep this from state
         };
-        
+
         // Only add password if it has a value
         if (form.password.value && form.password.value.trim() !== '') {
             newFormData.password = form.password.value;
         }
-        
+
         try {
             const btnElement = e.target.querySelector('button[type="submit"]');
             if (btnElement) btnElement.textContent = 'Saving...';
@@ -170,10 +173,11 @@ const UserProfile = () => {
             }
             dispatch(updateUserSuccess(data));
             setUpdateSuccess(true);
-            setShowToast(true);
             setShowEditProfile(false);
+            setSuccessPopup({ show: true, message: 'Profile updated successfully!' });
         } catch (error) {
             dispatch(updateUserFailure(error));
+            setErrorPopup({ show: true, message: error.message || 'Error updating profile' });
         }
     };
     // From UserProfile - exact copy
@@ -182,24 +186,11 @@ const UserProfile = () => {
     };
 
     const [toastMessage, setToastMessage] = useState({
-        type: 'success', 
+        type: 'success',
         title: '',
         message: ''
     });
 
-    useEffect(() => {
-        let toastTimer;
-        if (showToast) {
-            toastTimer = setTimeout(() => {
-                setShowToast(false);
-            }, 5000);
-        }
-
-        return () => {
-            if (toastTimer) clearTimeout(toastTimer);
-        };
-    }, [showToast]);
-    
     const confirmDeleteAccount = async () => {
         try {
             dispatch(deleteUserStart());
@@ -211,13 +202,18 @@ const UserProfile = () => {
                 throw new Error(data.message || "Failed to delete user");
             }
             dispatch(deleteUserSuucess(data));
-    
-            localStorage.removeItem('currentUser');
-            localStorage.removeItem('role');
-    
-            navigate('/');
+            setShowDeleteConfirmation(false);
+
+            setSuccessPopup({ show: true, message: 'Account deleted successfully' });
+
+            setTimeout(() => {
+                localStorage.removeItem('currentUser');
+                localStorage.removeItem('role');
+                navigate('/');
+            }, 2500);
         } catch (error) {
             dispatch(deleteUserFailure(error.message));
+            setErrorPopup({ show: true, message: error.message || 'Failed to delete account' });
         }
     };
     // From UserProfile - exact copy
@@ -233,17 +229,17 @@ const UserProfile = () => {
         } catch (error) {
             console.log(error);
         }
-        
-        
+
+
         // Redirect to home after sign out
         navigate('/');
     };
     // From UserProfile - exact copy
     const handleFileChange = (e) => {
         const file = e.target.files[0];
-        
+
         if (file) {
-            if (file.size > 2 * 1024 * 1024) { 
+            if (file.size > 2 * 1024 * 1024) {
                 setImageError(true);
                 return;
             }
@@ -270,7 +266,7 @@ const UserProfile = () => {
                 lastPaymentMethod: null
             };
         }
-        
+
         const bookingPayments = payments[booking._id] || [];
         let totalPaid = 0;
         let lastPaymentType = null;
@@ -278,7 +274,7 @@ const UserProfile = () => {
         let lastPaymentMethod = null;
         let totalAmount = 0;
         let packagePrice = Number(booking.packagePrice) || 0;
-        
+
         // Process payment data
         if (Array.isArray(bookingPayments) && bookingPayments.length > 0) {
             // Get the total amount from the first payment (original amount)
@@ -286,15 +282,15 @@ const UserProfile = () => {
             if (firstPayment && firstPayment.totalAmount) {
                 totalAmount = Number(firstPayment.totalAmount);
             }
-            
+
             // Now process all payments to get the total paid amount
             bookingPayments.forEach(payment => {
                 totalPaid += Number(payment.amountPaid) || 0;
-                
+
                 if (Number(payment.packagePrice) > 0) {
                     packagePrice = Number(payment.packagePrice);
                 }
-                
+
                 lastPaymentType = payment.paymentType;
                 lastPaymentStatus = payment.paymentStatus;
                 lastPaymentMethod = payment.paymentMethod;
@@ -307,27 +303,27 @@ const UserProfile = () => {
                     totalAmount = Number(firstPayment.totalAmount);
                 }
             }
-            
+
             bookingPayments.payments.forEach(payment => {
                 totalPaid += Number(payment.amountPaid) || 0;
-                
+
                 if (Number(payment.packagePrice) > 0) {
                     packagePrice = Number(payment.packagePrice);
                 }
-                
+
                 lastPaymentType = payment.paymentType;
                 lastPaymentStatus = payment.paymentStatus;
                 lastPaymentMethod = payment.paymentMethod;
             });
         }
-        
+
         // If we didn't get a totalAmount from payments, calculate it
         if (totalAmount === 0) {
             totalAmount = packagePrice * 1.05 + 1000;
         }
-        
+
         const remainingAmount = Math.max(0, totalAmount - totalPaid);
-        
+
         return {
             totalPaid,
             totalAmount,
@@ -399,17 +395,15 @@ const UserProfile = () => {
     const handleAddCard = async (e) => {
         e.preventDefault();
         if (!currentUser || !currentUser._id) return;
-      
+
         if (!newCard.cardNumber || !newCard.expiryDate) {
-            setToastMessage({
-                type: 'error',
-                title: 'Missing Information',
+            setErrorPopup({
+                show: true,
                 message: 'Please enter all required card information'
             });
-            setShowToast(true);
             return;
         }
-      
+
         try {
             const response = await fetch('/api/cards/save', {
                 method: 'POST',
@@ -422,13 +416,13 @@ const UserProfile = () => {
                     expiryDate: newCard.expiryDate
                 })
             });
-      
+
             if (response.ok) {
                 const result = await response.json();
-      
+
                 // Add the new card to the saved cards list
                 setSavedCards(prev => [result.card, ...prev]);
-      
+
                 // Reset the form
                 setNewCard({
                     cardNumber: '',
@@ -436,79 +430,68 @@ const UserProfile = () => {
                     expiryDate: '',
                     cvc: ''
                 });
-      
+
                 // Hide the add card form
                 setShowAddCard(false);
-      
+
                 // Show toast notification
-                setToastMessage({
-                    type: 'success',
-                    title: 'Card Added',
+                setSuccessPopup({
+                    show: true,
                     message: 'Your new card has been added successfully.'
                 });
-                setShowToast(true);
             } else {
                 const errorData = await response.json();
-                setToastMessage({
-                    type: 'error',
-                    title: 'Error',
+                setErrorPopup({
+                    show: true,
                     message: `Failed to save card: ${errorData.message}`
                 });
-                setShowToast(true);
             }
         } catch (error) {
             console.error('Error saving card:', error);
-            setToastMessage({
-                type: 'error',
-                title: 'Error',
+            setErrorPopup({
+                show: true,
                 message: 'Failed to save card. Please try again.'
             });
-            setShowToast(true);
         }
-      };
-      
-      const [showDeleteCardConfirmation, setShowDeleteCardConfirmation] = useState(false);
-      const [cardToDelete, setCardToDelete] = useState(null);
+    };
 
-      const handleDeleteCard = (cardId) => {
+    const [showDeleteCardConfirmation, setShowDeleteCardConfirmation] = useState(false);
+    const [cardToDelete, setCardToDelete] = useState(null);
+
+    const handleDeleteCard = (cardId) => {
         setCardToDelete(cardId);
         setShowDeleteCardConfirmation(true);
-      };
-      const confirmDeleteCard = async () => {
+    };
+    const confirmDeleteCard = async () => {
         try {
-          if (!cardToDelete) return;
-          
-          const response = await fetch(`/api/cards/${cardToDelete}`, {
-            method: 'DELETE'
-          });
-          
-          if (response.ok) {
-            // Update the cards list after deletion
-            setSavedCards(savedCards.filter(card => card._id !== cardToDelete));
-            
-            // Show success toast
-            setToastMessage({
-              type: 'success',
-              title: 'Card Deleted',
-              message: 'Your card has been removed successfully.'
+            if (!cardToDelete) return;
+
+            const response = await fetch(`/api/cards/${cardToDelete}`, {
+                method: 'DELETE'
             });
-            setShowToast(true);
-          } else {
-            throw new Error('Failed to delete card');
-          }
+
+            if (response.ok) {
+                // Update the cards list after deletion
+                setSavedCards(savedCards.filter(card => card._id !== cardToDelete));
+
+                setSuccessPopup({
+                    show: true,
+                    message: 'Your card has been removed successfully.'
+                });
+            } else {
+                throw new Error('Failed to delete card');
+            }
         } catch (error) {
-          console.error('Error deleting card:', error);
-          setToastMessage({
-            type: 'error',
-            title: 'Error',
-            message: 'Failed to delete card. Please try again.'
-          });
-          setShowToast(true);
+            console.error('Error deleting card:', error);
+            setErrorPopup({
+                show: true,
+                message: 'Failed to delete card. Please try again.'
+            });
         } finally {
-          setShowDeleteCardConfirmation(false);
-          setCardToDelete(null);
+            setShowDeleteCardConfirmation(false);
+            setCardToDelete(null);
         }
-      };
+    };
 
     const handleSetDefaultCard = async (cardId) => {
         if (!cardId) {
@@ -525,36 +508,31 @@ const UserProfile = () => {
                     userId: currentUser._id
                 })
             });
-      
+
             if (!response.ok) {
                 throw new Error(`Error: ${response.status}`);
-            } 
-      
+            }
+
             const result = await response.json();
-      
+
             setSavedCards(prev => prev.map(card => ({
                 ...card,
                 isDefault: card._id === cardId
             })));
-      
-            // Add toast notification
-            setToastMessage({
-                type: 'success',
-                title: 'Default Card Updated',
+
+            setSuccessPopup({
+                show: true,
                 message: 'Your default payment card has been updated successfully.'
             });
-            setShowToast(true);
-      
+
         } catch (error) {
             console.error('Error setting default card:', error);
-            setToastMessage({
-                type: 'error',
-                title: 'Error',
+            setErrorPopup({
+                show: true,
                 message: 'Failed to set default card. Please try again.'
             });
-            setShowToast(true);
         }
-      };
+    };
 
     const handleEditCard = (card) => {
         setNewCard({
@@ -570,17 +548,15 @@ const UserProfile = () => {
 
     const handleUpdateCard = async (e) => {
         e.preventDefault();
-      
+
         if (!newCard.expiryDate) {
-            setToastMessage({
-                type: 'error',
-                title: 'Missing Information',
+            setErrorPopup({
+                show: true,
                 message: 'Please enter the expiry date'
             });
-            setShowToast(true);
             return;
         }
-      
+
         try {
             const response = await fetch(`/api/cards/${newCard.cardId}`, {
                 method: 'PUT',
@@ -591,15 +567,15 @@ const UserProfile = () => {
                     expiryDate: newCard.expiryDate
                 })
             });
-      
+
             if (response.ok) {
                 const result = await response.json();
-      
+
                 // Update the card in the saved cards list
                 setSavedCards(prev => prev.map(card =>
                     card._id === newCard.cardId ? result.card : card
                 ));
-      
+
                 // Reset the form
                 setNewCard({
                     cardNumber: '',
@@ -607,36 +583,29 @@ const UserProfile = () => {
                     expiryDate: '',
                     cvc: ''
                 });
-      
+
                 // Hide the add card form
                 setShowAddCard(false);
-      
-                // Show toast notification
-                setToastMessage({
-                    type: 'success',
-                    title: 'Card Updated',
+
+                setSuccessPopup({
+                    show: true,
                     message: 'Your card details have been updated successfully.'
                 });
-                setShowToast(true);
             } else {
                 const errorData = await response.json();
-                setToastMessage({
-                    type: 'error',
-                    title: 'Update Failed',
+                setErrorPopup({
+                    show: true,
                     message: `Failed to update card: ${errorData.message}`
                 });
-                setShowToast(true);
             }
         } catch (error) {
             console.error('Error updating card:', error);
-            setToastMessage({
-                type: 'error',
-                title: 'Error',
+            setErrorPopup({
+                show: true,
                 message: 'Failed to update card. Please try again.'
             });
-            setShowToast(true);
         }
-      };
+    };
 
     const handleCardFormSubmit = (e) => {
         if (newCard.cardId) {
@@ -698,24 +667,24 @@ const UserProfile = () => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-amber-50 to-amber-100">
+        <div className="min-h-screen bg-black/80">
             {/* Navbar with Home and Sign Out - Frosted Glass Effect */}
-            <nav className="bg-white/80 backdrop-blur-md sticky top-0 z-10 shadow-sm border-b border-amber-100">
-                <div className="max-w-6xl mx-auto px-6 flex justify-between items-center h-16">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">My Profile</h1>
+            <nav className="bg-white/90 backdrop-blur-md sticky top-0 z-10 shadow-sm border-b border-amber-100">
+                <div className="max-w-6xl mx-auto px-6 flex justify-between items-center h-24">
+                    <h1 className="text-4xl font-bold bg-gradient-to-r from-amber-500 to-gray-800 bg-clip-text text-transparent">My Profile</h1>
                     <div className="flex items-center space-x-4">
                         <button
                             onClick={handleSignOut}
-                            className="px-4 py-2 text-gray-600 hover:text-amber-600 transition-colors flex items-center text-sm font-medium"
+                            className="px-4 py-2 text-gray-900 hover:text-amber-600 transition-colors flex items-center text-lg font-semibold"
                         >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                             </svg>
                             Sign Out
                         </button>
                         <button
                             onClick={() => navigate('/')}
-                            className="w-10 h-10 bg-white ring-1 ring-amber-200 hover:bg-amber-50 text-amber-600 rounded-full shadow-sm transition flex items-center justify-center"
+                            className="w-12 h-11 bg-amber-500 hover:bg-amber-50 text-white hover:text-amber-500 rounded-full shadow-sm transition flex items-center justify-center"
                             aria-label="Return to Homepage"
                             title="Return to Homepage"
                         >
@@ -727,10 +696,10 @@ const UserProfile = () => {
                 </div>
             </nav>
 
-            <div className="max-w-6xl mx-auto px-6 py-8">
+            <div className="max-w-7xl mx-auto px-6 py-8">
                 {/* User Profile Card - Modern Glass Card */}
-                <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg mb-8 overflow-hidden border border-amber-100">
-                    <div className="relative h-40 bg-gradient-to-r from-amber-500 via-amber-400 to-amber-300">
+                <div className="bg-white backdrop-blur-md rounded-3xl shadow-lg mb-8 overflow-hidden border border-amber-50">
+                    <div className="relative h-40 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700">
                         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
                     </div>
                     <div className="px-8 py-8 pb-10 relative">
@@ -749,7 +718,7 @@ const UserProfile = () => {
 
                             {/* User Avatar - Improved styling */}
                             {formData.avatar ? (
-                                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-xl group-hover:shadow-amber-200 transition-all duration-300">
+                                <div className="relative w-32 h-32 rounded-full overflow-hidden border-4 border-y-amber-500 border-x-white shadow-xl group-hover:shadow-amber-200 transition-all duration-300">
                                     <img
                                         src={formData.avatar}
                                         alt="profile"
@@ -773,7 +742,7 @@ const UserProfile = () => {
                             )}
 
                             {/* Hover overlay - Improved styling */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-amber-500/60 to-amber-600/60 rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
+                            <div className="absolute inset-0  rounded-full opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity duration-300">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -784,10 +753,10 @@ const UserProfile = () => {
                         {/* User Info and Actions - Enhanced */}
                         <div className="mt-16 flex justify-between items-start">
                             <div>
-                                <h2 className="text-3xl font-bold text-gray-800 tracking-tight">
+                                <h2 className="text-4xl font-bold text-gray-800 tracking-tight">
                                     {(currentUser?.username || 'User')}
                                 </h2>
-                                <p className="text-amber-600 mt-1 flex items-center">
+                                <p className="text-amber-600 text-xl mt-1 flex items-center">
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                     </svg>
@@ -799,8 +768,8 @@ const UserProfile = () => {
                                     onClick={() => {
                                         setShowEditProfile(!showEditProfile);
                                         setUpdateSuccess(false);
-                                      }}
-                                    className="px-4 py-2 border border-gray-200 rounded-full text-gray-600 hover:text-amber-600 hover:border-amber-400 hover:bg-amber-50 transition-colors text-sm font-medium flex items-center"
+                                    }}
+                                    className="px-4 py-3 border border-gray-200 rounded-full text-gray-800 hover:text-amber-600 hover:border-amber-400 hover:bg-amber-50 transition-colors text-sm font-medium flex items-center"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -809,7 +778,7 @@ const UserProfile = () => {
                                 </button>
                                 <button
                                     onClick={handleDeleteAccount}
-                                    className="px-4 py-2 border border-red-200 rounded-full text-red-600 hover:text-white hover:bg-red-600 hover:border-red-600 transition-colors text-sm font-medium flex items-center"
+                                    className="px-4 py-3 border border-red-200 rounded-full text-red-600 hover:text-red-600 hover:bg-red-50 hover:border-red-600 transition-colors text-sm font-medium flex items-center"
                                 >
                                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -823,13 +792,14 @@ const UserProfile = () => {
 
                 {/* Edit Profile Form - When expanded */}
                 {showEditProfile && (
-                    <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg mb-8 overflow-hidden border border-amber-100 p-8 animate-fadeIn">
+                    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm">
+                        <div className="w-160 bg-white backdrop-blur-md rounded-3xl shadow-lg mb-8 overflow-hidden border border-amber-100 p-8 animate-fadeIn mx-auto">
                         <h2 className="text-2xl font-bold mb-6 bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">Edit Your Profile</h2>
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6 ml-10">
                             <div>
-                                <label className="block text-sm font-medium text-gray-600 mb-2">Username</label>
+                                <label className="block text-lg font-medium text-gray-600 mb-2">Username</label>
                                 <input
-                                    className="bg-gray-800 rounded-lg p-3 text-white border border-gray-700 focus:border-amber-500 focus:outline-none"
+                                    className="w-96 rounded-lg p-3 text-gray-800 border border-gray-700 hover:border-2 hover:border-amber-500 focus:border-amber-500 focus:outline-none"
                                     onChange={handleChange}
                                     defaultValue={currentUser.username}
                                     type="text"
@@ -838,23 +808,23 @@ const UserProfile = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-600 mb-2">Email</label>
+                                <label className="block text-lg font-medium text-gray-600 mb-2">Email</label>
                                 <input
                                     type="email"
                                     id="email"
                                     placeholder="Email"
-                                    className="bg-gray-800 rounded-lg p-3 text-white border border-gray-700 focus:border-amber-500 focus:outline-none"
+                                    className="w-96 rounded-lg p-3 text-gray-800 border border-gray-700 hover:border-2 hover:border-amber-500 focus:border-amber-500 focus:outline-none"
                                     onChange={handleChange}
                                     defaultValue={currentUser.email}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-600 mb-2">Password</label>
+                                <label className="block text-lg font-medium text-gray-600 mb-2">Password</label>
                                 <input
                                     type="password"
                                     id="password"
                                     placeholder="Password"
-                                    onChange={handleChange} className="bg-gray-800 rounded-lg p-3 text-white border border-gray-700 focus:border-amber-500 focus:outline-none" />
+                                    onChange={handleChange} className="w-96 rounded-lg p-3 text-gray-800 border border-gray-700 hover:border-2 hover:border-amber-500 focus:border-amber-500 focus:outline-none" />
                             </div>
                             <div className="flex justify-end space-x-4">
                                 <button
@@ -881,6 +851,7 @@ const UserProfile = () => {
                                 </div>
                             )}
                         </form>
+                    </div>
                     </div>
                 )}
 
@@ -912,6 +883,8 @@ const UserProfile = () => {
                         currentUser={currentUser}
                         handleUpdateCard={handleUpdateCard}
                         handleAddCard={handleAddCard}
+                        setSuccessPopup={setSuccessPopup}
+                        setErrorPopup={setErrorPopup}
                     />
                 </div>
             </div>
@@ -919,16 +892,16 @@ const UserProfile = () => {
             {showDeleteConfirmation && (
                 <div className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white bg-opacity-80 rounded-3xl shadow-xl max-w-md w-full p-6 relative animate-fadeIn backdrop-filter backdrop-blur border border-gray-100"><div className="text-center mb-6">
-                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                            </div>
-                            <h2 className="text-2xl font-bold text-gray-800">Delete Your Account?</h2>
-                            <p className="text-gray-600 mt-2">
-                                This action cannot be undone. All your data, including bookings and payment information, will be permanently removed.
-                            </p>
+                        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                         </div>
+                        <h2 className="text-2xl font-bold text-gray-800">Delete Your Account?</h2>
+                        <p className="text-gray-600 mt-2">
+                            This action cannot be undone. All your data, including bookings and payment information, will be permanently removed.
+                        </p>
+                    </div>
                         <div className="flex space-x-3 justify-center">
                             <button
                                 onClick={() => setShowDeleteConfirmation(false)}
@@ -947,31 +920,6 @@ const UserProfile = () => {
                 </div>
             )}
 
-            {showToast && (
-                <div className="fixed top-4 right-4 z-50 animate-fadeIn">
-                    <div className="bg-white shadow-lg rounded-lg p-4 border-l-4 border-green-500 flex items-center space-x-3 min-w-[300px]">
-                        <div className="flex-shrink-0">
-                            <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                </svg>
-                            </div>
-                        </div>
-                        <div className="flex-1">
-                            <h3 className="text-gray-800 font-medium">Profile Updated!</h3>
-                            <p className="text-gray-600 text-sm">Your changes have been saved successfully.</p>
-                        </div>
-                        <button
-                            onClick={() => setShowToast(false)}
-                            className="text-gray-400 hover:text-gray-600"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-            )}
             {showDeleteCardConfirmation && (
                 <div className="fixed inset-0 backdrop-blur-sm z-50 flex items-center justify-center p-4">
                     <div className="bg-white bg-opacity-80 rounded-3xl shadow-xl max-w-md w-full p-6 relative animate-fadeIn backdrop-filter backdrop-blur border border-gray-100">
@@ -1003,6 +951,18 @@ const UserProfile = () => {
                     </div>
                 </div>
             )}
+            <CustomPopup
+                show={successPopup.show}
+                message={successPopup.message}
+                type="success"
+                onClose={() => setSuccessPopup({ show: false, message: '' })}
+            />
+            <CustomPopup
+                show={errorPopup.show}
+                message={errorPopup.message}
+                type="error"
+                onClose={() => setErrorPopup({ show: false, message: '' })}
+            />
         </div>
     );
 };

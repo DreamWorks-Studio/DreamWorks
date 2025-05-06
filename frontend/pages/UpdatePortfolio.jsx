@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { ToastContainer } from 'react-toastify';
 import { Camera, Image, Edit, Trash2, Plus, Filter, User, Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 
 // Modified to be embedded inside AdminPortfolio
-const UpdatePortfolio = ({ onDeleteRequest, refreshTrigger }) => {
+const UpdatePortfolio = ({ onDeleteRequest, refreshTrigger, setUpdateSuccess }) => {
   const [images, setImages] = useState([]);
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(""); // Filtering
@@ -68,29 +65,32 @@ const UpdatePortfolio = ({ onDeleteRequest, refreshTrigger }) => {
   // Update image
   const handleUpdate = async () => {
     if (!editingImage) return;
-
     try {
       const response = await fetch(`http://localhost:5003/api/portfolio/update/${editingImage}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ category: updatedCategory, description: updatedDescription }),
       });
-
       if (!response.ok) throw new Error("Failed to update image");
-
       setImages(
         images.map((img) =>
           img._id === editingImage ? { ...img, category: updatedCategory, description: updatedDescription } : img
         )
       );
-
       setEditingImage(null);
-
-      // Success notification
-      toast.success("Image updated successfully!");
+      // Use custom popup instead of toast
+      setUpdateSuccess({ 
+        show: true, 
+        imageCategory: updatedCategory 
+      });
+      
+      // Auto close after 2.5 seconds
+      setTimeout(() => {
+        setUpdateSuccess({ show: false, imageCategory: '' });
+      }, 2500);
     } catch (error) {
       console.error("Update error:", error);
-      toast.error("Failed to update image.");
+      // Handle error (you could add an updateError state if needed)
     }
   };
 
@@ -328,19 +328,6 @@ const UpdatePortfolio = ({ onDeleteRequest, refreshTrigger }) => {
           <p className="text-gray-600 mt-4">No images found for this category.</p>
         </motion.div>
       )}
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={true}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
     </>
   );
 };
