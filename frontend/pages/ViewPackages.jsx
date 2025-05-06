@@ -106,21 +106,21 @@ const ViewPackages = () => {
     const calculateTotalPrice = (basePrice, packageId) => {
         const selectedCustomizationIds = customizations[packageId] || [];
         const pkg = packages.find(p => p._id === packageId);
-        
+
         if (!pkg || !pkg.includedCustomizations) return basePrice;
-        
+
         const additionalCost = selectedCustomizationIds.reduce((total, customId) => {
             const includedCustomization = pkg.includedCustomizations.find(c => c.id === customId);
-            
+
             if (!includedCustomization) return total;
-            
-            const quantity = includedCustomization.hasQuantity 
+
+            const quantity = includedCustomization.hasQuantity
                 ? (customizationQuantities[packageId]?.[customId] || includedCustomization.quantity || 1)
                 : 1;
-                
+
             return total + (includedCustomization.price * quantity);
         }, 0);
-        
+
         return basePrice + additionalCost;
     };
 
@@ -153,7 +153,7 @@ const ViewPackages = () => {
         const selectedCustomizationDetails = (customizations[packageItem._id] || []).map(customId => {
             const customOption = packageItem.includedCustomizations?.find(c => c.id === customId);
             if (!customOption) return null;
-            
+
             const quantity = customOption.hasQuantity
                 ? (customizationQuantities[packageItem._id]?.[customId] || customOption.quantity || 1)
                 : 1;
@@ -197,8 +197,8 @@ const ViewPackages = () => {
     // Filter packages based on selected category
     const filteredPackages = filterCategory === 'all'
         ? packages
-        : packages.filter(pkg => 
-            pkg.packageType?.toLowerCase() === filterCategory || 
+        : packages.filter(pkg =>
+            pkg.packageType?.toLowerCase() === filterCategory ||
             (!pkg.packageType && filterCategory === 'event')
         );
 
@@ -245,24 +245,22 @@ const ViewPackages = () => {
                 <div className="bg-white shadow-sm rounded-lg p-4 max-w-3xl mx-auto flex flex-wrap justify-center">
                     <button
                         onClick={() => setFilterCategory('all')}
-                        className={`m-1 px-4 py-2 rounded-md transition-colors duration-200 ${
-                            filterCategory === 'all' 
-                                ? 'bg-amber-500 text-white' 
+                        className={`m-1 px-4 py-2 rounded-md transition-colors duration-200 ${filterCategory === 'all'
+                                ? 'bg-amber-500 text-white'
                                 : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                        }`}
+                            }`}
                     >
                         All Packages
                     </button>
-                    
+
                     {packageTypeOptions.map(type => (
                         <button
                             key={type}
                             onClick={() => setFilterCategory(type.toLowerCase())}
-                            className={`m-1 px-4 py-2 rounded-md transition-colors duration-200 ${
-                                filterCategory === type.toLowerCase() 
-                                    ? 'bg-amber-500 text-white' 
+                            className={`m-1 px-4 py-2 rounded-md transition-colors duration-200 ${filterCategory === type.toLowerCase()
+                                    ? 'bg-amber-500 text-white'
                                     : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                            }`}
+                                }`}
                         >
                             {type}
                         </button>
@@ -271,153 +269,182 @@ const ViewPackages = () => {
             </div>
 
             {/* Main content section with all package cards */}
-            <main className="container mx-auto px-4 pb-16 flex-grow">
+            <main className="container mx-auto px-6 py-16 flex-grow bg-white">
                 {filteredPackages.length === 0 ? (
-                    <div className="text-center py-16">
-                        <svg className="w-16 h-16 mx-auto text-gray-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="text-center py-20">
+                        <svg className="w-20 h-20 mx-auto text-gray-200" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        <h3 className="mt-4 text-xl font-medium text-gray-900">No packages found</h3>
-                        <p className="mt-1 text-gray-500">Try selecting a different category or check back later</p>
+                        <h3 className="mt-6 text-2xl font-medium text-gray-900">No packages found</h3>
+                        <p className="mt-2 text-gray-500">Try selecting a different category or check back later</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredPackages.map(pkg => (
                             <div
                                 key={pkg._id}
-                                className="bg-white rounded-xl shadow-md hover:shadow-lg transition-all overflow-hidden border border-gray-100"
+                                className="bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
                             >
                                 {/* Package header */}
-                                <div className="bg-gradient-to-r from-amber-50 to-amber-100 px-5 py-4 border-b border-amber-100">
+                                <div className="bg-gray-900 px-6 py-7 rounded-t-lg">
                                     <div className="flex justify-between items-center">
-                                        <h3 className="text-lg font-bold text-gray-800">{pkg.packagename}</h3>
-                                        <div className="bg-white px-3 py-1 rounded-full text-amber-600 text-sm font-semibold border border-amber-200">
+                                        <div>
+                                            <span className="inline-block bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-xl font-medium mb-4">
+                                                {pkg.packageType || "Event"}
+                                            </span>
+                                            <h3 className="text-xl font-bold text-white">{pkg.packagename}</h3>
+                                        </div>
+                                        <div className="px-4 py-2 rounded-md text-amber-500 text-xl font-semibold shadow-sm">
                                             Rs.{pkg.packagePrice}
                                         </div>
-                                    </div>
-                                    
-                                    {/* Package type badge */}
-                                    <div className="mt-2">
-                                        <span className="inline-block bg-amber-100 text-amber-800 text-xs px-2 py-1 rounded-full font-medium">
-                                            {pkg.packageType || "Event"}
-                                        </span>
                                     </div>
                                 </div>
 
                                 {/* Package details */}
-                                <div className="px-5 py-4">
-                                    <p className="text-gray-600 text-sm mb-4">
+                                <div className="px-6 py-4">
+                                    <p className="text-gray-600 text-sm mb-4 line-clamp-3">
                                         {pkg.packageDetails}
                                     </p>
-                                    
-                                    <div className="flex items-center text-xs text-gray-500 mb-4">
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+
+                                    <div className="flex items-center text-xs text-gray-500 mb-5">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                         Valid until: {new Date(pkg.packagevalidity).toLocaleDateString()}
                                     </div>
-                                    
-                                    <div className="border-t border-gray-100 my-3"></div>
-                                    
+
+                                    <div className="border-t border-gray-100 my-4"></div>
+
                                     {/* Package customization options */}
                                     {pkg.includedCustomizations && pkg.includedCustomizations.length > 0 && (
-                                        <div className="mt-4">
-                                            <p className="text-sm font-medium text-gray-700 mb-2">Available Add-ons:</p>
-                                            <div className="space-y-2">
+                                        <div className="mt-6">
+                                            <div className="flex items-center mb-4">
+                                                <div className="h-px flex-1 bg-gray-100"></div>
+                                                <p className="mx-3 text-sm font-medium text-gray-800 uppercase tracking-wider">Enhance Your Package</p>
+                                                <div className="h-px flex-1 bg-gray-100"></div>
+                                            </div>
+
+                                            <div className="space-y-3">
                                                 {pkg.includedCustomizations.map(custom => {
                                                     const isSelected = customizations[pkg._id]?.includes(custom.id);
-                                                    
+
                                                     return (
-                                                        <div key={custom.id} className="flex items-start">
-                                                            <div className="flex items-center h-5">
-                                                                <input
-                                                                    id={`custom-${pkg._id}-${custom.id}`}
-                                                                    type="checkbox"
-                                                                    checked={isSelected}
-                                                                    onChange={() => handleCustomizationToggle(pkg._id, custom.id)}
-                                                                    className="w-4 h-4 text-amber-500 border-gray-300 rounded focus:ring-amber-500"
-                                                                />
-                                                            </div>
-                                                            <label htmlFor={`custom-${pkg._id}-${custom.id}`} className="ml-2 text-sm text-gray-700">
-                                                                {custom.name} <span className="text-amber-600">(+Rs.{custom.price})</span>
-                                                                <p className="text-xs text-gray-500">{custom.description}</p>
-                                                                
+                                                        <div
+                                                            key={custom.id}
+                                                            className={`border rounded-xl py-2 transition-all duration-300 cursor-pointer relative ${isSelected ? 'border-amber-300 bg-amber-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-200'}`}
+                                                            onClick={() => handleCustomizationToggle(pkg._id, custom.id)}
+                                                        >
+                                                            {/* Hidden checkbox for accessibility and functionality */}
+                                                            <input
+                                                                id={`custom-${pkg._id}-${custom.id}`}
+                                                                type="checkbox"
+                                                                checked={isSelected}
+                                                                onChange={() => { }}
+                                                                className="sr-only" // Visually hidden
+                                                            />
+
+                                                            {/* Status indicator */}
+                                                            {isSelected && (
+                                                                <div className="absolute top-0 right-0 w-0 h-0 border-t-16 border-r-16 border-t-amber-500 border-r-transparent transform -translate-y-1 translate-x-1">
+                                                                    <svg className="absolute top-0 right-3 w-3 h-3 text-white transform -translate-y-6 translate-x-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                                                    </svg>
+                                                                </div>
+                                                            )}
+
+                                                            <div className="p-3">
+                                                                <div className="flex items-start">
+                                                                    <div className="flex-1">
+                                                                        <div className="flex justify-between">
+                                                                            <label htmlFor={`custom-${pkg._id}-${custom.id}`} className="text-sm font-medium text-gray-800 cursor-pointer">
+                                                                                {custom.name}
+                                                                            </label>
+                                                                            <span className="text-sm font-semibold text-amber-500">+Rs.{custom.price}</span>
+                                                                        </div>
+                                                                        <p className="text-xs text-gray-500 mt-1">{custom.description}</p>
+                                                                    </div>
+                                                                </div>
+
                                                                 {custom.hasQuantity && isSelected && (
-                                                                    <div className="mt-1 flex items-center">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={(e) => {
-                                                                                e.preventDefault();
-                                                                                const currentQuantity = customizationQuantities[pkg._id]?.[custom.id] || custom.quantity || 1;
-                                                                                if (currentQuantity > (custom.minQuantity || 1)) {
-                                                                                    handleQuantityChange(pkg._id, custom.id, currentQuantity - 1);
-                                                                                }
-                                                                            }}
-                                                                            className="text-gray-500 hover:text-gray-700"
-                                                                        >
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
-                                                                            </svg>
-                                                                        </button>
-                                                                        
-                                                                        <span className="mx-2 text-xs">
-                                                                            {customizationQuantities[pkg._id]?.[custom.id] || custom.quantity || 1} {custom.unit}
-                                                                            {(customizationQuantities[pkg._id]?.[custom.id] || custom.quantity || 1) > 1 ? 's' : ''}
-                                                                        </span>
-                                                                        
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={(e) => {
-                                                                                e.preventDefault();
-                                                                                const currentQuantity = customizationQuantities[pkg._id]?.[custom.id] || custom.quantity || 1;
-                                                                                if (currentQuantity < (custom.maxQuantity || 5)) {
-                                                                                    handleQuantityChange(pkg._id, custom.id, currentQuantity + 1);
-                                                                                }
-                                                                            }}
-                                                                            className="text-gray-500 hover:text-gray-700"
-                                                                        >
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12M6 12h12" />
-                                                                            </svg>
-                                                                        </button>
+                                                                    <div className="mt-3 flex justify-end">
+                                                                        <div className="inline-flex items-center">
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation(); // Prevent triggering the parent onClick
+                                                                                    const currentQuantity = customizationQuantities[pkg._id]?.[custom.id] || custom.quantity || 1;
+                                                                                    if (currentQuantity > (custom.minQuantity || 1)) {
+                                                                                        handleQuantityChange(pkg._id, custom.id, currentQuantity - 1);
+                                                                                    }
+                                                                                }}
+                                                                                className="w-7 h-7 flex items-center justify-center rounded-full bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors"
+                                                                            >
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+                                                                                </svg>
+                                                                            </button>
+
+                                                                            <span className="px-4 py-1 text-sm font-medium text-gray-700">
+                                                                                {customizationQuantities[pkg._id]?.[custom.id] || custom.quantity || 1} {custom.unit}
+                                                                                {(customizationQuantities[pkg._id]?.[custom.id] || custom.quantity || 1) > 1 ? 's' : ''}
+                                                                            </span>
+
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation(); // Prevent triggering the parent onClick
+                                                                                    const currentQuantity = customizationQuantities[pkg._id]?.[custom.id] || custom.quantity || 1;
+                                                                                    if (currentQuantity < (custom.maxQuantity || 5)) {
+                                                                                        handleQuantityChange(pkg._id, custom.id, currentQuantity + 1);
+                                                                                    }
+                                                                                }}
+                                                                                className="w-7 h-7 flex items-center justify-center rounded-full bg-amber-100 text-amber-600 hover:bg-amber-200 transition-colors"
+                                                                            >
+                                                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12M6 12h12" />
+                                                                                </svg>
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
                                                                 )}
-                                                            </label>
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}
                                             </div>
                                         </div>
                                     )}
-                                    
+
                                     {/* Total price section */}
                                     {customizations[pkg._id]?.length > 0 && (
-                                        <div className="flex justify-between items-center mt-4 bg-gray-50 p-2 rounded">
+                                        <div className="flex justify-between items-center mt-5 bg-gray-50 p-3 rounded-lg">
                                             <div>
                                                 <p className="text-xs text-gray-500">Base price</p>
-                                                <p className="text-sm font-medium">Rs.{pkg.packagePrice}</p>
+                                                <p className="text-sm font-medium text-gray-900">Rs.{pkg.packagePrice}</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-xs text-gray-500">Total with add-ons</p>
-                                                <p className="text-sm font-medium text-amber-600">
+                                                <p className="text-base font-semibold text-amber-500">
                                                     Rs.{calculateTotalPrice(pkg.packagePrice, pkg._id)}
                                                 </p>
                                             </div>
                                         </div>
                                     )}
-                                    
-                                    {/* Action buttons */}
-                                    <div className="mt-4 flex space-x-2">
+                                </div>
+
+                                {/* Action buttons */}
+                                <div className="px-8 pb-6 pt-2">
+                                    <div className="flex space-x-4">
                                         <button
                                             onClick={(e) => handlePrintPackage(e, pkg)}
-                                            className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                                            className="flex-1 px-2 py-2.5 border border-gray-200 text-gray-800 rounded-xl hover:bg-gray-50 transition-colors font-medium text-sm"
                                         >
                                             View Details
                                         </button>
                                         <button
                                             onClick={() => handleBookNow(pkg)}
-                                            className="flex-1 px-4 py-2 bg-amber-500 text-white rounded-md hover:bg-amber-600 transition-colors"
+                                            className="flex-1 px-2 py-2.5 bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-colors font-medium text-sm shadow-sm"
                                         >
                                             Book Now
                                         </button>

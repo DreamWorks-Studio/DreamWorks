@@ -221,6 +221,24 @@ const AdminFinance = ({ }) => {
     setShowPaymentDetails(true);
   };
 
+  useEffect(() => {
+    const searchResultItem = sessionStorage.getItem('searchResultItem');
+    if (searchResultItem) {
+      const resultData = JSON.parse(searchResultItem);
+      
+      if (resultData.type === 'payment' && Date.now() - resultData.timestamp < 2000) {
+        const paymentToHighlight = paymentData.find(payment => payment._id === resultData.id);
+        
+        if (paymentToHighlight) {
+          // For payments, you might want to:
+          viewPaymentDetails(paymentToHighlight);
+        }
+        
+        sessionStorage.removeItem('searchResultItem');
+      }
+    }
+  }, [paymentData]);
+
   return (
     <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
       <div className="mb-6 flex justify-between items-center">

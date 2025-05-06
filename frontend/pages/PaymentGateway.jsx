@@ -437,262 +437,303 @@ const PaymentGateway = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white pb-20">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-800">
       <ToastContainer position="top-right" />
       
-      {/* Hero section */}
-      <div className="bg-gradient-to-r from-amber-700 to-amber-500 py-12">
-        <div className="container mx-auto px-4 max-w-4xl">
-          <h1 className="text-3xl font-bold mb-2">
-            {isRemainingPayment ? 'Complete Your Payment' : 'Secure Payment'}
-          </h1>
-          <p className="text-amber-100">
-            {isRemainingPayment 
-              ? 'Pay the remaining amount to complete your booking' 
-              : 'Please enter your payment details to secure your booking'
-            }
-          </p>
-        </div>
-      </div>
-      
-      <div className="container mx-auto max-w-4xl px-4 py-12">
-        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl mb-10">
-          <div className="p-6 border-b border-gray-700">
-            <h2 className="text-xl font-bold mb-2">Booking Summary</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Package</p>
-                <p className="font-medium">{getPackageName()}</p>
+      {/* Main content */}
+      <div className="relative min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 z-10">
+        {/* Top gradient bar */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-black via-black to-black"></div>
+
+        <div className="max-w-4xl w-full">
+          {/* Main card */}
+          <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-100 relative">
+            {/* Card header with photo strip design */}
+            <div className="bg-gray-900 py-10 px-8 relative overflow-hidden">
+              {/* Abstract pattern overlay */}
+              <div className="absolute inset-0 opacity-20">
+                <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <pattern id="diagonalLines" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                      <line x1="0" y1="0" x2="0" y2="10" stroke="#fff" strokeWidth="1" />
+                    </pattern>
+                  </defs>
+                  <rect width="100%" height="100%" fill="url(#diagonalLines)" />
+                </svg>
               </div>
-              <div>
-                <p className="text-gray-400 text-sm mb-1">Date</p>
-                <p className="font-medium">{getBookingDate()}</p>
+
+              <div className="flex flex-col mb-1 mt-4">
+                <div className="flex items-center">
+                  <div className="w-1 h-12 bg-gradient-to-b from-amber-400 to-amber-600 mr-4 rounded-full"></div>
+                  <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+                    {isRemainingPayment ? 'Complete Your Payment' : 'Secure Payment'}
+                  </h1>
+                </div>
+                <p className="text-gray-400 ml-5">
+                  {isRemainingPayment 
+                    ? 'Pay the remaining amount to complete your booking' 
+                    : 'Please enter your payment details to secure your booking'
+                  }
+                </p>
               </div>
+
+              {/* Decorative elements */}
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500"></div>
+              <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-amber-500 rounded-full opacity-20 blur-md"></div>
             </div>
-          </div>
-          
-          <div className="p-6 bg-gray-700">
-            <div className="flex justify-between items-center">
-              <span className="text-amber-300 font-medium">Amount to Pay</span>
-              <span className="text-2xl font-bold">Rs. {isRemainingPayment
-                ? Number(passedTotalAmount).toLocaleString()
-                : Number(bookingDetails?.totalAmount || 0).toLocaleString()
-              }</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-gray-800 rounded-lg overflow-hidden shadow-xl">
-          <div className="p-6 border-b border-gray-700">
-            <h2 className="text-xl font-bold mb-2">Payment Details</h2>
-            <p className="text-gray-400">Complete your booking by providing your payment information</p>
-          </div>
-          
-          <form onSubmit={handleSubmit(onSubmit)} className="p-6">
-            {/* Payment type selection - conditionally show based on payment type */}
-            {!isRemainingPayment ? (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-300 mb-2">Payment Type</label>
-                <div className="grid grid-cols-2 gap-4">
-                  <div 
-                    onClick={() => setPaymentType('full')}
-                    className={`p-4 rounded border cursor-pointer transition ${
-                      paymentType === 'full' 
-                        ? 'border-amber-500 bg-amber-500/20' 
-                        : 'border-gray-600 hover:border-gray-500'
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                        paymentType === 'full' ? 'border-amber-500' : 'border-gray-400'
-                      }`}>
-                        {paymentType === 'full' && (
-                          <div className="h-2 w-2 rounded-full bg-amber-500"></div>
-                        )}
+            
+            <div className="p-8 space-y-8">
+              {/* Booking Summary Section */}
+              <section className="relative">
+                <h3 className="text-xl font-bold text-black border-b-3 border-amber-500 inline-block pb-2 mb-6">
+                  Booking Summary
+                </h3>
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="p-6 border-b border-gray-200">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-2">
+                      <div>
+                        <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Package name</p>
+                        <p className="font-medium text-gray-800">{getPackageName()}</p>
                       </div>
                       <div>
-                        <p className="font-medium">Full Payment</p>
-                        <p className="text-sm text-gray-400">Pay the entire amount now</p>
+                        <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Date of booking</p>
+                        <p className="font-medium text-gray-800">{getBookingDate()}</p>
                       </div>
                     </div>
-                  </div>
-                  <div 
-                    onClick={() => setPaymentType('partial')}
-                    className={`p-4 rounded border cursor-pointer transition ${
-                      paymentType === 'partial' 
-                        ? 'border-amber-500 bg-amber-500/20' 
-                        : 'border-gray-600 hover:border-gray-500'
-                    }`}
-                  >
-                    <div className="flex items-center">
-                      <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
-                        paymentType === 'partial' ? 'border-amber-500' : 'border-gray-400'
-                      }`}>
-                        {paymentType === 'partial' && (
-                          <div className="h-2 w-2 rounded-full bg-amber-500"></div>
-                        )}
-                      </div>
-                      <div>
-                        <p className="font-medium">Partial Payment</p>
-                        <p className="text-sm text-gray-400">Pay a portion now</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="mb-6">
-                <div className="p-4 rounded border border-amber-500 bg-amber-500/20">
-                  <p className="font-medium">Complete Your Payment</p>
-                  <p className="text-sm text-gray-300 mt-1">Pay the remaining amount to complete your booking</p>
-                  <p className="text-2xl font-bold mt-2">Rs. {parseFloat(passedTotalAmount).toLocaleString()}</p>
-                </div>
-              </div>
-            )}
-            
-            {/* Amount field for partial payments */}
-            {paymentType === 'partial' && !isRemainingPayment && (
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Amount to Pay (Minimum Rs.3000)
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <span className="text-gray-400">Rs.</span>
-                  </div>
-                  <input
-                    type="number"
-                    {...register('amount', { 
-                      required: 'Amount is required', 
-                      min: { value: 3000, message: 'Minimum amount is Rs.3000' } 
-                    })}
-                    className={`block w-full pl-12 pr-3 py-2 rounded border-2 text-gray-200 bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                      errors.amount ? 'border-red-500' : 'border-gray-600'
-                    }`}
-                    placeholder="0.00"
-                  />
-                </div>
-                {errors.amount && (
-                  <p className="mt-1 text-sm text-red-500">{errors.amount.message}</p>
-                )}
-              </div>
-            )}
-            
-            {/* Card details section */}
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-200 mb-4">Card Details</h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Card Number
-                  </label>
-                  <input
-                    {...register('cardNumber', {
-                      required: 'Card number is required',
-                      validate: (value) => {
-                        if (value.includes('*')) {
-                          return true;
-                        }
-                        const cardWithoutSpaces = value.replace(/\s/g, '');
-                        return cardWithoutSpaces.length === 16 || 'Card number must have 16 digits';
-                      }
-                    })}
-                    className={`w-full px-4 py-3 bg-gray-800 border ${errors.cardNumber ? 'border-red-500' : 'border-gray-700'} rounded text-white`}
-                    placeholder="Card Number"
-                    disabled={isRemainingPayment && defaultCard}
-                  />
-                  {errors.cardNumber && <p className="text-red-500 text-sm mt-1">{errors.cardNumber.message}</p>}
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      Expiry Date
-                    </label>
-                    <input
-                      type="text"
-                      {...register('expiry', { 
-                        required: 'Expiry date is required',
-                        pattern: {
-                          value: /^(0[1-9]|1[0-2])\/\d{2}$/,
-                          message: 'Must be in MM/YY format'
-                        }
-                      })}
-                      onChange={handleExpiryChange}
-                      className={`block w-full px-3 py-2 rounded border-2 text-gray-200 bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                        errors.expiry ? 'border-red-500' : 'border-gray-600'
-                      }`}
-                      placeholder="MM/YY"
-                    />
-                    {errors.expiry && (
-                      <p className="mt-1 text-sm text-red-500">{errors.expiry.message}</p>
-                    )}
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">
-                      CVC
-                    </label>
-                    <input
-                      type="text"
-                      {...register('cvc', { 
-                        required: 'CVC is required',
-                        pattern: {
-                          value: /^\d{3,4}$/,
-                          message: 'Must be 3 or 4 digits'
-                        }
-                      })}
-                      onChange={handleCVCChange}
-                      className={`block w-full px-3 py-2 rounded border-2 text-gray-200 bg-gray-700 focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                        errors.cvc ? 'border-red-500' : 'border-gray-600'
-                      }`}
-                      placeholder="123"
-                    />
-                    {errors.cvc && (
-                      <p className="mt-1 text-sm text-red-500">{errors.cvc.message}</p>
-                    )}
+                  <div className="p-6 bg-gray-50">
+                    <div className="flex justify-between items-center">
+                      <span className="text-amber-600 text-lg font-semibold">Amount to be Pay</span>
+                      <span className="text-2xl font-bold text-amber-600">Rs. {isRemainingPayment
+                        ? Number(passedTotalAmount).toLocaleString()
+                        : Number(bookingDetails?.totalAmount || 0).toLocaleString()
+                      }</span>
+                    </div>
                   </div>
                 </div>
-                
-                {/* Save card option - show for all payments */}
-                {paymentType === 'partial' && !isRemainingPayment && (
-                  <div className="mt-4">
-                    <label className="flex items-center">
-                      <input
-                        type="checkbox"
-                        {...register('saveCard')}
-                        className="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-500 rounded"
-                      />
-                      <span className="ml-2 text-sm text-gray-300">
-                        Save card for future payments
-                      </span>
-                    </label>
+              </section>
+              
+              {/* Payment Details Section */}
+              <section className="relative">
+                <h3 className="text-xl font-bold text-black border-b-3 border-amber-500 inline-block pb-2 mb-6">
+                  Payment Details
+                </h3>
+                <div className="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+                  <div className="p-6">
+                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                      {/* Payment type selection - conditionally show based on payment type */}
+                      {!isRemainingPayment ? (
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Payment Type</label>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div 
+                              onClick={() => setPaymentType('full')}
+                              className={`p-4 rounded-xl border-2 cursor-pointer transition ${
+                                paymentType === 'full' 
+                                  ? 'border-amber-500 bg-amber-50' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-center">
+                                <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                                  paymentType === 'full' ? 'border-amber-500' : 'border-gray-400'
+                                }`}>
+                                  {paymentType === 'full' && (
+                                    <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Full Payment</p>
+                                  <p className="text-sm text-gray-500">Pay the entire amount now</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div 
+                              onClick={() => setPaymentType('partial')}
+                              className={`p-4 rounded-xl border-2 cursor-pointer transition ${
+                                paymentType === 'partial' 
+                                  ? 'border-amber-500 bg-amber-50' 
+                                  : 'border-gray-200 hover:border-gray-300'
+                              }`}
+                            >
+                              <div className="flex items-center">
+                                <div className={`h-5 w-5 rounded-full border-2 mr-3 flex items-center justify-center ${
+                                  paymentType === 'partial' ? 'border-amber-500' : 'border-gray-400'
+                                }`}>
+                                  {paymentType === 'partial' && (
+                                    <div className="h-2 w-2 rounded-full bg-amber-500"></div>
+                                  )}
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-800">Partial Payment</p>
+                                  <p className="text-sm text-gray-500">Pay a portion now</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mb-6">
+                          <div className="p-4 rounded border-2 border-amber-500 bg-amber-50">
+                            <p className="font-medium text-gray-800">Complete Your Payment</p>
+                            <p className="text-sm text-gray-600 mt-1">Pay the remaining amount to complete your booking</p>
+                            <p className="text-2xl font-bold mt-2 text-gray-800">Rs. {parseFloat(passedTotalAmount).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Amount field for partial payments */}
+                      {paymentType === 'partial' && !isRemainingPayment && (
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Amount to Pay (Minimum Rs.3000)
+                          </label>
+                          <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <span className="text-gray-500">Rs.</span>
+                            </div>
+                            <input
+                              type="number"
+                              {...register('amount', { 
+                                required: 'Amount is required', 
+                                min: { value: 3000, message: 'Minimum amount is Rs.3000' } 
+                              })}
+                              className={`block w-full pl-12 pr-3 py-2 rounded-lg border-2 text-gray-800 bg-white focus:outline-none focus:border-2 focus:border-amber-500 ${
+                                errors.amount ? 'border-red-500' : 'border-gray-300'
+                              }`}
+                              placeholder="0.00"
+                            />
+                          </div>
+                          {errors.amount && (
+                            <p className="mt-1 text-sm text-red-500">{errors.amount.message}</p>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* Card details section */}
+                      <div className="mb-6">
+                        <h3 className="text-lg font-medium text-gray-800 mb-4">Card Details</h3>
+                        
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Card Number
+                            </label>
+                            <input
+                              {...register('cardNumber', {
+                                required: 'Card number is required',
+                                validate: (value) => {
+                                  if (value.includes('*')) {
+                                    return true;
+                                  }
+                                  const cardWithoutSpaces = value.replace(/\s/g, '');
+                                  return cardWithoutSpaces.length === 16 || 'Card number must have 16 digits';
+                                }
+                              })}
+                              onChange={handleCardNumberChange}
+                              className={`w-full px-4 py-3 bg-white border-2 ${errors.cardNumber ? 'border-red-500' : 'border-gray-300'} rounded-lg focus:outline-none focus:border-2 focus:border-amber-500 text-gray-800`}
+                              placeholder="Card Number"
+                              disabled={isRemainingPayment && defaultCard}
+                            />
+                            {errors.cardNumber && <p className="text-red-500 text-sm mt-1">{errors.cardNumber.message}</p>}
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Expiry Date
+                              </label>
+                              <input
+                                type="text"
+                                {...register('expiry', { 
+                                  required: 'Expiry date is required',
+                                  pattern: {
+                                    value: /^(0[1-9]|1[0-2])\/\d{2}$/,
+                                    message: 'Must be in MM/YY format'
+                                  }
+                                })}
+                                onChange={handleExpiryChange}
+                                className={`block w-full px-3 py-2 rounded-lg border-2 text-gray-800 bg-white focus:outline-none focus:border-2 focus:border-amber-500 ${
+                                  errors.expiry ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="MM/YY"
+                              />
+                              {errors.expiry && (
+                                <p className="mt-1 text-sm text-red-500">{errors.expiry.message}</p>
+                              )}
+                            </div>
+                            
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                CVC
+                              </label>
+                              <input
+                                type="text"
+                                {...register('cvc', { 
+                                  required: 'CVC is required',
+                                  pattern: {
+                                    value: /^\d{3,4}$/,
+                                    message: 'Must be 3 or 4 digits'
+                                  }
+                                })}
+                                onChange={handleCVCChange}
+                                className={`block w-full px-3 py-2 rounded-lg border-2 text-gray-800 bg-white focus:outline-none focus:border-2 focus:border-amber-500 ${
+                                  errors.cvc ? 'border-red-500' : 'border-gray-300'
+                                }`}
+                                placeholder="123"
+                              />
+                              {errors.cvc && (
+                                <p className="mt-1 text-sm text-red-500">{errors.cvc.message}</p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Save card option - show for all payments */}
+                          {paymentType === 'partial' && !isRemainingPayment && (
+                            <div className="mt-4">
+                              <label className="flex items-center">
+                                <input
+                                  type="checkbox"
+                                  {...register('saveCard')}
+                                  className="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded"
+                                />
+                                <span className="ml-2 text-sm text-gray-600">
+                                  Save card for future payments
+                                </span>
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Submit button */}
+                      <div className="flex justify-center mt-8">
+                        <button
+                          type="submit"
+                          disabled={submitting}
+                          className="px-10 py-4 bg-gray-900 text-white font-medium rounded-lg shadow-lg hover:bg-amber-500  hover:text-gray-900 focus:outline-none transform transition hover:-translate-y-1 relative overflow-hidden group"
+                        >
+                          {submitting ? (
+                            <>
+                              <ClipLoader size={20} color="#000000" className="mr-2" />
+                              Processing...
+                            </>
+                          ) : isRemainingPayment ? (
+                            'Complete Payment'
+                          ) : (
+                            `Pay ${paymentType === 'full' ? 'Full' : 'Partial'} Amount`
+                          )}
+                        </button>
+                      </div>
+                    </form>
                   </div>
-                )}
-              </div>
+                </div>
+              </section>
             </div>
             
-            {/* Submit button */}
-            <div className="mt-8">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-3 px-4 bg-amber-600 hover:bg-amber-700 text-white font-medium rounded transition duration-200 flex items-center justify-center"
-              >
-                {submitting ? (
-                  <>
-                    <ClipLoader size={20} color="#ffffff" className="mr-2" />
-                    Processing...
-                  </>
-                ) : isRemainingPayment ? (
-                  'Complete Payment'
-                ) : (
-                  `Pay ${paymentType === 'full' ? 'Full' : 'Partial'} Amount`
-                )}
-              </button>
-            </div>
-          </form>
+            <div className="h-2 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500"></div>
+          </div>
         </div>
       </div>
     </div>

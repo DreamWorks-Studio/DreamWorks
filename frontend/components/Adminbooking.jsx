@@ -73,12 +73,38 @@ const Adminbooking = () => {
     );
 
     const sortedBookings = [...filteredBookings].sort((a, b) => {
-        if (!sortLatest) return 0;
-
-        const dateA = a.date ? new Date(a.date) : new Date(0);
-        const dateB = b.date ? new Date(b.date) : new Date(0);
+        if (!sortLatest) {
+            return 0;
+        }
+        
+        const dateA = a.createdAt ? new Date(a.createdAt) : (a.date ? new Date(a.date) : new Date(0));
+        const dateB = b.createdAt ? new Date(b.createdAt) : (b.date ? new Date(b.date) : new Date(0));
+        
         return dateB - dateA;
-    });
+    })
+
+    useEffect(() => {
+        // Check if we arrived here from the search results
+        const searchResultItem = sessionStorage.getItem('searchResultItem');
+        if (searchResultItem) {
+          const resultData = JSON.parse(searchResultItem);
+          
+          // Only process if this is a booking search result and it's recent (within last 2 seconds)
+          if (resultData.type === 'booking' && Date.now() - resultData.timestamp < 2000) {
+            // Find the booking in your list
+            const bookingToHighlight = bookings.find(booking => booking._id === resultData.id);
+            
+            if (bookingToHighlight) {
+              // You could scroll to it, highlight it, or open its details
+              setSelectedBooking(bookingToHighlight);
+              setShowDetailsModal(true);
+            }
+            
+            // Clear the session storage so it doesn't trigger again on refresh
+            sessionStorage.removeItem('searchResultItem');
+          }
+        }
+      }, [bookings]);
 
     // Handle booking click in calendar view
     const handleBookingClick = (booking) => {

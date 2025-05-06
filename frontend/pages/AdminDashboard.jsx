@@ -12,10 +12,8 @@ import {
   TrendingUp,
   DollarSign,
   Calendar,
-  Settings,
+  MessageSquare,
   LogOut,
-  Camera,
-  ChevronRight,
   Image,
   Aperture,
   ArrowRight
@@ -26,6 +24,8 @@ import Adminbooking from '../components/Adminbooking';
 import AdminPortfolio from '../components/AdminPortfolio';
 import AdminUser from '../components/AdminUser';
 import AdminFinance from '../components/AdminFinance';
+import AdminContact from '../components/AdminContact';
+import { useSelector } from 'react-redux';
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -40,6 +40,17 @@ const AdminDashboard = () => {
   const [revenueChange, setRevenueChange] = useState(0);
   const [recentBookings, setRecentBookings] = useState([]);
   const [recentPayments, setRecentPayments] = useState([]);
+  const [totalBookingsThisMonth, setTotalBookingsThisMonth] = useState(0);
+  const [revenueThisMonth, setRevenueThisMonth] = useState(0);
+  const [packageBookingCounts, setPackageBookingCounts] = useState({});
+  const [topPackages, setTopPackages] = useState([]);
+  const [packagesLoading, setPackagesLoading] = useState(true);
+  const [globalSearchTerm, setGlobalSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+
+  const { currentUser } = useSelector((state) => state.user);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -55,9 +66,27 @@ const AdminDashboard = () => {
               return acc + (payment.amountPaid || 0);
             }, 0);
             setTotalRevenue(totalRev);
+
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+
+            const thisMonthRevenue = revenueData
+              .filter(payment => {
+                const paymentDate = new Date(payment.createdAt);
+                return paymentDate.getMonth() === currentMonth &&
+                  paymentDate.getFullYear() === currentYear;
+              })
+              .reduce((acc, payment) => {
+                return acc + (payment.amountPaid || 0);
+              }, 0);
+
+            setRevenueThisMonth(thisMonthRevenue);
           }
         } catch (error) {
           console.error('Error fetching revenue data:', error);
+          setTotalRevenue(0);
+          setRevenueThisMonth(0);
         }
 
         // Try to fetch users data
@@ -90,29 +119,103 @@ const AdminDashboard = () => {
           setTotalUsers(0);
         }
 
-        // Try to fetch bookings data
+        let totalBookingsThisMonth = 0;
+
         try {
           const bookingsResponse = await fetch('http://localhost:5003/api/booking/display-summary');
           if (bookingsResponse.ok) {
             const bookingsData = await bookingsResponse.json();
-            const bookingsCount = bookingsData.bookings ? bookingsData.bookings.length : 0;
+            const bookingsCount = Array.isArray(bookingsData) ? bookingsData.length : 0;
             setTotalBookings(bookingsCount);
+            if (Array.isArray(bookingsData)) {
+              const now = new Date();
+              const currentMonth = now.getMonth();
+              const currentYear = now.getFullYear();
+              const thisMonthBookings = bookingsData.filter(booking => {
+                const bookingDate = new Date(booking.date);
+                return bookingDate.getMonth() == currentMonth &&
+                  bookingDate.getFullYear() == currentYear;
+              });
+              totalBookingsThisMonth = thisMonthBookings.length;
+            }
+
+            // Now fetch packages and calculate stats after we have the bookings data
+            try {
+              // Fetch packages
+              const packagesResponse = await fetch('http://localhost:5003/api/package/viewPackages');
+
+              if (packagesResponse.ok) {
+                const packagesData = await packagesResponse.json();
+
+                // Create a map of package ID to package details
+                const packageMap = {};
+                packagesData.forEach(pkg => {
+                  packageMap[pkg._id] = pkg;
+                });
+
+                // Count bookings by package
+                const packageCounts = {};
+
+                // Process Array of bookings
+                if (Array.isArray(bookingsData)) {
+                  bookingsData.forEach(booking => {
+                    const packageId = booking.packageId;
+                    const packageType = booking.packageType;
+
+                    // If we have a packageId, count it
+                    if (packageId) {
+                      packageCounts[packageId] = (packageCounts[packageId] || 0) + 1;
+                    }
+                    // Otherwise try to match by package type
+                    else if (packageType) {
+                      // Find matching package by name
+                      const matchingPackage = packagesData.find(pkg =>
+                        pkg.packagename.toLowerCase() === packageType.toLowerCase()
+                      );
+
+                      if (matchingPackage) {
+                        packageCounts[matchingPackage._id] = (packageCounts[matchingPackage._id] || 0) + 1;
+                      }
+                    }
+                  });
+                }
+
+                // Sort packages by booking count and take top 3
+                const sortedPackages = Object.keys(packageCounts)
+                  .map(packageId => ({
+                    id: packageId,
+                    name: packageMap[packageId] ? packageMap[packageId].packagename : 'Unknown Package',
+                    price: packageMap[packageId] ? packageMap[packageId].packagePrice : 0,
+                    count: packageCounts[packageId]
+                  }))
+                  .sort((a, b) => b.count - a.count)
+                  .slice(0, 3);
+
+                setPackageBookingCounts(packageCounts);
+                setTopPackages(sortedPackages);
+              }
+            } catch (error) {
+              console.error('Error fetching package statistics:', error);
+            } finally {
+              setPackagesLoading(false);
+            }
           }
           setBookingChange(3.8);
         } catch (error) {
           console.error('Error fetching bookings data:', error);
           // Set default value
           setTotalBookings(0);
+          totalBookingsThisMonth = 0;
+          setPackagesLoading(false);
         }
 
+        setTotalBookingsThisMonth(totalBookingsThisMonth);
+
         try {
-          const bookingsResponse = await fetch('http://localhost:5003/api/booking/display-summary');
+          const bookingsResponse = await fetch('http://localhost:5003/api/booking/recent-bookings');
           if (bookingsResponse.ok) {
-            const bookingsData = await bookingsResponse.json();
-            const sortedBookings = bookingsData.bookings
-              ? [...bookingsData.bookings].sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)).slice(0, 3)
-              : [];
-            setRecentBookings(sortedBookings);
+            const recentBookingsData = await bookingsResponse.json();
+            setRecentBookings(recentBookingsData);
           }
         } catch (error) {
           console.error('Error fetching recent bookings:', error);
@@ -141,9 +244,131 @@ const AdminDashboard = () => {
     fetchDashboardData();
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Prevent page refresh if Enter key is pressed in the search input
+      if (e.key === 'Enter' && document.activeElement.tagName === 'INPUT') {
+        e.preventDefault();
+        return false;
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyDown);
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
   const handleLogout = () => {
     localStorage.removeItem("token"); // Remove token
     window.location.href = "/sign-in"; // Redirect to login page
+  };
+
+  const handleGlobalSearch = (e) => {
+    const value = e.target.value;
+    setGlobalSearchTerm(value);
+
+    if (value.trim().length > 2) {
+      performGlobalSearch(value);
+      setShowSearchResults(true);
+    } else {
+      setSearchResults([]);
+      setShowSearchResults(false);
+    }
+  };
+
+  const performGlobalSearch = async (query) => {
+    setIsSearching(true);
+    const results = [];
+    const searchQuery = query.toLowerCase();
+
+    try {
+      // Search in bookings
+      if (recentBookings && recentBookings.length > 0) {
+        const bookingMatches = recentBookings.filter(booking =>
+          booking.fullName?.toLowerCase().includes(searchQuery) ||
+          booking.email?.toLowerCase().includes(searchQuery) ||
+          booking.packageType?.toLowerCase().includes(searchQuery)
+        ).map(booking => ({
+          id: booking._id,
+          type: 'booking',
+          title: `Booking: ${booking.fullName || 'Unnamed'}`,
+          subtitle: `Package: ${booking.packageType || 'N/A'}`,
+          icon: Calendar,
+          date: new Date(booking.date).toLocaleDateString(),
+          page: 'booking'
+        }));
+
+        results.push(...bookingMatches);
+      }
+
+      // Search in packages
+      try {
+        const packagesResponse = await fetch('http://localhost:5003/api/package/viewPackages');
+        if (packagesResponse.ok) {
+          const packagesData = await packagesResponse.json();
+
+          const packageMatches = packagesData.filter(pkg =>
+            pkg.packagename?.toLowerCase().includes(searchQuery) ||
+            pkg.packageDetails?.toLowerCase().includes(searchQuery)
+          ).map(pkg => ({
+            id: pkg._id,
+            type: 'package',
+            title: `Package: ${pkg.packagename}`,
+            subtitle: `Rs.${pkg.packagePrice}`,
+            icon: SquareLibrary,
+            page: 'packages'
+          }));
+
+          results.push(...packageMatches);
+        }
+      } catch (error) {
+        console.error('Error searching packages:', error);
+      }
+
+      // Search in payments
+      if (recentPayments && recentPayments.length > 0) {
+        const paymentMatches = recentPayments.filter(payment =>
+          payment.bookingId?.fullName?.toLowerCase().includes(searchQuery) ||
+          payment.paymentMethod?.toLowerCase().includes(searchQuery)
+        ).map(payment => ({
+          id: payment._id,
+          type: 'payment',
+          title: `Payment: ${payment.bookingId?.fullName || 'Unnamed'}`,
+          subtitle: `Rs.${payment.amountPaid}`,
+          icon: DollarSign,
+          date: new Date(payment.createdAt).toLocaleDateString(),
+          page: 'payments'
+        }));
+
+        results.push(...paymentMatches);
+      }
+
+      setSearchResults(results);
+    } catch (error) {
+      console.error('Error during search:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearchResultClick = (e, result) => {
+    e.preventDefault(); // Prevent default browser behavior
+    
+    // Set which page we want to navigate to
+    setActivePage(result.page);
+    
+    // Store the selected item information in session storage
+    sessionStorage.setItem('searchResultItem', JSON.stringify({
+      id: result.id,
+      type: result.type,
+      timestamp: Date.now()
+    }));
+    
+    // Close the search results and clear the input
+    setShowSearchResults(false);
+    setGlobalSearchTerm('');
   };
 
   const handlePageTransition = (newPage) => {
@@ -165,7 +390,8 @@ const AdminDashboard = () => {
     { id: 'user', title: 'Users', icon: UsersRound },
     { id: 'payments', title: 'Finance', icon: WalletCards },
     { id: 'packages', title: 'Packages', icon: SquareLibrary },
-    { id: 'booking', title: 'Bookings', icon: Calendar }
+    { id: 'booking', title: 'Bookings', icon: Calendar },
+    { id: 'contact', title: 'Contact', icon: MessageSquare }
   ];
 
   const getGreeting = () => {
@@ -220,6 +446,8 @@ const AdminDashboard = () => {
       return <AdminUser activePage={activePage} />;
     } else if (activePage === 'booking') {
       return <Adminbooking activePage={activePage} />;
+    } else if (activePage == 'contact') {
+      return <AdminContact activePage={activePage}/>
     } else {
       return (
         <PageTransition>
@@ -290,7 +518,7 @@ const AdminDashboard = () => {
               </motion.div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 mb-8">
               {/* Revenue Card */}
               <motion.div
                 className="bg-white rounded-2xl shadow-md overflow-hidden border border-black/5 hover:shadow-lg transition-all"
@@ -311,18 +539,32 @@ const AdminDashboard = () => {
                   {loading ? (
                     <div className="animate-pulse h-8 w-32 bg-gray-200 rounded"></div>
                   ) : (
-                    <>
-                      <div className="flex items-baseline">
-                        <h2 className="text-2xl font-bold text-black/90">Rs.{totalRevenue.toLocaleString()}</h2>
-                        <span className={`ml-2 text-sm px-2 py-0.5 rounded ${revenueChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                          <span className="flex items-center">
-                            <TrendingUp size={12} className={`mr-1 ${revenueChange < 0 ? 'transform rotate-180' : ''}`} />
-                            {revenueChange.toFixed(1)}%
+                    <div className="flex ml-4">
+                      {/* Total revenue */}
+                      <div className="flex-1">
+                        <div className="flex items-baseline">
+                          <h2 className="text-2xl font-bold text-black/90">Rs.{totalRevenue.toLocaleString()}</h2>
+                          <span className={`ml-2 text-sm px-2 py-0.5 rounded ${revenueChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                            <span className="flex items-center">
+                              <TrendingUp size={12} className={`mr-1 ${revenueChange < 0 ? 'transform rotate-180' : ''}`} />
+                              {revenueChange.toFixed(1)}%
+                            </span>
                           </span>
-                        </span>
+                        </div>
+                        <p className="text-sm text-black/60 mt-1">Total earnings</p>
                       </div>
-                      <p className="text-sm text-black/60 mt-1">Total earnings</p>
-                    </>
+
+                      {/* Vertical divider */}
+                      <div className="mx-3 w-px bg-gray-300"></div>
+
+                      {/* This month's revenue */}
+                      <div className="flex-1 ml-7">
+                        <div className="flex items-baseline">
+                          <h2 className="text-2xl font-bold text-black/90">Rs.{revenueThisMonth.toLocaleString()}</h2>
+                        </div>
+                        <p className="text-sm text-black/60 mt-1">This month</p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </motion.div>
@@ -343,23 +585,36 @@ const AdminDashboard = () => {
                   {loading ? (
                     <div className="animate-pulse h-8 w-32 bg-gray-200 rounded"></div>
                   ) : (
-                    <>
-                      <div className="flex items-baseline">
-                        <h2 className="text-2xl font-bold text-black/90">{totalBookings}</h2>
-                        <span className={`ml-2 text-sm px-2 py-0.5 rounded ${bookingChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                          <span className="flex items-center">
-                            <TrendingUp size={12} className={`mr-1 ${bookingChange < 0 ? 'transform rotate-180' : ''}`} />
-                            {bookingChange.toFixed(1)}%
+                    <div className="flex ml-4" >
+                      {/* Total bookings */}
+                      <div className="flex-1">
+                        <div className="flex items-baseline">
+                          <h2 className="text-2xl font-bold text-black/90">{totalBookings}</h2>
+                          <span className={`ml-2 text-sm px-2 py-0.5 rounded ${bookingChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                            <span className="flex items-center">
+                              <TrendingUp size={12} className={`mr-1 ${bookingChange < 0 ? 'transform rotate-180' : ''}`} />
+                              {bookingChange.toFixed(1)}%
+                            </span>
                           </span>
-                        </span>
+                        </div>
+                        <p className="text-sm text-black/60 mt-1">Total Bookings</p>
                       </div>
-                      <p className="text-sm text-black/60 mt-1">Total sessions</p>
-                    </>
+
+                      {/* Vertical divider */}
+                      <div className="mx-3 w-px bg-gray-300"></div>
+
+                      {/* This month's bookings */}
+                      <div className="flex-1 ml-7">
+                        <div className="flex items-baseline">
+                          <h2 className="text-2xl font-bold text-black/90">{totalBookingsThisMonth}</h2>
+                        </div>
+                        <p className="text-sm text-black/60 mt-1">For This month</p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </motion.div>
 
-              {/* Users Card */}
               <motion.div
                 className="bg-white rounded-2xl shadow-md overflow-hidden border border-black/5 hover:shadow-lg transition-all"
                 variants={cardVariants}
@@ -372,54 +627,51 @@ const AdminDashboard = () => {
                       whileHover={{ rotate: 15, scale: 1.1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 10 }}
                     >
-                      <UsersRound size={22} className="text-amber-600" />
+                      <SquareLibrary size={22} className="text-amber-600" />
                     </motion.div>
-                    <h3 className="ml-3 text-lg font-semibold text-black/80">Clients</h3>
+                    <h3 className="ml-3 text-lg font-semibold text-black/80">Popular Packages</h3>
                   </div>
-                  {loading ? (
+                  {loading || packagesLoading ? (
                     <div className="animate-pulse h-8 w-32 bg-gray-200 rounded"></div>
                   ) : (
-                    <>
-                      <div className="flex items-baseline">
-                        <h2 className="text-2xl font-bold text-black/90">{totalUsers}</h2>
-                        <span className={`ml-2 text-sm px-2 py-0.5 rounded ${userChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                          <span className="flex items-center">
-                            <TrendingUp size={12} className={`mr-1 ${userChange < 0 ? 'transform rotate-180' : ''}`} />
-                            {userChange.toFixed(1)}%
+                    <div className="flex ml-4">
+                      {/* Top package with count - left side */}
+                      <div className="flex-1">
+                        <div className="flex items-baseline">
+                          <h2 className="text-2xl font-bold text-black/90">
+                            {topPackages.length > 0 ? topPackages[0].count : 0}
+                          </h2>
+                          <span className="ml-2 text-sm px-2 py-0.5 rounded bg-green-100 text-green-600">
+                            <span className="flex items-center">
+                              <TrendingUp size={12} className="mr-1" />
+                              {topPackages.length > 0 ? '↑' : ''}2.3%
+                            </span>
                           </span>
-                        </span>
+                        </div>
+                        <p className="text-sm text-black/60 mt-1">
+                          {topPackages.length > 0 ? topPackages[0].name : 'No packages'}
+                        </p>
                       </div>
-                      <p className="text-sm text-black/60 mt-1">Registered users</p>
-                    </>
+
+                      {/* Vertical divider - exactly like the user card */}
+                      <div className="mx-3 w-px bg-gray-200"></div>
+
+                      {/* Monthly bookings - right side */}
+                      <div className="flex-1 ml-7">
+                        <div className="flex items-baseline">
+                          <h2 className="text-2xl font-bold text-black/90">
+                            {topPackages.length > 1 ? topPackages[1].count : 0}
+                          </h2>
+                        </div>
+                        <p className="text-sm text-black/60 mt-1">
+                          {topPackages.length > 1 ? topPackages[1].name : 'No packages'}
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </div>
               </motion.div>
 
-              {/* Tasks Card */}
-              <motion.div
-                className="bg-white rounded-2xl shadow-md overflow-hidden border border-black/5 hover:shadow-lg transition-all"
-                variants={cardVariants}
-                custom={4}
-              >
-                <div className="p-6">
-                  <div className="flex items-center mb-4">
-                    <motion.div className="p-3 bg-amber-50 rounded-xl">
-                      <Settings size={22} className="text-amber-600" />
-                    </motion.div>
-                    <h3 className="ml-3 text-lg font-semibold text-black/80">Tasks</h3>
-                  </div>
-                  <div className="flex items-baseline">
-                    <h2 className="text-2xl font-bold text-black/90">28</h2>
-                    <span className="ml-2 text-sm px-2 py-0.5 rounded bg-red-100 text-red-600">
-                      <span className="flex items-center">
-                        <TrendingUp size={12} className="mr-1 transform rotate-180" />
-                        -2.4%
-                      </span>
-                    </span>
-                  </div>
-                  <p className="text-sm text-black/60 mt-1">Pending tasks</p>
-                </div>
-              </motion.div>
             </div>
 
             {/* Recent Activity Section */}
@@ -671,27 +923,100 @@ const AdminDashboard = () => {
           </div>
           <div className="flex items-center space-x-4">
             <div className="relative hidden md:block">
-              <Search size={18} className="text-black/40 absolute left-3 top-1/2 transform -translate-y-1/2" />
-              <input
-                type="text"
-                placeholder="Search..."
-                className="bg-black/5 pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring focus:ring-amber-200 w-64 text-sm"
+              <Search
+                size={18}
+                className={`text-black/40 absolute left-3 top-1/2 transform -translate-y-1/2 ${isSearching ? 'text-amber-500 animate-pulse' : ''}`}
               />
+              <input
+                type="text" // Explicitly set type to text
+                placeholder="Search..."
+                value={globalSearchTerm}
+                onChange={handleGlobalSearch}
+                className="bg-black/5 pl-10 pr-4 py-2 rounded-xl focus:outline-none focus:ring focus:ring-amber-200 w-64 text-sm"
+                onKeyDown={(e) => {
+                  // Prevent form submission on Enter key
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                  }
+                }}
+                onFocus={() => {
+                  if (globalSearchTerm.trim().length > 2) {
+                    setShowSearchResults(true);
+                  }
+                }}
+              />
+
+              {/* Search Results Dropdown */}
+              {showSearchResults && (
+                <div className="absolute top-full mt-1 left-0 w-72 max-h-96 overflow-y-auto bg-white rounded-lg shadow-lg border border-gray-200 z-50">
+                  {isSearching ? (
+                    <div className="flex items-center justify-center p-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-amber-500"></div>
+                      <span className="ml-2 text-gray-500">Searching...</span>
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <div>
+                      {searchResults.map((result) => (
+                        <div
+                        key={`${result.type}-${result.id}`}
+                        className="px-4 py-3 hover:bg-amber-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                        onMouseDown={(e) => handleSearchResultClick(e, result)}
+                      >
+                          <div className="flex items-center">
+                            <div className="p-2 bg-amber-100 rounded-lg mr-3">
+                              {result.icon && <result.icon size={16} className="text-amber-600" />}
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">{result.title}</p>
+                              <p className="text-xs text-gray-500 flex items-center justify-between">
+                                <span>{result.subtitle}</span>
+                                {result.date && <span className="text-gray-400">{result.date}</span>}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 text-center text-gray-500">
+                      {globalSearchTerm.trim().length > 0 ? 'No results found' : 'Type to search'}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <button className="p-2 rounded-full hover:bg-black/5 relative">
               <Bell size={20} className="text-black/60" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full"></span>
             </button>
+
+            {/* User Avatar - Updated with Redux user data */}
             <div className="flex items-center space-x-2">
-              <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center">
-                <span className="font-medium text-white">A</span>
-              </div>
-              <span className="text-sm font-medium text-black/70 hidden md:block">Admin</span>
+              {currentUser ? (
+                <>
+                  <div className="w-9 h-9 rounded-full overflow-hidden">
+                    <img
+                      src={currentUser.avatar || "https://cdn.vectorstock.com/i/2000v/95/56/user-profile-icon-avatar-or-person-vector-45089556.avif"}
+                      alt="User"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="text-sm font-semibold text-black/80 hidden md:block">
+                    {currentUser.username || "Admin"}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <div className="w-9 h-9 rounded-full bg-black flex items-center justify-center">
+                    <span className="font-medium text-white">A</span>
+                  </div>
+                  <span className="text-sm font-medium text-black/70 hidden md:block">Admin</span>
+                </>
+              )}
             </div>
           </div>
         </header>
 
-        {/* Main Content */}
         <main className="flex-1 overflow-y-auto p-6 pb-16">{renderContent()}</main>
       </div>
     </div>
