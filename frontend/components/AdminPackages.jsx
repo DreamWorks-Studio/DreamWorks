@@ -85,6 +85,25 @@ const AdminPackages = () => {
     }
   };
 
+  useEffect(() => {
+    const searchResultItem = sessionStorage.getItem('searchResultItem');
+    if (searchResultItem) {
+      const resultData = JSON.parse(searchResultItem);
+      
+      if (resultData.type === 'package' && Date.now() - resultData.timestamp < 2000) {
+        const packageToHighlight = packages.find(pkg => pkg._id === resultData.id);
+        
+        if (packageToHighlight) {
+          // For packages, you might want to:
+          // Scroll the package into view or open edit mode
+          handleUpdatePackage(resultData.id);
+        }
+        
+        sessionStorage.removeItem('searchResultItem');
+      }
+    }
+  }, [packages]);
+
   // Animation variants
   const pageVariants = {
     initial: {
