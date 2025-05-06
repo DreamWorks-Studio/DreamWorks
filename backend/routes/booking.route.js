@@ -3,7 +3,7 @@
 import express from 'express';
 const router = express.Router();
 
-import { test, createBooking,getBooking,getBookedDates, getAllBookings,updateBooking, updateBookingStatus, getUserBookings } from '../controller/booking.controller.js';
+import { test, createBooking,getBooking,getBookedDates, getAllBookings,updateBooking, updateBookingStatus, getUserBookings, getRecentBookings} from '../controller/booking.controller.js';
 import { check } from 'express-validator';
 
 router.get('/test',test);
@@ -35,6 +35,7 @@ router.put('/update-booking/:id',
 // In your booking.route.js
 router.patch('/update-booking-status/:bookingId', updateBookingStatus);
 router.get('/user-bookings/:userId', getUserBookings);
+router.get('/recent-bookings', getRecentBookings);
 
 
 //router.get('/user/:userId/package', getUserSelectedPackage);
