@@ -37,7 +37,7 @@ const Portfolio = () => {
     { id: 'Graduation', name: 'Graduation' },
     { id: 'Preshoots', name: 'Preshoots' },
     { id: 'Wedding', name: 'Wedding' },
-    { id: 'ModelShoots', name: 'Model Shoots' },
+    { id: 'Modelshoots', name: 'Model Shoots' },
     { id: 'Events', name: 'Events' }
   ];
 
