@@ -26,6 +26,7 @@ import AdminPortfolio from '../components/AdminPortfolio';
 import AdminUser from '../components/AdminUser';
 import AdminFinance from '../components/AdminFinance';
 import AdminContact from '../components/AdminContact';
+import AdminProfile from './AdminProfile';
 import { useSelector } from 'react-redux';
 
 const AdminDashboard = () => {
@@ -50,6 +51,7 @@ const AdminDashboard = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   const { currentUser } = useSelector((state) => state.user);
 
@@ -95,7 +97,7 @@ const AdminDashboard = () => {
           const usersResponse = await fetch('http://localhost:5003/api/user/getusers', {
             credentials: 'include'  // Add this line to include cookies
           });
-          
+
           if (usersResponse.ok) {
             const usersData = await usersResponse.json();
             setTotalUsers(usersData.length || 0);
@@ -242,9 +244,9 @@ const AdminDashboard = () => {
         return false;
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
-    
+
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
@@ -253,6 +255,20 @@ const AdminDashboard = () => {
   const handleLogout = () => {
     localStorage.removeItem("token"); // Remove token
     window.location.href = "/sign-in"; // Redirect to login page
+  };
+
+  const fetchAdminData = () => {
+    // Using the currentUser from Redux store
+    if (!currentUser) return null;
+    
+    return {
+      id: currentUser._id, // Make sure this is the correct ID field from your user object
+      name: currentUser.username,
+      email: currentUser.email,
+      role: currentUser.isAdmin ? (currentUser.isSuperAdmin ? "Super Admin" : "Admin") : "User",
+      joinDate: new Date(currentUser.createdAt).toLocaleDateString(),
+      avatar: currentUser.avatar
+    };
   };
 
   const handleGlobalSearch = (e) => {
@@ -345,17 +361,17 @@ const AdminDashboard = () => {
 
   const handleSearchResultClick = (e, result) => {
     e.preventDefault(); // Prevent default browser behavior
-    
+
     // Set which page we want to navigate to
     setActivePage(result.page);
-    
+
     // Store the selected item information in session storage
     sessionStorage.setItem('searchResultItem', JSON.stringify({
       id: result.id,
       type: result.type,
       timestamp: Date.now()
     }));
-    
+
     // Close the search results and clear the input
     setShowSearchResults(false);
     setGlobalSearchTerm('');
@@ -437,7 +453,7 @@ const AdminDashboard = () => {
     } else if (activePage === 'booking') {
       return <Adminbooking activePage={activePage} />;
     } else if (activePage == 'contact') {
-      return <AdminContact activePage={activePage}/>
+      return <AdminContact activePage={activePage} />
     } else {
       return (
         <PageTransition>
@@ -948,10 +964,10 @@ const AdminDashboard = () => {
                     <div>
                       {searchResults.map((result) => (
                         <div
-                        key={`${result.type}-${result.id}`}
-                        className="px-4 py-3 hover:bg-amber-50 cursor-pointer border-b border-gray-100 last:border-b-0"
-                        onMouseDown={(e) => handleSearchResultClick(e, result)}
-                      >
+                          key={`${result.type}-${result.id}`}
+                          className="px-4 py-3 hover:bg-amber-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                          onMouseDown={(e) => handleSearchResultClick(e, result)}
+                        >
                           <div className="flex items-center">
                             <div className="p-2 bg-amber-100 rounded-lg mr-3">
                               {result.icon && <result.icon size={16} className="text-amber-600" />}
@@ -981,11 +997,13 @@ const AdminDashboard = () => {
             </button>
 
             {/* User Avatar - Updated with Redux user data */}
-            
-            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => window.location.href = '/adminprofile'}>
+
+            <div
+              className="flex items-center space-x-2 cursor-pointer"
+              onClick={() => setShowProfileModal(true)} // Changed this line to open modal instead of navigating
+            >
               {currentUser ? (
                 <>
-                
                   <div className="w-9 h-9 rounded-full overflow-hidden">
                     <img
                       src={currentUser.avatar || "https://cdn.vectorstock.com/i/2000v/95/56/user-profile-icon-avatar-or-person-vector-45089556.avif"}
@@ -993,7 +1011,7 @@ const AdminDashboard = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  
+
                   <span className="text-sm font-semibold text-black/80 hidden md:block">
                     {currentUser.username || "Admin"}
                   </span>
@@ -1012,6 +1030,30 @@ const AdminDashboard = () => {
 
         <main className="flex-1 overflow-y-auto p-6 pb-16">{renderContent()}</main>
       </div>
+      {showProfileModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+    <div className="relative max-w-md w-full animate-fade-in-scale">
+      {/* Close button */}
+      <button 
+        className="absolute top-3 right-3 z-10 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+        onClick={() => setShowProfileModal(false)}
+      >
+        <X size={20} className="text-gray-700" />
+      </button>
+      
+      {/* Admin Profile Component */}
+      <AdminProfile 
+        userData={fetchAdminData()} 
+        onUpdate={(updatedData) => {
+          // Optionally handle the updated user data here
+          // For example, update the Redux store
+          // dispatch(updateUserSuccess(updatedData));
+          setShowProfileModal(false);
+        }}
+      />
+    </div>
+  </div>
+)}
     </div>
   );
 };
