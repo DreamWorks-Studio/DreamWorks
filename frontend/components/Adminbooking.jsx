@@ -4,6 +4,7 @@ import { Download, Camera, ChevronRight } from "lucide-react";
 import BookingCalenderView from './BookingCalenderView';
 import BookingCalendarView from "./BookingCalenderView";
 import { motion } from "framer-motion";
+import CustomPopup from "./CustomPopup"
 
 const Adminbooking = () => {
     const [bookings, setBookings] = useState([]);
@@ -13,6 +14,9 @@ const Adminbooking = () => {
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [sortLatest, setSortLatest] = useState(true);
+    const [showPopup, setShowPopup] = useState(false);
+    const [popupMessage, setPopupMessage] = useState('');
+    const [popupType, setPopupType] = useState('success');
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -27,44 +31,57 @@ const Adminbooking = () => {
         return () => clearTimeout(timer);
     }, []);
 
-    // Toggle status between "Completed" and "Not Completed"
     const toggleStatus = async (bookingId, currentStatus) => {
         const newStatus = currentStatus === "Completed" ? "Not Completed" : "Completed";
-
         const updatedBookings = bookings.map((booking) =>
             booking._id === bookingId ? { ...booking, status: newStatus } : booking
         );
         setBookings(updatedBookings);
-
         try {
             await fetch(`http://localhost:5003/api/booking/update-booking-status/${bookingId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: newStatus }),
             });
+            
+            // Show success popup
+            setPopupMessage(`Booking status updated to ${newStatus}`);
+            setPopupType('success');
+            setShowPopup(true);
         } catch (error) {
             console.error("Error updating status in the database:", error);
+            
+            // Show error popup
+            setPopupMessage("Failed to update booking status");
+            setPopupType('error');
+            setShowPopup(true);
         }
     };
-
-
     // Undo the status (set back to "Not Completed") for completed bookings
     const undoStatus = async (bookingId) => {
         const newStatus = "Not Completed"; // Set status to Not Completed
-
         const updatedBookings = bookings.map((booking) =>
             booking._id === bookingId ? { ...booking, status: newStatus } : booking
         );
         setBookings(updatedBookings);
-
         try {
             await fetch(`http://localhost:5003/api/booking/update-booking-status/${bookingId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: newStatus }),
             });
+            
+            // Show success popup
+            setPopupMessage("Booking status reset to Not Completed");
+            setPopupType('success');
+            setShowPopup(true);
         } catch (error) {
             console.error("Error updating status in the database:", error);
+            
+            // Show error popup
+            setPopupMessage("Failed to reset booking status");
+            setPopupType('error');
+            setShowPopup(true);
         }
     };
 
@@ -407,7 +424,7 @@ const Adminbooking = () => {
                                     </div>
                                     <div>
                                         <p className="text-sm text-gray-500">Phone Number</p>
-                                        <p className="font-medium">{selectedBooking.phone || "-"}</p>
+                                        <p className="font-medium">{selectedBooking.telephone || "-"}</p>
                                     </div>
                                 </div>
                             </div>
@@ -497,6 +514,12 @@ const Adminbooking = () => {
                     </div>
                 </div>
             )}
+            <CustomPopup
+            show={showPopup}
+            message={popupMessage}
+            type={popupType}
+            onClose={() => setShowPopup(false)}
+        />
         </div>
     );
 };

@@ -108,6 +108,10 @@ const BookingSummary = () => {
                                         <p className="font-medium text-lg">{booking.location}</p>
                                     </div>
                                     <div>
+                                        <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Telephone</p>
+                                        <p className="font-medium text-lg">{booking.telephone}</p>
+                                    </div>
+                                    <div>
                                         <p className="text-xs uppercase tracking-wider text-gray-500 mb-1">Additional Requests</p>
                                         <p className="font-medium text-lg">{booking.addson || booking.addsOn || "None"}</p>
                                     </div>
@@ -121,7 +125,7 @@ const BookingSummary = () => {
                                 </h3>
 
                                 <div className="bg-gray-800 rounded-lg p-6 text-white relative">
-                                    
+
                                     <div className="pl-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                             <div>

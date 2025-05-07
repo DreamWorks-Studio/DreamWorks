@@ -29,9 +29,15 @@ connectDB();
 app.use(express.json());
 app.use(cookieParser());
 
-//middlewares
-app.use(cors())
-app.use(express.json())
+// CORS Configuration
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    credentials: true,
+  })
+);
+
+//Debug middlewares
 app.use((req, res, next) => {
     console.log('Request body before route:', req.body);  // Debug line
     next();
@@ -46,16 +52,9 @@ app.use('/api/portfolio', portfolioRouter);
 app.use('/api/package',packageRouter)
 app.use('/api/payments', paymentRouter);
 app.use('/api/cards', cardRouter);
+app.use('/api', contactRoutes);
+//app.use('/backend/auth',authRoute)
 
-
-
-// CORS Configuration
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
-    credentials: true,
-  })
-);
 
 // Error Handling Middleware
 app.use((err, req, res, next) => {
@@ -75,8 +74,7 @@ app.listen(port, () => {
 })
 
 
-app.use('/api', contactRoutes);
-//app.use('/backend/auth',authRoute)
+
 
 
 

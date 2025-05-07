@@ -16,7 +16,8 @@ import {
   LogOut,
   Image,
   Aperture,
-  ArrowRight
+  ArrowRight,
+  Link
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AdminPackages from '../components/AdminPackages';
@@ -91,31 +92,20 @@ const AdminDashboard = () => {
 
         // Try to fetch users data
         try {
-          const token = localStorage.getItem('token');
-          if (!token) {
-            console.warn('No authentication token found for fetching users');
+          const usersResponse = await fetch('http://localhost:5003/api/user/getusers', {
+            credentials: 'include'  // Add this line to include cookies
+          });
+          
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            setTotalUsers(usersData.length || 0);
+          } else {
+            console.warn('Failed to fetch users, status:', usersResponse.status);
             // Set a default value or leave as 0
             setTotalUsers(0);
-          } else {
-            const usersResponse = await fetch('http://localhost:5003/api/user/getusers', {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            });
-
-            if (usersResponse.ok) {
-              const usersData = await usersResponse.json();
-              setTotalUsers(usersData.length || 0);
-            } else {
-              console.warn('Failed to fetch users, status:', usersResponse.status);
-              // Set a default value or leave as 0
-              setTotalUsers(0);
-            }
           }
-          setUserChange(5.2);
         } catch (error) {
-          console.error('Error fetching users data:', error);
-          // Set default value
+          console.error('Error fetching users:', error);
           setTotalUsers(0);
         }
 
@@ -543,7 +533,7 @@ const AdminDashboard = () => {
                       {/* Total revenue */}
                       <div className="flex-1">
                         <div className="flex items-baseline">
-                          <h2 className="text-2xl font-bold text-black/90">Rs.{totalRevenue.toLocaleString()}</h2>
+                          <h2 className="text-xl font-bold text-black/90">Rs.{totalRevenue.toLocaleString()}</h2>
                           <span className={`ml-2 text-sm px-2 py-0.5 rounded ${revenueChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                             <span className="flex items-center">
                               <TrendingUp size={12} className={`mr-1 ${revenueChange < 0 ? 'transform rotate-180' : ''}`} />
@@ -558,9 +548,9 @@ const AdminDashboard = () => {
                       <div className="mx-3 w-px bg-gray-300"></div>
 
                       {/* This month's revenue */}
-                      <div className="flex-1 ml-7">
+                      <div className="flex-1 ml-4">
                         <div className="flex items-baseline">
-                          <h2 className="text-2xl font-bold text-black/90">Rs.{revenueThisMonth.toLocaleString()}</h2>
+                          <h2 className="text-xl font-bold text-black/90">Rs.{revenueThisMonth.toLocaleString()}</h2>
                         </div>
                         <p className="text-sm text-black/60 mt-1">This month</p>
                       </div>
@@ -991,9 +981,11 @@ const AdminDashboard = () => {
             </button>
 
             {/* User Avatar - Updated with Redux user data */}
-            <div className="flex items-center space-x-2">
+            
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => window.location.href = '/adminprofile'}>
               {currentUser ? (
                 <>
+                
                   <div className="w-9 h-9 rounded-full overflow-hidden">
                     <img
                       src={currentUser.avatar || "https://cdn.vectorstock.com/i/2000v/95/56/user-profile-icon-avatar-or-person-vector-45089556.avif"}
@@ -1001,6 +993,7 @@ const AdminDashboard = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
+                  
                   <span className="text-sm font-semibold text-black/80 hidden md:block">
                     {currentUser.username || "Admin"}
                   </span>

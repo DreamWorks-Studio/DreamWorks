@@ -18,6 +18,7 @@ import {
 } from "react-icons/hi";
 import { FaCheck, FaTimes, FaCrown, FaCamera } from "react-icons/fa";
 import { Camera, ChevronRight, Search } from "lucide-react";
+import CustomPopup from "./CustomPopup";
 
 const UserStatistics = ({ users }) => {
   const now = new Date();
@@ -153,6 +154,9 @@ export default function AdminUser() {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState("");
+  const [popupType, setPopupType] = useState("success");
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -204,21 +208,32 @@ export default function AdminUser() {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
-
       const data = await res.json();
-
       if (res.ok) {
         const updated = users.filter((user) => user._id !== selectedUserId);
         setUsers(updated);
         setFilteredUsers(updated);
         setShowModal(false);
-        setSuccessMessage("User deleted successfully!");
-        setTimeout(() => setSuccessMessage(""), 3000);
+        
+        // Show popup instead of success message
+        setPopupMessage("User deleted successfully!");
+        setPopupType("success");
+        setShowPopup(true);
       } else {
         console.error(data.message);
+        
+        // Show error popup
+        setPopupMessage("Failed to delete user");
+        setPopupType("error");
+        setShowPopup(true);
       }
     } catch (error) {
       console.error(error.message);
+      
+      // Show error popup
+      setPopupMessage("Error deleting user");
+      setPopupType("error");
+      setShowPopup(true);
     }
   };
 
@@ -375,7 +390,7 @@ export default function AdminUser() {
 
       <UserStatistics users={users} />
 
-      {/* Success Message */}
+      {/* Success Message 
       <AnimatePresence>
         {successMessage && (
           <motion.div
@@ -394,7 +409,7 @@ export default function AdminUser() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>*/}
 
       {/* Main Table */}
       <div className="bg-white rounded-xl overflow-hidden transition-all duration-500 border border-gray-100">
@@ -721,6 +736,12 @@ export default function AdminUser() {
           </motion.div>
         )}
       </AnimatePresence>
+      <CustomPopup
+  show={showPopup}
+  message={popupMessage}
+  type={popupType}
+  onClose={() => setShowPopup(false)}
+/>
     </div>
   );
 }
