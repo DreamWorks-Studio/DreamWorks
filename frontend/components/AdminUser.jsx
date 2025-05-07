@@ -157,6 +157,7 @@ export default function AdminUser() {
   const [showPopup, setShowPopup] = useState(false);
   const [popupMessage, setPopupMessage] = useState("");
   const [popupType, setPopupType] = useState("success");
+  const [roleFilter, setRoleFilter] = useState("all"); 
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -236,6 +237,25 @@ export default function AdminUser() {
       setShowPopup(true);
     }
   };
+
+  useEffect(() => {
+    const term = searchTerm.toLowerCase();
+    const filtered = users.filter((user) => {
+      const matchesSearch =
+        user.username.toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term);
+
+      const matchesRole =
+        roleFilter === "all" ||
+        (roleFilter === "superadmin" && user.isSuperAdmin) ||
+        (roleFilter === "admin" && user.isAdmin && !user.isSuperAdmin) ||
+        (roleFilter === "user" && !user.isAdmin && !user.isSuperAdmin);
+
+      return matchesSearch && matchesRole;
+    });
+
+    setFilteredUsers(filtered);
+  }, [searchTerm, users, roleFilter]);
 
   const toggleAdminStatus = async (id, isAdmin, isSuperAdmin) => {
     try {
@@ -394,6 +414,22 @@ export default function AdminUser() {
               />
             </div>
           </motion.div>
+          <div className="relative">
+  <select
+    value={roleFilter}
+    onChange={(e) => setRoleFilter(e.target.value)}
+    className="appearance-none bg-gradient-to-br from-white to-gray-50 border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 rounded-xl pl-4 pr-10 py-2.5 text-sm text-gray-700 font-medium focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-400"
+  >
+    <option value="all">All Roles</option>
+    <option value="superadmin">Super Admin</option>
+    <option value="admin">Admin</option>
+    <option value="user">User</option>
+  </select>
+  <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-amber-500">
+    <HiOutlineShieldCheck className="text-lg" />
+  </div>
+</div>
+
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.98 }}
