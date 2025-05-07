@@ -7,7 +7,7 @@ const CustomPopup = ({ show, message, type = 'success', onClose }) => {
         if (show) {
             const timer = setTimeout(() => {
                 if (onClose) onClose();
-            }, 2500);
+            }, 1500);
 
             return () => clearTimeout(timer);
         }
