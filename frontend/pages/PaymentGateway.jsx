@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ClipLoader } from "react-spinners";
-import { toast, ToastContainer } from 'react-toastify';
-
-import 'react-toastify/ReactToastify.css';
+import CustomPopup from '../components/CustomPopup';
 
 const PaymentGateway = () => {
   const [paymentType, setPaymentType] = useState('full');
@@ -25,6 +23,9 @@ const PaymentGateway = () => {
   const isRemainingPayment = location.state?.isRemainingPayment;
   const defaultCard = location.state?.defaultCard;
   const [selectedCardId, setSelectedCardId] = useState(defaultCard?.id || null);
+  const [showPopup, setShowPopup] = useState(false);
+const [popupMessage, setPopupMessage] = useState('');
+const [popupType, setPopupType] = useState('success');
 
 
   // Get bookingId from the passed booking details
@@ -184,6 +185,12 @@ const PaymentGateway = () => {
     }
   }, [paymentType, setValue]);
 
+  const showCustomPopup = (message, type = 'success') => {
+    setPopupMessage(message);
+    setPopupType(type);
+    setShowPopup(true);
+  };
+
   const watchAmount = watch('amount');
   const watchSaveCard = watch('saveCard');
   const cardDetailsEntered = watch('cardNumber') && watch('expiry') && watch('cvc'); 
@@ -218,7 +225,7 @@ const PaymentGateway = () => {
     // More detailed validation to help identify the specific issue
     if (!bookingDetails?._id) {
       console.error('Invalid booking details:', bookingDetails);
-      toast.error('Missing booking information. Please try again.');
+      showCustomPopup('Missing booking information. Please try again.', 'error');
       return;
     }
     
@@ -232,13 +239,13 @@ const PaymentGateway = () => {
     // Check if package ID is missing
     if (!effectivePackageId) {
       console.error('Missing package ID:', bookingDetails);
-      toast.error('Package information is incomplete. Please try again.');
+      showCustomPopup('Package information is incomplete. Please try again.', 'error');
       return;
     }
     
     if (!bookingDetails.user?.id) {
       console.error('bookingDetails.user.id is missing', bookingDetails);
-      toast.error('User information is incomplete. Please try again.');
+      showCustomPopup('User information is incomplete. Please try again.', 'error');
       return;
     }
   
@@ -295,6 +302,8 @@ const PaymentGateway = () => {
         packageId: paymentData.packageId,
         packagePrice: paymentData.packagePrice
       });
+
+      
       
       // Use fetch instead of axios
       const response = await fetch('http://localhost:5003/api/payments/card', {
@@ -347,7 +356,7 @@ const PaymentGateway = () => {
           console.warn('Error saving card:', cardError);
         }
       }
-      toast.success(successMessage);
+      showCustomPopup(successMessage, 'success');
       
       setTimeout(() => {
         navigate('/profile', {
@@ -364,7 +373,7 @@ const PaymentGateway = () => {
       
     } catch (error) {
       console.error('Error processing payment:', error);
-      toast.error(error.message || 'Payment failed. Please try again.');
+      showCustomPopup(error.message || 'Payment failed. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -384,6 +393,26 @@ const PaymentGateway = () => {
       value = value.substring(0, 2) + '/' + value.substring(2, 4);
     }
     e.target.value = value.substring(0, 5);
+
+    if (value.length === 5) {
+      const currentDate = new Date();
+      const currentMonth = currentDate.getMonth() + 1;
+      const currentYear = currentDate.getFullYear() % 100;
+
+      const [inputMonth, inputYear] = value.split('/').map(num => parseInt(num, 10));
+
+      if (
+        (inputYear < currentYear) || 
+        (inputYear === currentYear && inputMonth < currentMonth)
+      ) {
+        setError('expiry', {
+          type: 'manual',
+          message: 'Card has expired'
+        });
+      } else {
+        clearErrors('expiry');
+      }
+    }
   };
 
   const handleCVCChange = (e) => {
@@ -437,9 +466,7 @@ const PaymentGateway = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-800">
-      <ToastContainer position="top-right" />
-      
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-800">  
       {/* Main content */}
       <div className="relative min-h-screen flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 z-10">
         {/* Top gradient bar */}
@@ -651,6 +678,22 @@ const PaymentGateway = () => {
                                   pattern: {
                                     value: /^(0[1-9]|1[0-2])\/\d{2}$/,
                                     message: 'Must be in MM/YY format'
+                                  },
+                                  validate: value => {
+                                    const [month, year] = value.split('/').map(num => parseInt(num, 10));
+                                    
+                                    const currentDate = new Date();
+                                    const currentMonth = currentDate.getMonth() + 1;
+                                    const currentYear = currentDate.getFullYear() % 100; 
+                                    
+                                    if (
+                                      (year < currentYear) || 
+                                      (year === currentYear && month < currentMonth)
+                                    ) {
+                                      return 'Card has expired';
+                                    }
+                                    
+                                    return true;
                                   }
                                 })}
                                 onChange={handleExpiryChange}
@@ -736,6 +779,12 @@ const PaymentGateway = () => {
           </div>
         </div>
       </div>
+      <CustomPopup 
+  show={showPopup} 
+  message={popupMessage} 
+  type={popupType} 
+  onClose={() => setShowPopup(false)} 
+/>
     </div>
   );
 };
