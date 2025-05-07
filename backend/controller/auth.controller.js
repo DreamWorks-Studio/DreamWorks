@@ -51,7 +51,7 @@ export const signin = async (req, res, next) => {
         
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1m' } // Added expiration
+      { expiresIn: '1h' } // Added expiration
     );
 
     const { password: pass, ...rest } = validUser._doc;
