@@ -12,7 +12,9 @@ const AdminPortfolio = ({ activePage }) => {
   const [location, setLocation] = useState("");
   const [dateCaptured, setDateCaptured] = useState("");
   const [photographerName, setPhotographerName] = useState("");
-  const [uploadSuccess, setUploadSuccess] = useState({ show: false, imageCategory: '' });
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
+  const [popupType, setPopupType] = useState('success');
   const [uploadError, setUploadError] = useState({ show: false, message: '' });
   const [deleteSuccess, setDeleteSuccess] = useState({ show: false, message: '' });
   const [updateSuccess, setUpdateSuccess] = useState({ show: false, imageCategory: '' });
@@ -204,16 +206,22 @@ const AdminPortfolio = ({ activePage }) => {
           console.error("Server error text:", errorText);
         }
 
-        setUploadError(true);
-        setUploadSuccess(false);
+        // Show error popup
+        setPopupMessage("Failed to upload image. Please try again.");
+        setPopupType("error");
+        setShowPopup(true);
         return;
       }
 
       const data = await response.json();
       console.log("Upload Response:", data);
 
-      setUploadSuccess(true);
-      setUploadError(false);
+      // Show success popup
+      setPopupMessage(`Image successfully added to the ${selectedCategory} gallery.`);
+      setPopupType("success");
+      setShowPopup(true);
+
+      // Reset form
       setImageFile(null);
       setSelectedCategory("");
       setDescription("");
@@ -221,11 +229,13 @@ const AdminPortfolio = ({ activePage }) => {
       setDateCaptured("");
       setPhotographerName("");
       setRefreshTrigger(prev => prev + 1);
-      setTimeout(() => setUploadSuccess(false), 3000);
     } catch (error) {
       console.error("Upload error:", error);
-      setUploadError(true);
-      setUploadSuccess(false);
+
+      // Show error popup
+      setPopupMessage("An error occurred during upload. Please try again.");
+      setPopupType("error");
+      setShowPopup(true);
     }
   };
 
@@ -403,77 +413,6 @@ const AdminPortfolio = ({ activePage }) => {
           )}
         </motion.div>
       </div>
-
-      {/* Upload Success Popup */}
-      <AnimatePresence>
-        {uploadSuccess.show && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.3 }}
-            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
-          >
-            <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
-              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
-                <svg
-                  className="checkmark"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="60"
-                  height="60"
-                  viewBox="0 0 52 52"
-                >
-                  <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
-                  <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
-                </svg>
-              </div>
-              <h3 className="text-2xl font-bold text-gray-800 mb-3">Upload Successful!</h3>
-              <p className="text-gray-600 text-center mb-5">
-                Your image has been added to the {uploadSuccess.imageCategory} gallery.
-              </p>
-              <div className="flex items-center justify-center">
-                <span className="flex items-center gap-2 px-4 py-2 bg-amber-100 text-amber-700 rounded-full font-medium">
-                  <Image size={16} />
-                  {uploadSuccess.imageCategory}
-                </span>
-              </div>
-            </div>
-
-            <style jsx>{`
-        .checkmark__circle {
-          stroke-dasharray: 166;
-          stroke-dashoffset: 166;
-          stroke-width: 2;
-          stroke-miterlimit: 10;
-          stroke: #f59e0b; /* amber-500 */
-          fill: none;
-          animation: stroke 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards;
-        }
-        
-        .checkmark {
-          border-radius: 50%;
-          display: block;
-          stroke-width: 3;
-          stroke: #f59e0b; /* amber-500 */
-          stroke-miterlimit: 10;
-        }
-        
-        .checkmark__check {
-          transform-origin: 50% 50%;
-          stroke-dasharray: 48;
-          stroke-dashoffset: 48;
-          animation: stroke 0.3s cubic-bezier(0.65, 0, 0.45, 1) 0.3s forwards;
-        }
-        
-        @keyframes stroke {
-          100% {
-            stroke-dashoffset: 0;
-          }
-        }
-      `}</style>
-          </motion.div>
-        )}
-      </AnimatePresence>
       {/* Update Success Popup */}
       <AnimatePresence>
         {updateSuccess.show && (
@@ -563,7 +502,7 @@ const AdminPortfolio = ({ activePage }) => {
                 {uploadError.message || "There was an error. Please try again."}
               </p>
             </div>
-            
+
           </motion.div>
         )}
       </AnimatePresence>
@@ -1048,6 +987,12 @@ const AdminPortfolio = ({ activePage }) => {
           </motion.div>
         )}
       </AnimatePresence>
+      <CustomPopup
+        show={showPopup}
+        message={popupMessage}
+        type={popupType}
+        onClose={() => setShowPopup(false)}
+      />
     </motion.div>
   );
 };
