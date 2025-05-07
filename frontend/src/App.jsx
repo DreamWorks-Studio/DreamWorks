@@ -26,7 +26,7 @@ import Portfolio from '../pages/Portfolio'
 import UpdatePortfolio from '../pages/UpdatePortfolio'
 import PaymentSummary from '../pages/PaymentSummary'
 import PaymentGateway from '../pages/PaymentGateway'
-
+import AdminProfile from '../pages/AdminProfile';
 
 const App = () => {
 
@@ -67,6 +67,7 @@ const App = () => {
       <Route path='/viewGallery' element={<UpdatePortfolio/>}/>
       <Route path='/payment'element={<PaymentSummary/>}/>
       <Route path='/gateway' element={<PaymentGateway/>}/>  
+      <Route path='/adminprofile' element={<AdminProfile/>}/>
         
     </Routes>
     <ScrollUp/>

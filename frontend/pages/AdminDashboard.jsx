@@ -16,7 +16,8 @@ import {
   LogOut,
   Image,
   Aperture,
-  ArrowRight
+  ArrowRight,
+  Link
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import AdminPackages from '../components/AdminPackages';
@@ -991,9 +992,11 @@ const AdminDashboard = () => {
             </button>
 
             {/* User Avatar - Updated with Redux user data */}
-            <div className="flex items-center space-x-2">
+            
+            <div className="flex items-center space-x-2 cursor-pointer" onClick={() => window.location.href = '/adminprofile'}>
               {currentUser ? (
                 <>
+                
                   <div className="w-9 h-9 rounded-full overflow-hidden">
                     <img
                       src={currentUser.avatar || "https://cdn.vectorstock.com/i/2000v/95/56/user-profile-icon-avatar-or-person-vector-45089556.avif"}
@@ -1001,6 +1004,7 @@ const AdminDashboard = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
+                  
                   <span className="text-sm font-semibold text-black/80 hidden md:block">
                     {currentUser.username || "Admin"}
                   </span>
