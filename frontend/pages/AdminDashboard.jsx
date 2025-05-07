@@ -27,7 +27,8 @@ import AdminUser from '../components/AdminUser';
 import AdminFinance from '../components/AdminFinance';
 import AdminContact from '../components/AdminContact';
 import AdminProfile from './AdminProfile';
-import { useSelector } from 'react-redux';
+import CustomPopup from '../components/CustomPopup';
+import { useSelector, useDispatch } from 'react-redux';
 
 const AdminDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -52,8 +53,12 @@ const AdminDashboard = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showDashboardPopup, setShowDashboardPopup] = useState(false);
+  const [dashboardPopupMessage, setDashboardPopupMessage] = useState('');
+  const [dashboardPopupType, setDashboardPopupType] = useState('success');
 
   const { currentUser } = useSelector((state) => state.user);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -85,6 +90,12 @@ const AdminDashboard = () => {
               }, 0);
 
             setRevenueThisMonth(thisMonthRevenue);
+            if (totalRev > 0) {
+              const monthlyPercentage = (thisMonthRevenue / totalRev) * 100;
+              setRevenueChange(monthlyPercentage);
+            } else {
+              setRevenueChange(0);
+            }
           }
         } catch (error) {
           console.error('Error fetching revenue data:', error);
@@ -129,6 +140,13 @@ const AdminDashboard = () => {
                   bookingDate.getFullYear() == currentYear;
               });
               totalBookingsThisMonth = thisMonthBookings.length;
+
+              if (bookingsCount > 0) {
+                const bookingPercentage = (totalBookingsThisMonth / bookingsCount) * 100;
+                setBookingChange(bookingPercentage);
+              } else {
+                setBookingChange(0);
+              }
             }
 
             // Now fetch packages and calculate stats after we have the bookings data
@@ -192,7 +210,6 @@ const AdminDashboard = () => {
               setPackagesLoading(false);
             }
           }
-          setBookingChange(3.8);
         } catch (error) {
           console.error('Error fetching bookings data:', error);
           // Set default value
@@ -260,7 +277,7 @@ const AdminDashboard = () => {
   const fetchAdminData = () => {
     // Using the currentUser from Redux store
     if (!currentUser) return null;
-    
+
     return {
       id: currentUser._id, // Make sure this is the correct ID field from your user object
       name: currentUser.username,
@@ -269,6 +286,22 @@ const AdminDashboard = () => {
       joinDate: new Date(currentUser.createdAt).toLocaleDateString(),
       avatar: currentUser.avatar
     };
+  };
+
+  const handleProfileUpdate = (updatedUser, message) => {
+    // First, close the profile modal
+    setShowProfileModal(false);
+
+    // Update Redux store
+    dispatch({
+      type: 'UPDATE_USER_SUCCESS',
+      payload: updatedUser
+    });
+
+    // Then show the popup at the dashboard level
+    setDashboardPopupMessage(message || "Profile updated successfully!");
+    setDashboardPopupType('success');
+    setShowDashboardPopup(true);
   };
 
   const handleGlobalSearch = (e) => {
@@ -550,12 +583,6 @@ const AdminDashboard = () => {
                       <div className="flex-1">
                         <div className="flex items-baseline">
                           <h2 className="text-xl font-bold text-black/90">Rs.{totalRevenue.toLocaleString()}</h2>
-                          <span className={`ml-2 text-sm px-2 py-0.5 rounded ${revenueChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                            <span className="flex items-center">
-                              <TrendingUp size={12} className={`mr-1 ${revenueChange < 0 ? 'transform rotate-180' : ''}`} />
-                              {revenueChange.toFixed(1)}%
-                            </span>
-                          </span>
                         </div>
                         <p className="text-sm text-black/60 mt-1">Total earnings</p>
                       </div>
@@ -567,6 +594,12 @@ const AdminDashboard = () => {
                       <div className="flex-1 ml-4">
                         <div className="flex items-baseline">
                           <h2 className="text-xl font-bold text-black/90">Rs.{revenueThisMonth.toLocaleString()}</h2>
+                          <span className={`ml-2 text-xs px-2 py-1 rounded-xl ${revenueChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                            <span className="flex items-center">
+                              <TrendingUp size={12} className={`mr-1 ${revenueChange < 0 ? 'transform rotate-180' : ''}`} />
+                              {revenueChange.toFixed(1)}%
+                            </span>
+                          </span>
                         </div>
                         <p className="text-sm text-black/60 mt-1">This month</p>
                       </div>
@@ -596,12 +629,6 @@ const AdminDashboard = () => {
                       <div className="flex-1">
                         <div className="flex items-baseline">
                           <h2 className="text-2xl font-bold text-black/90">{totalBookings}</h2>
-                          <span className={`ml-2 text-sm px-2 py-0.5 rounded ${bookingChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
-                            <span className="flex items-center">
-                              <TrendingUp size={12} className={`mr-1 ${bookingChange < 0 ? 'transform rotate-180' : ''}`} />
-                              {bookingChange.toFixed(1)}%
-                            </span>
-                          </span>
                         </div>
                         <p className="text-sm text-black/60 mt-1">Total Bookings</p>
                       </div>
@@ -613,6 +640,12 @@ const AdminDashboard = () => {
                       <div className="flex-1 ml-7">
                         <div className="flex items-baseline">
                           <h2 className="text-2xl font-bold text-black/90">{totalBookingsThisMonth}</h2>
+                          <span className={`ml-2 text-xs px-2 py-1 rounded-xl ${bookingChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                            <span className="flex items-center">
+                              <TrendingUp size={12} className={`mr-1 ${bookingChange < 0 ? 'transform rotate-180' : ''}`} />
+                              {bookingChange.toFixed(1)}%
+                            </span>
+                          </span>
                         </div>
                         <p className="text-sm text-black/60 mt-1">For This month</p>
                       </div>
@@ -650,7 +683,9 @@ const AdminDashboard = () => {
                           <span className="ml-2 text-sm px-2 py-0.5 rounded bg-green-100 text-green-600">
                             <span className="flex items-center">
                               <TrendingUp size={12} className="mr-1" />
-                              {topPackages.length > 0 ? '↑' : ''}2.3%
+                              {topPackages.length > 0 && totalBookings > 0
+                                ? `${((topPackages[0].count / totalBookings) * 100).toFixed(1)}%`
+                                : '0%'}
                             </span>
                           </span>
                         </div>
@@ -668,6 +703,14 @@ const AdminDashboard = () => {
                           <h2 className="text-2xl font-bold text-black/90">
                             {topPackages.length > 1 ? topPackages[1].count : 0}
                           </h2>
+                          <span className="ml-2 text-sm px-2 py-0.5 rounded bg-green-100 text-green-600">
+                            <span className="flex items-center">
+                              <TrendingUp size={12} className="mr-1" />
+                              {topPackages.length > 1 && totalBookings > 0
+                                ? `${((topPackages[1].count / totalBookings) * 100).toFixed(1)}%`
+                                : '0%'}
+                            </span>
+                          </span>
                         </div>
                         <p className="text-sm text-black/60 mt-1">
                           {topPackages.length > 1 ? topPackages[1].name : 'No packages'}
@@ -991,10 +1034,10 @@ const AdminDashboard = () => {
                 </div>
               )}
             </div>
-            <button className="p-2 rounded-full hover:bg-black/5 relative">
+            {/*<button className="p-2 rounded-full hover:bg-black/5 relative">
               <Bell size={20} className="text-black/60" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full"></span>
-            </button>
+            </button>*/}
 
             {/* User Avatar - Updated with Redux user data */}
 
@@ -1031,29 +1074,31 @@ const AdminDashboard = () => {
         <main className="flex-1 overflow-y-auto p-6 pb-16">{renderContent()}</main>
       </div>
       {showProfileModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-    <div className="relative max-w-md w-full animate-fade-in-scale">
-      {/* Close button */}
-      <button 
-        className="absolute top-3 right-3 z-10 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
-        onClick={() => setShowProfileModal(false)}
-      >
-        <X size={20} className="text-gray-700" />
-      </button>
-      
-      {/* Admin Profile Component */}
-      <AdminProfile 
-        userData={fetchAdminData()} 
-        onUpdate={(updatedData) => {
-          // Optionally handle the updated user data here
-          // For example, update the Redux store
-          // dispatch(updateUserSuccess(updatedData));
-          setShowProfileModal(false);
-        }}
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50">
+          <div className="relative max-w-md w-full animate-fade-in-scale">
+            {/* Close button */}
+            <button
+              className="absolute top-3 right-3 z-10 bg-white rounded-full p-1 shadow-md hover:bg-gray-100"
+              onClick={() => setShowProfileModal(false)}
+            >
+              <X size={20} className="text-gray-700" />
+            </button>
+
+            {/* Admin Profile Component */}
+            <AdminProfile
+              userData={fetchAdminData()}
+              onClose={() => setShowProfileModal(false)}
+              onUpdate={handleProfileUpdate}
+            />
+          </div>
+        </div>
+      )}
+      <CustomPopup
+        show={showDashboardPopup}
+        message={dashboardPopupMessage}
+        type={dashboardPopupType}
+        onClose={() => setShowDashboardPopup(false)}
       />
-    </div>
-  </div>
-)}
     </div>
   );
 };
