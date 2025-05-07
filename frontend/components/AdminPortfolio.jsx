@@ -4,6 +4,7 @@ import { Camera, Image, Upload, ArrowRight, LayoutGrid, ChevronRight, User, MapP
 import { motion, AnimatePresence } from "framer-motion";
 import DatePicker from "react-datepicker";
 import UpdatePortfolio from "../pages/UpdatePortfolio"; // Import UpdatePortfolio
+import CustomPopup from "./CustomPopup";
 
 const AdminPortfolio = ({ activePage }) => {
   const [selectedCategory, setSelectedCategory] = useState("");
