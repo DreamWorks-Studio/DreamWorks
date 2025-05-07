@@ -34,22 +34,31 @@ const packageSchema = new mongoose.Schema({
 // Create the model
 const Package = mongoose.model('Package', packageSchema);
 
-// Attempt to drop the problematic unique index on packagePrice
-const dropPriceIndex = async () => {
+// Function to drop multiple problematic unique indexes
+const dropProblematicIndexes = async () => {
     try {
-        // Try to drop the index if it exists
+        // Try to drop the packagePrice index if it exists
         await Package.collection.dropIndex("packagePrice_1");
         console.log("Successfully dropped the packagePrice unique index");
     } catch (error) {
         // This will likely fail if index doesn't exist, which is fine
         console.log("Note: packagePrice index may not exist or was already removed");
     }
+    
+    try {
+        // Also try to drop the packagevalidity index
+        await Package.collection.dropIndex("packagevalidity_1");
+        console.log("Successfully dropped the packagevalidity unique index");
+    } catch (error) {
+        console.log("Note: packagevalidity index may not exist or was already removed");
+    }
 };
 
-// Execute the function to drop the index
-dropPriceIndex();
+// Execute the function to drop the indexes
+dropProblematicIndexes();
 
-// Explicitly create a non-unique index for packagePrice (if needed for queries)
+// Explicitly create non-unique indexes (if needed for queries)
 packageSchema.index({ packagePrice: 1 }, { unique: false });
+packageSchema.index({ packagevalidity: 1 }, { unique: false });
 
 export default Package;
