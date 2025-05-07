@@ -225,15 +225,15 @@ const AdminFinance = ({ }) => {
     const searchResultItem = sessionStorage.getItem('searchResultItem');
     if (searchResultItem) {
       const resultData = JSON.parse(searchResultItem);
-      
+
       if (resultData.type === 'payment' && Date.now() - resultData.timestamp < 2000) {
         const paymentToHighlight = paymentData.find(payment => payment._id === resultData.id);
-        
+
         if (paymentToHighlight) {
           // For payments, you might want to:
           viewPaymentDetails(paymentToHighlight);
         }
-        
+
         sessionStorage.removeItem('searchResultItem');
       }
     }
@@ -243,7 +243,7 @@ const AdminFinance = ({ }) => {
     <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
       <div className="mb-6 flex justify-between items-center">
         <div>
-        <motion.div
+          <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -456,34 +456,21 @@ const AdminFinance = ({ }) => {
         }}
       >
         {loading ? (
-          <div className="p-16 text-center overflow-hidden">
-            <div className="relative mx-auto mb-4 w-20 h-20">
-              {/* Camera body */}
-              <div className="absolute inset-0 bg-gray-800 rounded-lg shadow-lg"></div>
+          <div className="p-12 text-center mt-4">
+            <div className="relative mx-auto mb-6 w-16 h-16">
+              {/* Circular spinner representing a lens focusing */}
+              <div className="absolute inset-0 border-4 border-gray-200 border-opacity-30 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
 
-              {/* Camera lens with pulsing aperture effect */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center">
-                <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center">
-                    <div className="w-4 h-4 rounded-full bg-gray-600 flex items-center justify-center animate-pulse">
-                      <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
-                    </div>
-                  </div>
-                </div>
+              {/* Camera icon in the middle */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Camera size={20} className="text-gray-700" />
               </div>
 
-              {/* Flash reflection effect */}
-              <div className="absolute top-1 right-1 w-3 h-3 bg-white rounded-full opacity-70 animate-pulse"></div>
-
-              {/* Camera viewfinder */}
-              <div className="absolute top-0 left-1/4 w-8 h-2 bg-gray-700 rounded-sm"></div>
-
-              {/* Shutter animation */}
-              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full">
-                <div className="w-full h-full border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-              </div>
+              {/* Pulsing light effect */}
+              <div className="absolute top-0 right-0 w-3 h-3 bg-amber-500 rounded-full animate-ping opacity-75"></div>
             </div>
-            <p className="text-gray-600 font-medium mt-4">Processing your studio data...</p>
+            <p className="text-gray-600 font-medium">Loading studio payment data...</p>
           </div>
         ) : paymentData.length === 0 ? (
           <div className="p-12 text-center">
@@ -610,26 +597,6 @@ const AdminFinance = ({ }) => {
         )}
       </div>
 
-      {/* Loading overlay that shows when loading state is true */}
-      {loading && (
-        <div className="p-12 text-center mt-4">
-          <div className="relative mx-auto mb-6 w-16 h-16">
-            {/* Circular spinner representing a lens focusing */}
-            <div className="absolute inset-0 border-4 border-gray-200 border-opacity-30 rounded-full"></div>
-            <div className="absolute inset-0 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
-
-            {/* Camera icon in the middle */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <Camera size={20} className="text-gray-700" />
-            </div>
-
-            {/* Pulsing light effect */}
-            <div className="absolute top-0 right-0 w-3 h-3 bg-amber-500 rounded-full animate-ping opacity-75"></div>
-          </div>
-          <p className="text-gray-600 font-medium">Loading studio payment data...</p>
-        </div>
-      )}
-
       <div className="mt-6 flex justify-between items-center text-sm text-gray-500">
         <div>
           {!loading && filteredPayments.length > 0 &&
@@ -674,7 +641,7 @@ const AdminFinance = ({ }) => {
                 </div>
                 <div className="flex justify-between">
                   <div className="text-gray-600">Booking Date</div>
-                  <div className="font-medium">{selectedPayment.bookingId?.bookingDate ? new Date(selectedPayment.bookingId.bookingDate).toLocaleDateString() : '-'}</div>
+                  <div className="font-medium">{selectedPayment.bookingId?.date ? new Date(selectedPayment.bookingId.date).toLocaleDateString() : '-'}</div>
                 </div>
               </div>
 
