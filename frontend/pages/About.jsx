@@ -1,5 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 
 const About = () => {
   return (
@@ -53,9 +54,9 @@ const About = () => {
             </p>
             
             <div className="pt-6">
-              <button className="bg-amber-600 text-white font-bold py-3 px-8 rounded-full hover:bg-amber-700 transition-all duration-300 mr-4">
+              <Link to="/gallery" className="bg-amber-600 text-white font-bold py-3 px-8 rounded-full hover:bg-amber-700 transition-all duration-300 mr-4">
                 Our Work
-              </button>
+              </Link>
               <button className="border-2 border-amber-600 text-amber-600 font-bold py-3 px-8 rounded-full hover:bg-amber-600/10 transition-all duration-300">
                 Meet the Team
               </button>

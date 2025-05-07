@@ -355,6 +355,24 @@ export const getUserBookings = async (req, res) => {
     }
 };
 
+export const getRecentBookings = async (req, res) => {
+    try {
+        // Fetch the most recent 3 bookings, sorted by creation date
+        const recentBookings = await Booking.find()
+            .sort({ createdAt: -1 }) // Sort by newest first
+            .limit(3); // Limit to 3 bookings
+            
+        return res.status(200).json(recentBookings);
+    } catch (error) {
+        console.error('Error fetching recent bookings:', error);
+        res.status(500).json({ 
+            message: 'Failed to retrieve recent bookings', 
+            error: error.message 
+        });
+    }
+};
+
+
 
     /*const update = await Booking.findByIdAndUpdate(userId, updateBooking)
 

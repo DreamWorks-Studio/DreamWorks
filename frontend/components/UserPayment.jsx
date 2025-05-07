@@ -13,6 +13,8 @@ const UserPayment = ({
   handleEditCard,
   handleDeleteCard,
   handleSetDefaultCard,
+  setSuccessPopup,
+  setErrorPopup,
   currentUser,
   handleUpdateCard,
   handleAddCard
@@ -134,7 +136,7 @@ const UserPayment = ({
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg overflow-hidden border border-amber-100 transition-all duration-300 hover:shadow-xl">
+    <div className="w-120 ml-30 bg-white backdrop-blur-md rounded-3xl shadow-lg overflow-hidden border border-amber-100 transition-all duration-300 hover:shadow-xl">
       <div className="px-6 py-5 flex justify-between items-center border-b border-amber-100">
         <h2 className="text-xl font-bold bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">Payment Methods</h2>
         <button
@@ -299,8 +301,8 @@ const UserPayment = ({
                   <div className="flex justify-between items-start">
                     <div className="flex items-center">
                       {/* Card logo - more realistic credit card icon */}
-                      <div className="w-14 h-10 flex items-center justify-center bg-gradient-to-br from-blue-600 to-blue-900 rounded-lg shadow-sm mr-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="w-12 h-8 flex items-center justify-center bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg shadow-sm mr-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                         </svg>
                       </div>

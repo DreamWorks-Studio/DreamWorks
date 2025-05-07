@@ -20,6 +20,14 @@ const packageSchema = new mongoose.Schema({
     packagevalidity: {
         type: String, // Changed to `Date` for proper date handling
         required: true
+    }, 
+    packageType: {
+        type: String,
+        default: 'Others'
+    },
+    includedCustomizations: {
+        type: Array,
+        default: []
     }
 }, { timestamps: true });
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import upload from '../middleware/multer.middleware.js';
-import { uploadImage, getPortfolioImages, deleteImage, updateImage } from '../controller/portfolio.controller.js';
+import { uploadImage, getPortfolioImages, deleteImage, updateImage, rateImage, getUserRating, getTopRatedImages } from '../controller/portfolio.controller.js';
 
 const router = express.Router();
 
@@ -8,6 +8,10 @@ router.post('/upload', upload.single('image'), uploadImage);
 router.get('/images', getPortfolioImages);
 router.delete('/delete/:id', deleteImage);
 router.put('/update/:id', updateImage);
+
+router.post('/rate/:imageId', rateImage);
+router.get('/rate/:imageId/:userId', getUserRating);
+router.get('/top-rated', getTopRatedImages);
 
 export default router;
 

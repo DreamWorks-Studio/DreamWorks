@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Camera, DollarSign, CreditCard, RefreshCw, Download, Filter, Calendar, ChevronDown, Eye, ArrowUpDown, FileText, Printer, BarChart4, PieChart, AlertCircle, Clock } from 'lucide-react';
+import { Search, Camera, DollarSign, CreditCard, RefreshCw, Download, Filter, Calendar, ChevronDown, Eye, ArrowUpDown, FileText, Printer, BarChart4, PieChart, AlertCircle, ChevronRight } from 'lucide-react';
 import AutoGenReport from './AutoGenReport';
 import FinancialReports from './FinancialReport';
+import { motion } from 'framer-motion';
 
-const AdminFinance = ({}) => {
+const AdminFinance = ({ }) => {
   const [paymentData, setPaymentData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -19,24 +20,28 @@ const AdminFinance = ({}) => {
   const filterRef = useRef(null);
 
   useEffect(() => {
-    fetch('http://localhost:5003/api/payments/getAllPayments')
-      .then((response) => response.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setPaymentData(data);
-        } else {
-          setPaymentData([]);
-          console.error("Unexpected API response:", data);
-        }
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error('Error fetching payments:', error);
-        setLoading(false);
-      });
+    const timer = setTimeout(() => {
+      fetch('http://localhost:5003/api/payments/getAllPayments')
+        .then((response) => response.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setPaymentData(data);
+          } else {
+            setPaymentData([]);
+            console.error("Unexpected API response:", data);
+          }
+          setLoading(false);
+        })
+        .catch((error) => {
+          console.error('Error fetching payments:', error);
+          setLoading(false);
+        })
+    }, 75);
+    return () => clearTimeout(timer);
   }, []);
+
   useEffect(() => {
-    
+
     const handleClickOutside = (event) => {
       if (filterRef.current && !filterRef.current.contains(event.target)) {
         setShowFilters(false);
@@ -45,28 +50,28 @@ const AdminFinance = ({}) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
- 
+
   const filteredPayments = paymentData.filter(payment => {
-  
+
     const matchesSearch = payment.bookingId?.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesStatus = 
-      selectedFilter === "all" || 
+
+    const matchesStatus =
+      selectedFilter === "all" ||
       payment.paymentStatus === selectedFilter;
-    
+
     const paymentDate = payment.createdAt ? new Date(payment.createdAt) : null;
     const startDate = dateRange.start ? new Date(dateRange.start) : null;
     const endDate = dateRange.end ? new Date(dateRange.end) : null;
-    
-    const matchesDateRange = 
-      !paymentDate || 
-      !startDate || 
-      !endDate || 
+
+    const matchesDateRange =
+      !paymentDate ||
+      !startDate ||
+      !endDate ||
       (paymentDate >= startDate && paymentDate <= endDate);
-    
+
     return matchesSearch && matchesStatus && matchesDateRange;
   });
-  
+
   const totalRevenue = paymentData.reduce((sum, payment) => sum + (payment.amountPaid || 0), 0);
   const pendingRevenue = paymentData.reduce((sum, payment) => {
     if (payment.paymentStatus === 'pending' || payment.paymentStatus === 'partial') {
@@ -88,7 +93,7 @@ const AdminFinance = ({}) => {
   if (sortConfig.key) {
     sortedPayments.sort((a, b) => {
       let aValue, bValue;
-      
+
       if (sortConfig.key.includes('.')) {
         const [parent, child] = sortConfig.key.split('.');
         aValue = a[parent]?.[child] || '';
@@ -97,11 +102,11 @@ const AdminFinance = ({}) => {
         aValue = a[sortConfig.key] || '';
         bValue = b[sortConfig.key] || '';
       }
-      
+
       if (typeof aValue === 'number' && typeof bValue === 'number') {
         return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
       }
-      
+
       // Handle string values
       if (sortConfig.direction === 'ascending') {
         return aValue.toString().localeCompare(bValue.toString());
@@ -112,8 +117,8 @@ const AdminFinance = ({}) => {
   }
   const getSortIcon = (key) => {
     if (sortConfig.key === key) {
-      return sortConfig.direction === 'ascending' ? 
-        <ArrowUpDown size={14} className="ml-1 text-amber-300" /> : 
+      return sortConfig.direction === 'ascending' ?
+        <ArrowUpDown size={14} className="ml-1 text-amber-300" /> :
         <ArrowUpDown size={14} className="ml-1 text-amber-300 transform rotate-180" />;
     }
     return <ArrowUpDown size={14} className="ml-1 text-amber-200 opacity-50" />;
@@ -129,12 +134,12 @@ const AdminFinance = ({}) => {
       payment.paymentStatus,
       payment.paymentMethod
     ]);
-    
+
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.join(','))
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -216,17 +221,55 @@ const AdminFinance = ({}) => {
     setShowPaymentDetails(true);
   };
 
+  useEffect(() => {
+    const searchResultItem = sessionStorage.getItem('searchResultItem');
+    if (searchResultItem) {
+      const resultData = JSON.parse(searchResultItem);
+      
+      if (resultData.type === 'payment' && Date.now() - resultData.timestamp < 2000) {
+        const paymentToHighlight = paymentData.find(payment => payment._id === resultData.id);
+        
+        if (paymentToHighlight) {
+          // For payments, you might want to:
+          viewPaymentDetails(paymentToHighlight);
+        }
+        
+        sessionStorage.removeItem('searchResultItem');
+      }
+    }
+  }, [paymentData]);
+
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
+    <div className="p-6 max-w-7xl mx-auto bg-white min-h-screen">
       <div className="mb-6 flex justify-between items-center">
         <div>
-          <div className="flex items-center gap-2">
+        <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center gap-2"
+          >
             <Camera size={24} className="text-amber-500" />
             <h1 className="text-3xl font-bold text-gray-800">Finance</h1>
+          </motion.div>
+          <div
+            className="flex items-center text-sm text-gray-500 mt-2"
+            initial="hidden"
+            animate="visible"
+            custom={1}
+          >
+            <button
+              onClick={() => handleNavigate("/admin", () => { /* set your active page callback here */ })}
+              className="hover:text-amber-600 transition-colors flex items-center"
+              whileHover={{ scale: 1.05 }}
+            >
+              Dashboard
+            </button>
+            <ChevronRight size={14} className="mx-2" />
+            <span className="text-amber-600 font-medium">Finance</span>
           </div>
-          <p className="text-gray-600 ml-8 mt-1">Payment History Dashboard</p>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowReports(true)}
@@ -263,7 +306,7 @@ const AdminFinance = ({}) => {
             <Download size={18} />
             <span className="max-w-0 whitespace-nowrap overflow-hidden group-hover:max-w-20 transition-all duration-300 ease-in-out">Export</span>
           </button>
-          
+
           <div className="flex items-center rounded-full bg-white shadow-md border border-gray-100 px-4 py-2 w-64">
             <Search size={18} className="text-amber-500" />
             <input
@@ -274,9 +317,9 @@ const AdminFinance = ({}) => {
               className="bg-transparent border-none ml-2 focus:outline-none w-full text-sm"
             />
           </div>
-          
+
           <div className="relative" ref={filterRef}>
-            <button 
+            <button
               onClick={() => setShowFilters(!showFilters)}
               className="bg-white text-amber-500 px-4 py-2 rounded-full shadow-md border border-gray-100 hover:bg-amber-50 transition-colors duration-200 flex items-center gap-2"
             >
@@ -284,25 +327,25 @@ const AdminFinance = ({}) => {
               <span>Filters</span>
               <ChevronDown size={16} className={`transition-transform ${showFilters ? 'transform rotate-180' : ''}`} />
             </button>
-            
+
             {showFilters && (
               <div className="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-100 p-4 z-10">
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
                   <div className="grid grid-cols-2 gap-2">
-                    <button 
+                    <button
                       onClick={() => setSelectedFilter("all")}
                       className={`px-3 py-1 text-sm rounded-md transition-colors ${selectedFilter === "all" ? "bg-amber-500 text-white" : "bg-gray-100 text-gray-700"}`}
                     >
                       All
                     </button>
-                    <button 
+                    <button
                       onClick={() => setSelectedFilter("paid")}
                       className={`px-3 py-1 text-sm rounded-md transition-colors ${selectedFilter === "paid" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
                     >
                       Paid
                     </button>
-                    <button 
+                    <button
                       onClick={() => setSelectedFilter("partial")}
                       className={`px-3 py-1 text-sm rounded-md transition-colors ${selectedFilter === "partial" ? "bg-yellow-100 text-yellow-700" : "bg-gray-100 text-gray-700"}`}
                     >
@@ -311,7 +354,7 @@ const AdminFinance = ({}) => {
                   </div>
                 </div>
                 <div className="mt-4 flex justify-end">
-                  <button 
+                  <button
                     onClick={() => {
                       setSelectedFilter("all");
                       setDateRange({ start: "", end: "" });
@@ -324,8 +367,8 @@ const AdminFinance = ({}) => {
               </div>
             )}
           </div>
-          
-          <button 
+
+          <button
             className="bg-white text-amber-500 p-2 rounded-full shadow-md border border-gray-100 hover:bg-amber-50 transition-colors duration-200"
             onClick={() => {
               setLoading(true);
@@ -347,65 +390,100 @@ const AdminFinance = ({}) => {
           </button>
         </div>
       </div>
-      
+
+      {/* Stats Cards - No animation, centered */}
       {showStats && (
-        <div className="grid grid-cols-5 gap-4 mb-6">
-          <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-indigo-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-gray-500">Total Revenue</p>
-                <p className="text-xl font-bold text-gray-800">Rs.{totalRevenue.toFixed(2)}</p>
-              </div>
-              <div className="bg-indigo-100 p-2 rounded-lg">
-                <DollarSign size={20} className="text-indigo-600" />
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-gray-500">Pending Revenue</p>
-                <p className="text-xl font-bold text-gray-800">Rs.{pendingRevenue.toFixed(2)}</p>
-              </div>
-              <div className="bg-yellow-100 p-2 rounded-lg">
-                <AlertCircle size={20} className="text-yellow-600" />
+        <div className="flex justify-center mb-6">
+          <div className="grid grid-cols-4 gap-4 w-full">
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-indigo-500">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-gray-500">Total Revenue</p>
+                  <p className="text-xl font-bold text-gray-800">Rs.{totalRevenue.toFixed(2)}</p>
+                </div>
+                <div className="bg-indigo-100 p-2 rounded-lg">
+                  <DollarSign size={20} className="text-indigo-600" />
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-gray-500">Paid Payments</p>
-                <p className="text-xl font-bold text-gray-800">{paidPayments}</p>
-              </div>
-              <div className="bg-green-100 p-2 rounded-lg">
-                <DollarSign size={20} className="text-green-600" />
+
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-500">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-gray-500">Pending Revenue</p>
+                  <p className="text-xl font-bold text-gray-800">Rs.{pendingRevenue.toFixed(2)}</p>
+                </div>
+                <div className="bg-yellow-100 p-2 rounded-lg">
+                  <AlertCircle size={20} className="text-yellow-600" />
+                </div>
               </div>
             </div>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-500">
-            <div className="flex justify-between items-start">
-              <div>
-                <p className="text-sm text-gray-500">Partial Payments</p>
-                <p className="text-xl font-bold text-gray-800">{partialPayments}</p>
+
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-green-500">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-gray-500">Paid Payments</p>
+                  <p className="text-xl font-bold text-gray-800">{paidPayments}</p>
+                </div>
+                <div className="bg-green-100 p-2 rounded-lg">
+                  <DollarSign size={20} className="text-green-600" />
+                </div>
               </div>
-              <div className="bg-yellow-100 p-2 rounded-lg">
-                <AlertCircle size={20} className="text-yellow-600" />
+            </div>
+
+            <div className="bg-white rounded-lg shadow-md p-4 border-l-4 border-yellow-500">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm text-gray-500">Partial Payments</p>
+                  <p className="text-xl font-bold text-gray-800">{partialPayments}</p>
+                </div>
+                <div className="bg-yellow-100 p-2 rounded-lg">
+                  <AlertCircle size={20} className="text-yellow-600" />
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
-      
-      {/* Payment Table */}
-      <div className="bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-xl border border-gray-100">
+
+      {/* Payment Table with smooth loading transition */}
+      <div
+        className="bg-white rounded-xl overflow-hidden transition-all duration-500 border border-gray-100"
+        style={{
+          maxHeight: loading ? '0' : '2000px',
+          opacity: loading ? 0 : 1,
+          transition: 'max-height 0.5s ease-in-out, opacity 0.3s ease-in-out'
+        }}
+      >
         {loading ? (
-          <div className="p-12 text-center">
-            <div className="animate-spin mx-auto mb-4 h-8 w-8 border-4 border-amber-500 border-t-transparent rounded-full"></div>
-            <p className="text-gray-600">Loading payment data...</p>
+          <div className="p-16 text-center overflow-hidden">
+            <div className="relative mx-auto mb-4 w-20 h-20">
+              {/* Camera body */}
+              <div className="absolute inset-0 bg-gray-800 rounded-lg shadow-lg"></div>
+
+              {/* Camera lens with pulsing aperture effect */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-gray-900 rounded-full flex items-center justify-center">
+                <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center">
+                  <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-gray-600 flex items-center justify-center animate-pulse">
+                      <div className="w-2 h-2 bg-amber-500 rounded-full"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Flash reflection effect */}
+              <div className="absolute top-1 right-1 w-3 h-3 bg-white rounded-full opacity-70 animate-pulse"></div>
+
+              {/* Camera viewfinder */}
+              <div className="absolute top-0 left-1/4 w-8 h-2 bg-gray-700 rounded-sm"></div>
+
+              {/* Shutter animation */}
+              <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full">
+                <div className="w-full h-full border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            </div>
+            <p className="text-gray-600 font-medium mt-4">Processing your studio data...</p>
           </div>
         ) : paymentData.length === 0 ? (
           <div className="p-12 text-center">
@@ -414,15 +492,10 @@ const AdminFinance = ({}) => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full">
+            <table className="min-w-full text-sm">
               <thead>
-                <tr className="bg-gradient-to-r from-gray-700 to-gray-900 text-white">
-                  <th className="py-4 px-4 text-left font-medium cursor-pointer" onClick={() => handleSort('bookingId._id')}>
-                    <div className="flex items-center">
-                      Booking ID
-                      {getSortIcon('bookingId._id')}
-                    </div>
-                  </th>
+                <tr className="bg-gray-900 text-white">
+
                   <th className="py-4 px-4 text-left font-medium cursor-pointer" onClick={() => handleSort('bookingId.fullName')}>
                     <div className="flex items-center">
                       Customer
@@ -466,17 +539,16 @@ const AdminFinance = ({}) => {
               </thead>
               <tbody>
                 {sortedPayments.map((payment, index) => (
-                  <tr 
-                    key={payment.id || index} 
+                  <tr
+                    key={payment.id || index}
                     className={`
-                      ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} 
-                      transition-colors duration-150
-                      ${hoveredRow === index ? 'bg-amber-400' : ''}
-                    `}
+                    ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'} 
+                    transition-colors duration-150
+                    ${hoveredRow === index ? 'bg-amber-400' : ''}
+                   `}
                     onMouseEnter={() => setHoveredRow(index)}
                     onMouseLeave={() => setHoveredRow(null)}
                   >
-                    <td className="py-4 px-4 border-b border-gray-100">{payment.bookingId?._id || '-'}</td>
                     <td className="py-4 px-4 border-b border-gray-100 font-medium">{payment.bookingId?.fullName || '-'}</td>
                     <td className="py-4 px-4 border-b border-gray-100">{payment.bookingId?.packageType || '-'}</td>
                     <td className="py-4 px-4 border-b border-gray-100">
@@ -490,13 +562,14 @@ const AdminFinance = ({}) => {
                       </div>
                     </td>
                     <td className="py-4 px-4 border-b border-gray-100 text-center">
-                      <span className={`
+                      <span
+                        className={`
                         px-4 py-1 rounded-full text-white text-xs font-medium
                         ${payment.paymentStatus === 'paid' ? 'bg-gradient-to-r from-green-500 to-green-600' :
-                          payment.paymentStatus === 'pending' ? 'bg-gradient-to-r from-gray-500 to-gray-600' :
-                          payment.paymentStatus === 'partial' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
-                          'bg-gradient-to-r from-red-500 to-red-600'
-                        }
+                            payment.paymentStatus === 'pending' ? 'bg-gradient-to-r from-gray-500 to-gray-600' :
+                              payment.paymentStatus === 'partial' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                                'bg-gradient-to-r from-red-500 to-red-600'
+                          }
                         shadow-sm
                       `}>
                         {payment.paymentStatus.charAt(0).toUpperCase() + payment.paymentStatus.slice(1)}
@@ -504,15 +577,16 @@ const AdminFinance = ({}) => {
                     </td>
                     <td className="py-4 px-4 border-b border-gray-100 text-center">
                       <div className="flex justify-center">
-                        <span className={`
+                        <span
+                          className={`
                           flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium
-                          ${payment.paymentMethod === 'cash' ? 
-                            'bg-blue-50 text-blue-700 border border-blue-200' : 
-                            'bg-purple-50 text-purple-700 border border-purple-200'
-                          }
+                          ${payment.paymentMethod === 'cash' ?
+                              'bg-blue-50 text-blue-700 border border-blue-200' :
+                              'bg-purple-50 text-purple-700 border border-purple-200'
+                            }
                         `}>
-                          {payment.paymentMethod === 'cash' ? 
-                            <DollarSign size={12} /> : 
+                          {payment.paymentMethod === 'cash' ?
+                            <DollarSign size={12} /> :
                             <CreditCard size={12} />
                           }
                           {payment.paymentMethod.charAt(0).toUpperCase() + payment.paymentMethod.slice(1) || '-'}
@@ -520,9 +594,9 @@ const AdminFinance = ({}) => {
                       </div>
                     </td>
                     <td className="py-4 px-4 border-b border-gray-100 text-center">
-                      <button 
+                      <button
                         onClick={() => viewPaymentDetails(payment)}
-                        className=" text-amber-500 p-1.5 rounded hover:bg-amber-100 transition-colors"
+                        className="text-amber-500 p-1.5 rounded hover:bg-amber-100 transition-colors"
                         title="View Payment Details"
                       >
                         <Eye size={16} />
@@ -535,10 +609,30 @@ const AdminFinance = ({}) => {
           </div>
         )}
       </div>
-      
+
+      {/* Loading overlay that shows when loading state is true */}
+      {loading && (
+        <div className="p-12 text-center mt-4">
+          <div className="relative mx-auto mb-6 w-16 h-16">
+            {/* Circular spinner representing a lens focusing */}
+            <div className="absolute inset-0 border-4 border-gray-200 border-opacity-30 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+
+            {/* Camera icon in the middle */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Camera size={20} className="text-gray-700" />
+            </div>
+
+            {/* Pulsing light effect */}
+            <div className="absolute top-0 right-0 w-3 h-3 bg-amber-500 rounded-full animate-ping opacity-75"></div>
+          </div>
+          <p className="text-gray-600 font-medium">Loading studio payment data...</p>
+        </div>
+      )}
+
       <div className="mt-6 flex justify-between items-center text-sm text-gray-500">
         <div>
-          {!loading && filteredPayments.length > 0 && 
+          {!loading && filteredPayments.length > 0 &&
             `Showing ${filteredPayments.length} payment${filteredPayments.length !== 1 ? 's' : ''}`
           }
         </div>
@@ -548,13 +642,13 @@ const AdminFinance = ({}) => {
         </div>
       </div>
 
-     
+
       {showPaymentDetails && selectedPayment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 backdrop-blur-sm bg-black/20 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-auto">
             <div className="border-b border-gray-200 px-6 py-4 flex justify-between items-center bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-t-lg">
               <h3 className="text-lg font-medium">Payment Details</h3>
-              <button 
+              <button
                 onClick={() => setShowPaymentDetails(false)}
                 className="text-gray-200 hover:text-white"
               >
@@ -583,7 +677,7 @@ const AdminFinance = ({}) => {
                   <div className="font-medium">{selectedPayment.bookingId?.bookingDate ? new Date(selectedPayment.bookingId.bookingDate).toLocaleDateString() : '-'}</div>
                 </div>
               </div>
-              
+
               <h4 className="font-medium text-gray-800 mb-3">Payment Information</h4>
               <div className="grid grid-cols-2 gap-4 mb-6">
                 <div className="bg-gray-50 p-3 rounded-md">
@@ -601,8 +695,8 @@ const AdminFinance = ({}) => {
                       px-3 py-0.5 rounded-full text-white text-xs font-medium mt-1
                       ${selectedPayment.paymentStatus === 'paid' ? 'bg-green-500' :
                         selectedPayment.paymentStatus === 'pending' ? 'bg-gray-500' :
-                        selectedPayment.paymentStatus === 'partial' ? 'bg-yellow-500' : 
-                        'bg-red-500'
+                          selectedPayment.paymentStatus === 'partial' ? 'bg-yellow-500' :
+                            'bg-red-500'
                       }
                     `}>
                       {selectedPayment.paymentStatus.charAt(0).toUpperCase() + selectedPayment.paymentStatus.slice(1)}
@@ -619,7 +713,7 @@ const AdminFinance = ({}) => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gray-50 p-4 rounded-md mb-4">
                 <div className="flex justify-between mb-2">
                   <div className="text-gray-600">Payment Date</div>
@@ -632,7 +726,7 @@ const AdminFinance = ({}) => {
                   </div>
                 )}
               </div>
-              
+
               {selectedPayment.notes && (
                 <div>
                   <h4 className="font-medium text-gray-800 mb-2">Notes</h4>
