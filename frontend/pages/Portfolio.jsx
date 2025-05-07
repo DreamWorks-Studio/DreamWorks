@@ -20,6 +20,8 @@ const Portfolio = () => {
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [filteredItems, setFilteredItems] = useState([]);
   const [imagesLoaded, setImagesLoaded] = useState({});
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [showStandaloneSuccessPopup, setShowStandaloneSuccessPopup] = useState(false);
   const observerRef = useRef(null);
   const imageRefs = useRef({});
 
@@ -37,7 +39,7 @@ const Portfolio = () => {
     { id: 'Graduation', name: 'Graduation' },
     { id: 'Preshoots', name: 'Preshoots' },
     { id: 'Wedding', name: 'Wedding' },
-    { id: 'ModelShoots', name: 'Model Shoots' },
+    { id: 'Modelshoots', name: 'Model Shoots' },
     { id: 'Events', name: 'Events' }
   ];
 
@@ -139,10 +141,10 @@ const Portfolio = () => {
 
   const submitRating = async (imageId, rating) => {
     if (!rating || !currentUser) return;
-
+  
     try {
       setSubmittingRating(true);
-
+  
       // Make API call to save the rating with MongoDB ObjectId
       const response = await fetch(`http://localhost:5003/api/portfolio/rate/${imageId}`, {
         method: 'POST',
@@ -154,12 +156,27 @@ const Portfolio = () => {
           userId: currentUser._id  // This is already a MongoDB ObjectId string
         }),
       });
-
+  
       if (!response.ok) {
         throw new Error('Failed to submit rating');
       }
-
-      toast.success('Rating submitted successfully!');
+  
+      // First close the lightbox modal
+      setSelectedImage(null);
+      
+      // After a short delay, show the standalone success popup
+      setTimeout(() => {
+        setShowStandaloneSuccessPopup({
+          rating: rating,
+          show: true
+        });
+        
+        // Auto close the popup after 2.5 seconds
+        setTimeout(() => {
+          setShowStandaloneSuccessPopup(false);
+        }, 2500);
+      }, 300); // 300ms delay to allow lightbox closing animation to start
+      
     } catch (error) {
       console.error('Error submitting rating:', error);
       toast.error('Failed to submit rating. Please try again.');
@@ -328,6 +345,35 @@ const Portfolio = () => {
   return (
     <div className="w-full min-h-screen bg-white">
       <Navbar />
+
+      <AnimatePresence>
+  {showStandaloneSuccessPopup && (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.8 }}
+      transition={{ duration: 0.3 }}
+      className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+    >
+      <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
+        <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
+          <svg 
+            className="checkmark" 
+            xmlns="http://www.w3.org/2000/svg"
+            width="60"
+            height="60"
+            viewBox="0 0 52 52"
+          >
+            <circle className="checkmark__circle" cx="26" cy="26" r="25" fill="none" />
+            <path className="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8" />
+          </svg>
+        </div>
+        <h3 className="text-2xl font-bold text-gray-800 mb-3">Rating Submitted!</h3>
+        <p className="text-gray-600 text-center mb-5">Thank you for rating this image.</p>
+      </div>
+    </motion.div>
+  )}
+</AnimatePresence>
 
       {/* Page Header with parallax effect */}
       {/* Clean, modern header */}
@@ -542,7 +588,7 @@ const Portfolio = () => {
                   </span>
                   
                   <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
-                    Unscripted smiles, heartfelt embraces, and pure happiness beautifully documented in every frame.
+                    {selectedImage.description}
                   </h2>
                 </div>
 

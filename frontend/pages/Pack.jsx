@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
+const Pack = ({ isModal = false, packageId = null, onClose = null, setSuccessPopup = null, setErrorPopup = null }) => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -104,10 +104,21 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
           includedCustomizations: prev.includedCustomizations.filter(c => c.id !== customizationId)
         };
       } else {
+        // Create a complete customization object with all necessary properties
         const newCustomization = {
-          ...option,
+          id: option.id,
+          name: option.name,
+          price: option.price,
+          description: option.description,
+          hasQuantity: option.hasQuantity,
+          unit: option.unit,
+          unitDescription: option.unitDescription,
+          minQuantity: option.minQuantity,
+          maxQuantity: option.maxQuantity,
           quantity: option.hasQuantity ? (customizationQuantities[customizationId] || option.minQuantity) : undefined
         };
+
+        console.log("Adding customization:", newCustomization);
 
         return {
           ...prev,
@@ -216,9 +227,11 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Validate all fields are filled
-    if (!formData.packagename || !formData.packageDetails || !formData.packagePrice || !formData.packagevalidity) {
+    if (!formData.packageType || !formData.packagename || !formData.packageDetails || !formData.packagePrice || !formData.packagevalidity) {
       return setErrorMessage('Please fill out all fields');
     }
+
+    console.log("Submitting package with customizations:", formData.includedCustomizations);
 
     try {
       setLoading(true);
@@ -236,10 +249,14 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          includedCustomizations: formData.includedCustomizations || [] // Ensure this is always present
+        }),
       });
 
       const data = await res.json();
+      console.log("Server response:", data); // Add this line
 
       if (data.success === false) {
         setLoading(false);
@@ -253,24 +270,75 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
           ? 'Package updated successfully!'
           : 'Package added successfully!';
 
-        toast.success(successMessage);
-
         // Different behavior based on modal mode
         if (isModal && onClose) {
-          // If in modal mode, just close the modal
-          onClose();
+          // First close the modal
+          onClose(true);
+
+          // Then show the success popup after a delay
+          setTimeout(() => {
+            if (setSuccessPopup) {
+              setSuccessPopup({
+                show: true,
+                message: successMessage
+              });
+
+              // Auto close after 2.5 seconds
+              setTimeout(() => {
+                setSuccessPopup({ show: false, message: '' });
+              }, 2500);
+            }
+          }, 300); // Short delay to let the modal close animation start
         } else {
-          // Otherwise navigate away
+          // If not in modal mode, show popup first then navigate
+          if (setSuccessPopup) {
+            setSuccessPopup({
+              show: true,
+              message: successMessage
+            });
+          } else {
+            toast.success(successMessage);
+          }
+
+          // Navigate away after popup is shown
           setTimeout(() => {
             navigate('/admin');
           }, 1500);
         }
       }
-
     } catch (error) {
       console.error("Network error:", error);
-      toast.error("Failed to connect to the server.");
       setLoading(false);
+
+      if (isModal && onClose) {
+        // First close the modal
+        onClose(false);
+
+        // Then show the error popup after a delay
+        setTimeout(() => {
+          if (setErrorPopup) {
+            setErrorPopup({
+              show: true,
+              message: "Failed to connect to the server."
+            });
+
+            // Auto close after 2.5 seconds
+            setTimeout(() => {
+              setErrorPopup({ show: false, message: '' });
+            }, 2500);
+          }
+        }, 300); // Short delay to let the modal close animation start
+      } else {
+        // If not in modal mode, show error directly
+        if (setErrorPopup) {
+          setErrorPopup({
+            show: true,
+            message: "Failed to connect to the server."
+          });
+        } else {
+          toast.error("Failed to connect to the server.");
+        }
+      }
     }
   };
 
@@ -419,7 +487,7 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
               <div className="border border-gray-200 rounded-lg p-3 space-y-3 max-h-64 overflow-y-auto">
                 {customizationOptions.map(option => {
                   const isIncluded = formData.includedCustomizations.some(c => c.id === option.id);
-                  
+
                   return (
                     <div key={option.id} className="pb-3 border-b border-gray-100 last:border-0 last:pb-0">
                       <div className="flex items-start">
@@ -436,9 +504,9 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
                           {option.name} {option.price && <span className="text-amber-600">(Rs.{option.price})</span>}
                         </label>
                       </div>
-                      
+
                       <p className="ml-6 text-xs text-gray-500 mt-1">{option.description}</p>
-                      
+
                       {option.hasQuantity && isIncluded && (
                         <div className="ml-6 mt-2 flex items-center">
                           <button
@@ -453,12 +521,12 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
                           >
                             <Minus size={14} className="text-gray-600" />
                           </button>
-                          
+
                           <span className="mx-2 text-sm font-medium">
                             {customizationQuantities[option.id] || option.minQuantity} {option.unit}
                             {(customizationQuantities[option.id] || option.minQuantity) > 1 ? 's' : ''}
                           </span>
-                          
+
                           <button
                             type="button"
                             onClick={() => {
@@ -471,7 +539,7 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
                           >
                             <Plus size={14} className="text-gray-600" />
                           </button>
-                          
+
                           <span className="ml-3 text-xs text-gray-500">{option.unitDescription}</span>
                         </div>
                       )}
@@ -644,7 +712,7 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
             <div className="border rounded p-3 space-y-3 max-h-64 overflow-y-auto">
               {customizationOptions.map(option => {
                 const isIncluded = formData.includedCustomizations.some(c => c.id === option.id);
-                
+
                 return (
                   <div key={option.id} className="pb-3 border-b border-gray-100 last:border-0 last:pb-0">
                     <div className="flex items-start">
@@ -661,9 +729,9 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
                         {option.name} {option.price && <span className="text-amber-600">(${option.price})</span>}
                       </label>
                     </div>
-                    
+
                     <p className="ml-6 text-xs text-gray-500 mt-1">{option.description}</p>
-                    
+
                     {option.hasQuantity && isIncluded && (
                       <div className="ml-6 mt-2 flex items-center">
                         <button
@@ -678,12 +746,12 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
                         >
                           <Minus size={14} className="text-gray-600" />
                         </button>
-                        
+
                         <span className="mx-2 text-sm font-medium">
                           {customizationQuantities[option.id] || option.minQuantity} {option.unit}
                           {(customizationQuantities[option.id] || option.minQuantity) > 1 ? 's' : ''}
                         </span>
-                        
+
                         <button
                           type="button"
                           onClick={() => {
@@ -696,7 +764,7 @@ const Pack = ({ isModal = false, packageId = null, onClose = null }) => {
                         >
                           <Plus size={14} className="text-gray-600" />
                         </button>
-                        
+
                         <span className="ml-3 text-xs text-gray-500">{option.unitDescription}</span>
                       </div>
                     )}

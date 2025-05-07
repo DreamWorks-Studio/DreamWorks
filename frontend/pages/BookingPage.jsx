@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useForm, Controller } from "react-hook-form";
-import { ToastContainer, toast } from 'react-toastify';
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -44,7 +43,7 @@ const BookingPage = () => {
         if (selectedPackage) {
             setFormData(prevData => ({
                 ...prevData,
-                packageId: selectedPackage._id || '', 
+                packageId: selectedPackage._id || '',
                 packageType: selectedPackage.name || ''
             }));
 
@@ -122,26 +121,7 @@ const BookingPage = () => {
             }
             const result = await response.json();
             
-            // Replace the alert with toast notification
-            if (data._id) {
-                toast.success('Booking updated successfully!', {
-                    position: "top-right",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true
-                });
-            } else {
-                toast.success('Booking created successfully!', {
-                    position: "top-right",
-                    autoClose: 3000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true
-                });
-            }
+            // Toast messages removed
             
             console.log("Package being passed:", selectedPackage);
             
@@ -175,15 +155,7 @@ const BookingPage = () => {
                 } 
             });
         } catch (error) {
-            // Add error toast notification
-            toast.error("Error: " + error.message, {
-                position: "top-right",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true
-            });
+            // Toast error message removed
             console.error("Form submission error:", error);
         }
     };
@@ -289,7 +261,7 @@ const BookingPage = () => {
         <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 text-gray-800">
             {/* Custom styles for DatePicker */}
             <style>{datePickerCustomStyles}</style>
-    
+
             {/* Background container with semi-transparent overlay */}
             <div className="relative min-h-screen">
                 {/* Main content */}
@@ -310,7 +282,7 @@ const BookingPage = () => {
                                         <rect width="100%" height="100%" fill="url(#diagonalLines)" />
                                     </svg>
                                 </div>
-    
+
                                 <div className="flex items-center mb-4 relative">
                                     <div className="w-1 h-12 bg-gradient-to-b from-amber-400 to-amber-600 mr-4 rounded-full"></div>
                                     <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
@@ -320,12 +292,12 @@ const BookingPage = () => {
                                 <p className="text-gray-300 ml-5 italic relative">
                                     {selectedPackage?.name ? `Selected Package: ${selectedPackage.name}` : "Create your perfect photoshoot"}
                                 </p>
-    
+
                                 {/* Decorative elements */}
                                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500"></div>
                                 <div className="absolute -bottom-4 -right-4 w-24 h-24 bg-amber-500 rounded-full opacity-20 blur-md"></div>
                             </div>
-    
+
                             {/* Form section */}
                             <form onSubmit={handleSubmit(onSubmit)} className="p-8 lg:p-12 space-y-8">
                                 {/* Client info section */}
@@ -348,7 +320,7 @@ const BookingPage = () => {
                                             </div>
                                             {errors.fullName && <p className="text-red-500 text-sm mt-1">{errors.fullName.message}</p>}
                                         </div>
-    
+
                                         <div className="space-y-2 group">
                                             <label className="block text-gray-700 text-sm font-medium transition-all group-focus-within:text-amber-600">Email</label>
                                             <div className="relative">
@@ -368,15 +340,28 @@ const BookingPage = () => {
                                             </div>
                                             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
                                         </div>
-    
+
                                         <div className="space-y-2 group">
                                             <label className="block text-gray-700 text-sm font-medium transition-all group-focus-within:text-amber-600">Telephone</label>
                                             <div className="relative">
                                                 <input
                                                     type="tel"
-                                                    {...register("telephone", { required: "Telephone is required" })}
+                                                    {...register("telephone", {
+                                                        required: "Telephone is required",
+                                                        pattern: {
+                                                            value: /^\d{10}$/,
+                                                            message: "Please enter a valid 10-digit phone number"
+                                                        },
+                                                        maxLength: {
+                                                            value: 10,
+                                                            message: "Phone number cannot exceed 10 digits"
+                                                        }
+                                                    })}
                                                     className="w-full border-b-2 border-gray-300 py-3 px-2 focus:outline-none focus:border-amber-500 transition bg-transparent"
                                                     placeholder="Enter your phone number"
+                                                    onInput={(e) => {
+                                                        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                    }}
                                                 />
                                                 <div className="absolute bottom-0 left-0 w-0 group-focus-within:w-full h-0.5 bg-amber-500 transition-all duration-300"></div>
                                             </div>
@@ -384,7 +369,7 @@ const BookingPage = () => {
                                         </div>
                                     </div>
                                 </div>
-    
+
                                 {/* Session details section */}
                                 <div className="mb-8 relative">
                                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
@@ -405,7 +390,7 @@ const BookingPage = () => {
                                             </div>
                                             {errors.packageType && <p className="text-red-500 text-sm mt-1">{errors.packageType.message}</p>}
                                         </div>
-    
+
                                         <div className="space-y-2 group">
                                             <label className="block text-gray-700 text-sm font-medium transition-all group-focus-within:text-amber-600">Location</label>
                                             <div className="relative">
@@ -420,7 +405,7 @@ const BookingPage = () => {
                                             {errors.location && <p className="text-red-500 text-sm mt-1">{errors.location.message}</p>}
                                         </div>
                                     </div>
-    
+
                                     <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8">
                                         <div className="space-y-2 group">
                                             <label className="block text-gray-700 text-sm font-medium transition-all group-focus-within:text-amber-600">Select Date</label>
@@ -455,7 +440,7 @@ const BookingPage = () => {
                                             </div>
                                             {errors.date && <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>}
                                         </div>
-    
+
                                         <div className="space-y-2 group">
                                             <label className="block text-gray-700 text-sm font-medium transition-all group-focus-within:text-amber-600">Select Time</label>
                                             <div className="relative">
@@ -463,9 +448,9 @@ const BookingPage = () => {
                                                     {...register("time", { required: "Select a time" })}
                                                     className="w-full border-b-2 border-gray-300 py-3 px-2 focus:outline-none focus:border-amber-500 transition appearance-none bg-transparent"
                                                 >
-                                                    <option value="morning session">Morning Session (8AM - 12PM)</option>
-                                                    <option value="afternoon session">Afternoon Session (1PM - 4PM)</option>
-                                                    <option value="evening session">Evening Session (5PM - 8PM)</option>
+                                                    <option value="morning session">Morning Session</option>
+                                                    <option value="afternoon session">Afternoon Session</option>
+                                                    <option value="evening session">Evening Session</option>
                                                 </select>
                                                 <div className="absolute bottom-0 left-0 w-0 group-focus-within:w-full h-0.5 bg-amber-500 transition-all duration-300"></div>
                                                 <div className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 pointer-events-none">
@@ -478,7 +463,7 @@ const BookingPage = () => {
                                         </div>
                                     </div>
                                 </div>
-    
+
                                 {/* Special requests section */}
                                 <div className="mb-8">
                                     <h2 className="text-xl font-semibold text-gray-900 mb-6 flex items-center">
@@ -486,7 +471,7 @@ const BookingPage = () => {
                                         Special Requests
                                     </h2>
                                     <div className="space-y-2 group">
-                                        
+
                                         <div className="relative">
                                             <textarea
                                                 {...register("addson")}
@@ -496,10 +481,10 @@ const BookingPage = () => {
                                         </div>
                                     </div>
                                 </div>
-    
+
                                 {/* Add a hidden input for packageId if needed */}
                                 <input type="hidden" {...register("packageId")} />
-    
+
                                 {/* Submit button with enhanced styling */}
                                 <div className="flex justify-center pt-4">
                                     <button
@@ -514,24 +499,13 @@ const BookingPage = () => {
                                     </button>
                                 </div>
                             </form>
-    
+
                             {/* Bottom decorative divider */}
                             <div className="h-2 bg-gradient-to-r from-amber-500 via-amber-600 to-amber-500"></div>
                         </div>
                     </div>
                 </div>
             </div>
-            <ToastContainer 
-            position="top-right"
-            autoClose={3000}
-            hideProgressBar={false}
-            newestOnTop
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-        />
         </div>
     );
 };

@@ -9,7 +9,10 @@ const portfolioSchema = new mongoose.Schema(
     ratings: [{
       userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
       rating: { type: Number, required: true, min: 1, max: 5}
-    }]
+    }],
+    photographerName: { type: String, default: '' },
+    dateCaptured: { type: Date },
+    location: { type: String, default: '' }
   },
   { timestamps: true }
 );

@@ -543,7 +543,7 @@ const AdminDashboard = () => {
                       {/* Total revenue */}
                       <div className="flex-1">
                         <div className="flex items-baseline">
-                          <h2 className="text-2xl font-bold text-black/90">Rs.{totalRevenue.toLocaleString()}</h2>
+                          <h2 className="text-xl font-bold text-black/90">Rs.{totalRevenue.toLocaleString()}</h2>
                           <span className={`ml-2 text-sm px-2 py-0.5 rounded ${revenueChange >= 0 ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
                             <span className="flex items-center">
                               <TrendingUp size={12} className={`mr-1 ${revenueChange < 0 ? 'transform rotate-180' : ''}`} />
@@ -558,9 +558,9 @@ const AdminDashboard = () => {
                       <div className="mx-3 w-px bg-gray-300"></div>
 
                       {/* This month's revenue */}
-                      <div className="flex-1 ml-7">
+                      <div className="flex-1 ml-4">
                         <div className="flex items-baseline">
-                          <h2 className="text-2xl font-bold text-black/90">Rs.{revenueThisMonth.toLocaleString()}</h2>
+                          <h2 className="text-xl font-bold text-black/90">Rs.{revenueThisMonth.toLocaleString()}</h2>
                         </div>
                         <p className="text-sm text-black/60 mt-1">This month</p>
                       </div>

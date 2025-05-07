@@ -14,7 +14,7 @@ const UserBookings = ({
   const hasBookings = Array.isArray(bookings) && bookings.length > 0;
 
   return (
-    <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-lg overflow-hidden border border-amber-100 transition-all duration-300 hover:shadow-xl">
+    <div className="w-180 bg-white backdrop-blur-md rounded-3xl shadow-lg overflow-hidden border border-amber-100 transition-all duration-300 hover:shadow-xl">
       <div className="px-6 py-5 flex justify-between items-center border-b border-amber-100">
         <h2 className="text-xl font-bold bg-gradient-to-r from-amber-500 to-amber-700 bg-clip-text text-transparent">My Bookings</h2>
         <span className="text-sm font-medium text-amber-800 bg-amber-100/70 px-4 py-1 rounded-full">
@@ -63,13 +63,12 @@ const UserBookings = ({
                     </div>
                     <div className="flex flex-col items-end">
                       {/* Payment status badge */}
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
-                        paymentInfo?.isFullyPaid
-                          ? 'bg-green-100/80 text-green-800 border border-green-200 shadow-sm shadow-green-100'
-                          : paymentInfo?.isPartiallyPaid
-                            ? 'bg-amber-100/80 text-amber-800 border border-amber-200 shadow-sm shadow-amber-100'
-                            : 'bg-red-100/80 text-red-800 border border-red-200 shadow-sm shadow-red-100'
-                      }`}>
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${paymentInfo?.isFullyPaid
+                        ? 'bg-green-100/80 text-green-800 border border-green-200 shadow-sm shadow-green-100'
+                        : paymentInfo?.isPartiallyPaid
+                          ? 'bg-amber-100/80 text-amber-800 border border-amber-200 shadow-sm shadow-amber-100'
+                          : 'bg-red-100/80 text-red-800 border border-red-200 shadow-sm shadow-red-100'
+                        }`}>
                         {paymentInfo?.isFullyPaid ? 'Paid' : paymentInfo?.isPartiallyPaid ? 'Partially Paid' : 'Unpaid'}
                       </span>
                       <div className="flex items-center text-sm text-amber-600 mt-3 font-medium group">
@@ -96,7 +95,7 @@ const UserBookings = ({
                 {/* Expanded booking details */}
                 {expandedBookingId === booking._id && (
                   <div className="px-6 pb-6 bg-gradient-to-br from-amber-50/70 to-amber-100/50 border-t border-amber-100 animate-fadeIn">
-                    <div className="grid gap-6 md:grid-cols-2">
+                    <div className="grid gap-4 md:grid-cols-2 mt-5">
                       {/* Payment details section */}
                       <div className="bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-sm border border-amber-50 transition-all duration-300 hover:shadow-md">
                         <h4 className="text-amber-700 font-semibold mb-4 flex items-center">
@@ -130,11 +129,10 @@ const UserBookings = ({
                           </div>
                           <div className="flex justify-between items-center py-1">
                             <span className="text-gray-600">Payment Status:</span>
-                            <span className={`capitalize font-medium px-2 py-0.5 rounded-md text-xs ${
-                              paymentInfo?.lastPaymentStatus === 'completed' 
-                                ? 'bg-green-100 text-green-800' 
-                                : 'bg-amber-100 text-amber-800'
-                            }`}>
+                            <span className={`capitalize font-medium px-2 py-0.5 rounded-md text-xs ${paymentInfo?.lastPaymentStatus === 'completed'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-amber-100 text-amber-800'
+                              }`}>
                               {paymentInfo?.lastPaymentStatus || 'N/A'}
                             </span>
                           </div>
@@ -155,6 +153,114 @@ const UserBookings = ({
                             Pay Remaining Amount
                           </button>
                         )}
+
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Create content to print
+                              const printContent = `
+        <html>
+        <head>
+          <title>Booking Details</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 40px; line-height: 1.6; }
+            h1 { color: #d97706; margin-bottom: 20px; }
+            .section { margin-bottom: 30px; }
+            .section-title { font-size: 18px; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 15px; }
+            .detail-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+            .label { color: #666; }
+            .value { font-weight: 500; }
+            .badge { padding: 3px 8px; border-radius: 12px; font-size: 12px; display: inline-block; }
+            .badge-success { background-color: #d1fae5; color: #065f46; }
+          </style>
+        </head>
+        <body>
+          <h1>Booking Receipt</h1>
+          
+          <div class="section">
+            <div class="section-title">Package Details</div>
+            <div class="detail-row">
+              <span class="label">Package Type:</span>
+              <span class="value">${booking.packageType}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Booking ID:</span>
+              <span class="value">${booking._id}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Booking Date:</span>
+              <span class="value">${new Date(booking.date).toLocaleDateString('en-US', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                              })}</span>
+            </div>
+            ${booking.startTime ? `
+            <div class="detail-row">
+              <span class="label">Time:</span>
+              <span class="value">${booking.startTime || 'N/A'}</span>
+            </div>` : ''}
+            ${booking.location ? `
+            <div class="detail-row">
+              <span class="label">Location:</span>
+              <span class="value">${booking.location || 'N/A'}</span>
+            </div>` : ''}
+          </div>
+          
+          <div class="section">
+            <div class="section-title">Payment Details</div>
+            <div class="detail-row">
+              <span class="label">Package Price:</span>
+              <span class="value">${formatCurrency(paymentInfo?.packagePrice).replace('Rs.', 'Rs. ')}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Total Amount:</span>
+              <span class="value">${formatCurrency(paymentInfo?.totalAmount).replace('Rs.', 'Rs. ')}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Amount Paid:</span>
+              <span class="value">${formatCurrency(paymentInfo?.totalPaid).replace('Rs.', 'Rs. ')}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Payment Status:</span>
+              <span class="badge badge-success">Completed</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Payment Method:</span>
+              <span class="value">${paymentInfo?.lastPaymentMethod || 'N/A'}</span>
+            </div>
+          </div>
+          
+          <div class="section">
+            <p>Thank you for choosing our photography services!</p>
+          </div>
+        </body>
+        </html>
+      `;
+
+                              // Create a new window to print
+                              const printWindow = window.open('', '_blank', 'height=600,width=800');
+                              printWindow.document.write(printContent);
+                              printWindow.document.close();
+                              printWindow.focus();
+
+                              // Print after content is loaded
+                              printWindow.onload = function () {
+                                printWindow.print();
+                                printWindow.onafterprint = function () {
+                                  printWindow.close();
+                                };
+                              };
+                            }}
+                            className="mt-5 w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:shadow-lg hover:from-amber-600 hover:to-amber-700 transition flex items-center justify-center"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                            </svg>
+                            Print Receipt
+                          </button>
+                      
                       </div>
 
                       {/* Booking details section */}
