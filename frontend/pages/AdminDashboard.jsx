@@ -91,31 +91,20 @@ const AdminDashboard = () => {
 
         // Try to fetch users data
         try {
-          const token = localStorage.getItem('token');
-          if (!token) {
-            console.warn('No authentication token found for fetching users');
+          const usersResponse = await fetch('http://localhost:5003/api/user/getusers', {
+            credentials: 'include'  // Add this line to include cookies
+          });
+          
+          if (usersResponse.ok) {
+            const usersData = await usersResponse.json();
+            setTotalUsers(usersData.length || 0);
+          } else {
+            console.warn('Failed to fetch users, status:', usersResponse.status);
             // Set a default value or leave as 0
             setTotalUsers(0);
-          } else {
-            const usersResponse = await fetch('http://localhost:5003/api/user/getusers', {
-              headers: {
-                'Authorization': `Bearer ${token}`
-              }
-            });
-
-            if (usersResponse.ok) {
-              const usersData = await usersResponse.json();
-              setTotalUsers(usersData.length || 0);
-            } else {
-              console.warn('Failed to fetch users, status:', usersResponse.status);
-              // Set a default value or leave as 0
-              setTotalUsers(0);
-            }
           }
-          setUserChange(5.2);
         } catch (error) {
-          console.error('Error fetching users data:', error);
-          // Set default value
+          console.error('Error fetching users:', error);
           setTotalUsers(0);
         }
 
