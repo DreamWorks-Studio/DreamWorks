@@ -240,7 +240,7 @@ export default function AdminUser() {
   const toggleAdminStatus = async (id, isAdmin, isSuperAdmin) => {
     try {
       const token = localStorage.getItem("token");
-
+  
       const res = await fetch(`/api/user/toggle-admin/${id}`, {
         method: "PATCH",
         headers: {
@@ -248,62 +248,80 @@ export default function AdminUser() {
           Authorization: `Bearer ${token}`
         },
       });
-
+  
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to toggle admin status");
       }
-
+  
       const data = await res.json();
-
+  
       setUsers(prevUsers =>
         prevUsers.map(user =>
           user._id === id ? { ...user, isAdmin: data.user.isAdmin } : user
         )
       );
-
-      setSuccessMessage(data.message || (isAdmin ? "Admin status removed" : "Admin status added"));
+  
+      // Show popup instead of success message
+      setPopupMessage(data.user.isAdmin 
+        ? "Admin status added successfully!" 
+        : "Admin status removed successfully!");
+      setPopupType("success");
+      setShowPopup(true);
     } catch (error) {
       console.error('Error:', error);
-      setSuccessMessage(error.message);
-    } finally {
-      setTimeout(() => setSuccessMessage(""), 3000);
+      setPopupMessage(error.message);
+      setPopupType("error");
+      setShowPopup(true);
     }
   };
-
   const toggleUserStatus = async (id, status) => {
     try {
       const token = localStorage.getItem("token");
-
+  
       const res = await fetch(`/api/user/toggle-status/${id}`, {
-        method: "PUT",
+        method: "PATCH",
         headers: {
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
+        body: JSON.stringify({ status }), // status must be "active" or "inactive"
       });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to toggle user status");
+  
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text();
+        throw new Error(text || 'Invalid response from server');
       }
-
+  
       const data = await res.json();
-
+  
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to toggle user status");
+      }
+  
       setUsers(prevUsers =>
         prevUsers.map(user =>
-          user._id === id ? { ...user, status: user.status === "active" ? "inactive" : "active" } : user
+          user._id === id ? { ...user, status } : user // ✅ apply directly
         )
       );
-
-      setShowModal(false);
-      setSuccessMessage(data.message || "User status updated successfully");
+  
+      setPopupMessage("User status updated successfully");
+      setPopupType("success");
+      setShowPopup(true);
     } catch (error) {
       console.error('Error:', error);
-      setSuccessMessage(error.message);
+      setPopupMessage(error.message);
+      setPopupType("error");
+      setShowPopup(true);
     } finally {
-      setTimeout(() => setSuccessMessage(""), 3000);
+      setShowModal(false);
     }
   };
+  const handleToggleClick = (user) => {
+    const newStatus = user.status === "active" ? "inactive" : "active";
+    toggleUserStatus(user._id, newStatus);
+  };  
 
   const generateCSV = () => {
     const headers = ["Username", "Email", "Role", "Status", "Date Created", "Last Active"];
@@ -715,7 +733,11 @@ export default function AdminUser() {
                       <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
-                        onClick={() => toggleUserStatus(selectedUserId)}
+                        onClick={() => {
+                          const currentUser = filteredUsers.find(u => u._id === selectedUserId);
+                          const newStatus = currentUser.status === "active" ? "inactive" : "active";
+                          toggleUserStatus(selectedUserId, newStatus);
+                        }}
                         className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl font-medium transition-all duration-300 shadow-md"
                       >
                         Confirm Change

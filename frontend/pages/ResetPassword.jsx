@@ -67,9 +67,7 @@ const ResetPassword = () => {
         setTimeout(() => {
           navigate('/sign-in');
         }, 2000);
-      } else {
-        setError("Reset link expired. Please request a new one.");
-      }
+      } 
     } catch (error) {
       setError("An error occurred while updating the password.");
     }
