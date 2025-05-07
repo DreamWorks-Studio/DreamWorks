@@ -1,44 +1,62 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaMapMarkerAlt, FaEnvelope, FaPhoneAlt } from 'react-icons/fa';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { AnimatePresence } from 'framer-motion';
 
 const Contact = () => {
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [status, setStatus] = useState({ loading: false, success: '', error: '' });
-
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupMessage, setPopupMessage] = useState('');
+  const [popupType, setPopupType] = useState('success');
+  // Effect to auto-close popup after 3 seconds
+  useEffect(() => {
+    let timer;
+    if (showPopup) {
+      timer = setTimeout(() => {
+        setShowPopup(false);
+      }, 3000); // 3 seconds timeout
+    }
+    return () => clearTimeout(timer);
+  }, [showPopup]);
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus({ loading: true, success: '', error: '' });
-
     try {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-
       const data = await res.json();
       if (res.ok) {
-        setStatus({ loading: false, success: data.message, error: '' });
+        // Show success popup
+        setPopupMessage('We received your inquiry. Our team will contact you soon!');
+        setPopupType('success');
+        setShowPopup(true);
+
+        // Reset form
         setFormData({ name: '', email: '', message: '' });
+        setStatus({ loading: false, success: '', error: '' });
       } else {
         throw new Error(data.message || 'Something went wrong');
       }
     } catch (error) {
-      setStatus({ loading: false, success: '', error: error.message });
+      // Show error popup
+      setPopupMessage(error.message || 'Failed to send message. Please try again.');
+      setPopupType('error');
+      setShowPopup(true);
+      setStatus({ loading: false, success: '', error: '' });
     }
   };
-
   return (
     <div className="min-h-screen bg-white text-gray-800">
       <Navbar />
-
       {/* Header */}
       <div className="container mx-auto px-4 pt-32 pb-8 text-center">
         <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight">
@@ -49,7 +67,6 @@ const Contact = () => {
           We'd love to hear from you. Reach out for inquiries, bookings, or just to say hello.
         </p>
       </div>
-
       {/* Contact Form */}
       <div className="container mx-auto px-4 py-8">
         <motion.div
@@ -96,10 +113,6 @@ const Contact = () => {
                 />
               </div>
             </div>
-
-            {/* Status Message */}
-            {status.success && <p className="text-green-600 mt-4 text-center">{status.success}</p>}
-            {status.error && <p className="text-red-600 mt-4 text-center">{status.error}</p>}
 
             <div className="mt-6 text-center">
               <button
@@ -151,6 +164,96 @@ const Contact = () => {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showPopup && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 flex items-center justify-center z-50 pointer-events-none"
+          >
+            <div className="bg-white rounded-xl shadow-2xl p-8 flex flex-col items-center max-w-md mx-4 pointer-events-auto">
+              <div className="w-20 h-20 bg-amber-50 rounded-full flex items-center justify-center mb-6">
+                {popupType === 'success' ? (
+                  <svg
+                    className="checkmark"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="60"
+                    height="60"
+                    viewBox="0 0 52 52"
+                  >
+                    <circle
+                      className="checkmark__circle"
+                      cx="26"
+                      cy="26"
+                      r="25"
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="2"
+                    />
+                    <path
+                      className="checkmark__check"
+                      fill="none"
+                      stroke="#fbbf24"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray="48"
+                      strokeDashoffset="48"
+                      d="M14.1 27.2l7.1 7.2 16.7-16.8"
+                      style={{
+                        animation: "dash 0.8s ease-in-out forwards",
+                      }}
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="crossmark"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="60"
+                    height="60"
+                    viewBox="0 0 52 52"
+                  >
+                    <circle
+                      className="crossmark__circle"
+                      cx="26"
+                      cy="26"
+                      r="25"
+                      fill="none"
+                      stroke="#ef4444"
+                      strokeWidth="2"
+                    />
+                    <path
+                      className="crossmark__path"
+                      fill="none"
+                      stroke="#ef4444"
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      d="M16,16 L36,36 M36,16 L16,36"
+                    />
+                  </svg>
+                )}
+              </div>
+              <div>
+                <h3 className={`text-2xl text-center font-bold ${popupType === 'success' ? 'text-amber-500' : 'text-red-600'}`}>
+                  {popupType === 'success' ? 'Success' : 'Error'}
+                </h3>
+                <p className="text-gray-600 text-center mb-5">{popupMessage}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <style jsx="true">{`
+        @keyframes dash {
+          to {
+            stroke-dashoffset: 0;
+          }
+        }
+      `}</style>
+      <Footer />
 
       <Footer />
     </div>
