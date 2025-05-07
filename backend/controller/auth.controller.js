@@ -51,7 +51,7 @@ export const signin = async (req, res, next) => {
         
       },
       process.env.JWT_SECRET,
-      { expiresIn: '1d' } // Added expiration
+      { expiresIn: '1m' } // Added expiration
     );
 
     const { password: pass, ...rest } = validUser._doc;
@@ -71,42 +71,49 @@ export const signin = async (req, res, next) => {
 
 export const google = async (req, res, next) => {
   const { email, name, googlePhotoUrl } = req.body;
+
   try {
     let user = await User.findOne({ email });
+
     if (user) {
       const token = jwt.sign(
         {
           id: user._id,
           isAdmin: user.isAdmin,
-          isSuperAdmin: user.isSuperAdmin
+          isSuperAdmin: user.isSuperAdmin,
         },
         process.env.JWT_SECRET
       );
       return res.status(200).json({ user, token });
-    } else {
-      const newUser = new User({
-        email,
-        name,
-        googlePhotoUrl,
-        isAdmin: false,
-        isSuperAdmin: false
-      });
-      await newUser.save();
-      const token = jwt.sign(
-        {
-          id: newUser._id,
-          isAdmin: newUser.isAdmin,
-          isSuperAdmin: newUser.isSuperAdmin
-        },
-        process.env.JWT_SECRET
-      );
-      return res.status(201).json({ user: newUser, token });
     }
+
+    const generatedUsername = name.replace(/\s+/g, '').toLowerCase() + Math.floor(Math.random() * 10000);
+
+    const newUser = new User({
+      email,
+      username: generatedUsername,
+      googlePhotoUrl,
+      avatar: googlePhotoUrl, // ✅ Add this
+      isAdmin: false,
+      isSuperAdmin: false,
+    });
+
+    await newUser.save();
+
+    const token = jwt.sign(
+      {
+        id: newUser._id,
+        isAdmin: newUser.isAdmin,
+        isSuperAdmin: newUser.isSuperAdmin,
+      },
+      process.env.JWT_SECRET
+    );
+
+    return res.status(201).json({ user: newUser, token });
   } catch (error) {
     next(error);
   }
 };
-
 export const signout = (req, res) => {
   res
     .clearCookie('access_token', { httpOnly: true })
