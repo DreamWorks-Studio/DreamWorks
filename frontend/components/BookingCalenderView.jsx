@@ -223,7 +223,7 @@ const BookingCalendarView = () => {
   // Mark booking as completed
   const markAsCompleted = (bookingId) => {
     // Implement API call to update booking status
-    fetch(`http://localhost:5003/api/booking/update-status/${bookingId}`, {
+    fetch(`http://localhost:5003/api/booking/update-booking-status/${bookingId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
